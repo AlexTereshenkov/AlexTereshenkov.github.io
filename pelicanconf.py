@@ -7,12 +7,11 @@ from pathlib import Path
 
 AUTHOR = 'Alexey Tereshenkov'
 SITENAME = 'Software engineering notes'
+SITELOGO = 'images/author.png'
 
 # to support local preview
-if 'LAPTOP' in socket.gethostname():
-    SITEURL = 'https://localhost:8000'    
-else:
-    SITEURL = 'https://alextereshenkov.github.io'
+# SITEURL = "https://localhost:8000"
+SITEURL = 'https://alextereshenkov.github.io'
 SITETITLE = AUTHOR
 SITESUBTITLE = 'Software engineering notes'
 
