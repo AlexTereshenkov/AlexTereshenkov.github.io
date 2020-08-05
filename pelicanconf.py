@@ -1,12 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- #
 from __future__ import unicode_literals
+import socket
 from datetime import datetime
 from pathlib import Path
 
 AUTHOR = 'Alexey Tereshenkov'
 SITENAME = 'Software engineering notes'
-SITEURL = 'http://localhost:8000'
+
+# to support local preview
+if 'LAPTOP' in socket.gethostname():
+    SITEURL = 'https://localhost:8000'    
+else:
+    SITEURL = 'https://alextereshenkov.github.io'
 SITETITLE = AUTHOR
 SITESUBTITLE = 'Software engineering notes'
 
