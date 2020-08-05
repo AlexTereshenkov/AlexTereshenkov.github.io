@@ -9,6 +9,11 @@ AUTHOR = 'Alexey Tereshenkov'
 SITENAME = 'Software engineering notes'
 SITELOGO = 'images/author.png'
 
+# to support mdash "--"
+MARKDOWN = {
+    'extensions' : ['markdown.extensions.smarty'],
+}
+
 # to support local preview
 # SITEURL = "https://localhost:8000"
 SITEURL = 'https://alextereshenkov.github.io'
