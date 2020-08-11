@@ -1,57 +1,55 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- #
 from __future__ import unicode_literals
 import socket
 from datetime import datetime
 from pathlib import Path
 
 AUTHOR = 'Alexey Tereshenkov'
-SITENAME = 'Software engineering notes'
+SITENAME = 'Alexey Tereshenkov'
 SITELOGO = 'images/author.png'
 
-# to support mdash "--"
 MARKDOWN = {
-    'extensions' : ['markdown.extensions.smarty'],
+    'extension_configs': {
+        'markdown.extensions.codehilite': {'css_class': 'highlight'},
+        'markdown.extensions.extra': {},
+        'markdown.extensions.meta': {},
+        'markdown.extensions.smarty': {},
+        'markdown.extensions.toc' :{'permalink' : 'true'},
+
+    },
+    'output_format': 'html5',
 }
 
-# to support local preview
-# SITEURL = "https://localhost:8000"
+# to do a local preview, run "pelican --listen -p <port>"
 SITEURL = 'https://alextereshenkov.github.io'
-SITETITLE = AUTHOR
-SITESUBTITLE = 'Software engineering notes'
-
-PATH = 'content'
+LANDING_PAGE_TITLE = 'Software engineering notes'
 
 TIMEZONE = 'GB'
-
 DEFAULT_LANG = 'en'
-THEME = Path.home().joinpath('blogging/pelican-themes/Flex/')
 
-# Feed generation is usually not desired when developing
-FEED_ALL_ATOM = None
-CATEGORY_FEED_ATOM = None
-TRANSLATION_FEED_ATOM = None
-AUTHOR_FEED_ATOM = None
-AUTHOR_FEED_RSS = None
+THEME = Path.home().joinpath('blogging/pelican-themes/elegant').as_posix()
+PLUGIN_PATHS = [Path.home().joinpath('blogging/pelican-plugins').as_posix()]
 
-# Blogroll
-LINKS = (('StackExchange', 'https://gis.stackexchange.com/users/14435/alex-tereshenkov?tab=profile'),         
-         ('CodeQL for Python', 'https://blog.semmle.com/authors/alexey-tereshenkov/'),
-         )
-MAIN_MENU = True
-MENUITEMS = (('Archives', '/archives.html'),
-             ('Categories', '/categories.html'),
-             ('Tags', '/tags.html'),)
+# to enable search on the webpage
+PLUGINS = ['tipue_search', 'sitemap']
+DIRECT_TEMPLATES = ('index', 'tags', 'categories','archives', 'search', '404')
 
-# Social widget
-SOCIAL = (('github', 'https://github.com/alextereshenkov'),
-          ('linkedin', 'https://www.linkedin.com/in/alexeytereshenkov/'),
-          ('wordpress', 'https://tereshenkov.wordpress.com/'),
-          )
-
-DEFAULT_PAGINATION = 10
-
-COPYRIGHT_NAME = AUTHOR
-COPYRIGHT_YEAR = datetime.now().year
-# Uncomment following line if you want document-relative URLs when developing
-#RELATIVE_URLS = True
+# landing page items
+PROJECTS_TITLE = "My projects"
+PROJECTS = [{
+    'name': 'Geospatial blog',
+    'url': 'https://tereshenkov.wordpress.com/',
+    'description': ('My blog about programming and managing GIS software and services')},
+    {
+    'name': 'GDBee',
+    'url': 'https://github.com/AlexArcPy/GDBee',
+    'description': ('PyQt5 desktop SQL editor for spatial geodatabases')},
+    {'name': 'Registrant',
+    'url': 'https://github.com/AlexArcPy/registrant',
+    'description': 'Generator of HTML reports about the contents of spatial geodatabases'},
+    {'name': 'Python for GIS',
+    'url': 'https://github.com/AlexArcPy/python-for-gis-progression-path',
+    'description': ('Progression path for a GIS analyst who wants to become proficient ' 
+                   'in using Python for GIS: from apprentice to guru')},
+    
+    ]
