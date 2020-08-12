@@ -1,5 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2020-08-11T00:00:00+01:00</updated><entry><title>Building Python extension modules for C++ code with pybind11</title><link href="/pybind11-python-bindings.html" rel="alternate"></link><published>2020-08-11T00:00:00+01:00</published><updated>2020-08-11T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-11:/pybind11-python-bindings.html</id><summary type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2020-08-12T00:00:00+01:00</updated><entry><title>Using quicktype.io service to create Python interfaces from JSON</title><link href="/quicktype-json-class-generation.html" rel="alternate"></link><published>2020-08-12T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-12:/quicktype-json-class-generation.html</id><summary type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;For the last few years I had to write a few simple Python wrappers around a couple of external services.
+There are many advantages to having a nice Pythonic interface into libraries 
+and tools that are written in other programming languages.
+It often makes it easier to automate, more …&lt;/p&gt;</summary><content type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;For the last few years I had to write a few simple Python wrappers around a couple of external services.
+There are many advantages to having a nice Pythonic interface into libraries 
+and tools that are written in other programming languages.
+It often makes it easier to automate, more pleasant to interact with, and faster to program in general.&lt;/p&gt;
+&lt;h3 id="bindings-and-wrappers"&gt;Bindings and wrappers&lt;a class="headerlink" href="#bindings-and-wrappers" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Some wrappers simply expose the original interfaces without adding anything &amp;ndash; these are plain bindings
+and this is often the case for C++ libraries that have Python bindings such &lt;code&gt;Qt&lt;/code&gt; with &lt;code&gt;PyQt&lt;/code&gt;.
+Python code you&amp;rsquo;d write using plain Python bindings may not feel very Pythonic (due to &lt;code&gt;camelCase&lt;/code&gt;) 
+and because you often have to write programs using other, non-Pythonic, paradigms such 
+as &lt;code&gt;obj.setColor('Red')&lt;/code&gt; instead of &lt;code&gt;obj.color = 'Red'&lt;/code&gt;.
+It is, in fact, not uncommon to write Python wrappers around Python bindings for C++ libraries simply because
+the Python bindings do not make Python developers who use them much more productive.&lt;/p&gt;
+&lt;p&gt;Another group of Python wrapping effort exists around wrapping web services interaction to avoid dealing with
+cumbersome HTTP requests construction, response processing, and service communication.
+Likewise, wrapping a CLI tool in Python can be very useful if this is the only way to interact with the underlying software.&lt;/p&gt;
+&lt;h3 id="working-with-json"&gt;Working with JSON&lt;a class="headerlink" href="#working-with-json" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;No matter how you are getting back a JSON response &amp;ndash; from a web service or from a CLI tool &amp;ndash; 
+you will need to process it to either present the result to the end user or to manage it in some other way.
+When dealing with JSON data, the built-in &lt;code&gt;json&lt;/code&gt; module comes in handy and extracting the information you
+need out of a JSON object is trivial.
+You could also take advantage of higher level HTTP communication library such as &lt;code&gt;requests&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;At the beginning, the code may look something like this:&lt;/p&gt;
+&lt;figure class='code'&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;requests&lt;/span&gt;
+
+&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;https://s2k7tnzlhrpw.statuspage.io/api/v2/status.json&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;description&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;updated_at&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;page&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;updated_at&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Status: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s2"&gt;Updated at: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;Output:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;Status: All Systems Operational
+Updated at: 2020-08-12T08:08:25.828Z
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Interacting with the returned JSON objects using only the &lt;code&gt;json&lt;/code&gt; module will suffice for smaller scripts
+and ad-hoc web service interrogation.
+If you&amp;rsquo;d like to build a Python wrapper around a large REST interface with many endpoints, however,
+it may be useful to think about having higher level abstractions for the data entities you deal with.&lt;/p&gt;
+&lt;p&gt;The code snippet above has a number of issues:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;it relies on having the data elements present when using accessing JSON objects 
+(you could work around it using the &lt;code&gt;.get()&lt;/code&gt; method &amp;ndash; &lt;code&gt;data.get('status', {}).get('description', 'N/A')&lt;/code&gt; but it is still very fragile)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;as JSON objects keys are represented as strings, it&amp;rsquo;s impossible to run any static type checker 
+(and it has additional complications &amp;ndash; refactoring becomes really hard)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;it makes it hard to reason about the data entities as their data type is not obvious 
+(and you would have to provide a type hint for each JSON object such as &lt;code&gt;status: Dict[str, str] = data['status']&lt;/code&gt; which will become tedious very quickly)&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="representation-of-json-as-python-classes"&gt;Representation of JSON as Python classes&lt;a class="headerlink" href="#representation-of-json-as-python-classes" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;To make it easier to interact with JSON objects, they can be used to construct instances of Python classes
+which are much easier to work with: they provide nice abstraction, they are easy to write unit tests for,
+and the code that uses them can be inspected with a static analysis tool such as &lt;code&gt;mypy&lt;/code&gt;.&lt;/p&gt;
+&lt;figure class='code'&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;requests&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;typing&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;datetime&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;dateutil&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;parser&lt;/span&gt;
+
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Page&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nb"&gt;id&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;time_zone&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;id&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
+                 &lt;span class="n"&gt;time_zone&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;]):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;id&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;time_zone&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;time_zone&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;parser&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;parse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Status&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;indicator&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;description&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;indicator&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;description&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;]):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;indicator&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;indicator&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;description&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;description&lt;/span&gt;
+
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;System&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;page&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;Page&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;Status&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;page&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Page&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;page&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Status&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+
+&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;https://s2k7tnzlhrpw.statuspage.io/api/v2/status.json&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;system&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;System&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;description&lt;/span&gt;
+&lt;span class="n"&gt;updated_at&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;page&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strftime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt;/%m/%Y&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Status: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s2"&gt;Updated at: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;Output:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;Status: All Systems Operational
+Updated at: 2020-08-12T08:08:25.828Z
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Having these classes will solve the issues that the original code snippet had.
+You can now extend the classes with more fields and add additional logic 
+to any class &amp;ndash; the &lt;code&gt;Page&lt;/code&gt; class can have a local time zone property or the 
+&lt;code&gt;Status.description&lt;/code&gt; can be an instance of the &lt;code&gt;StatusType(Enum)&lt;/code&gt; class, for instance.&lt;/p&gt;
+&lt;h3 id="autogeneration-of-python-classes-from-json"&gt;Autogeneration of Python classes from JSON&lt;a class="headerlink" href="#autogeneration-of-python-classes-from-json" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;It would be very useful if one could generate Python classes declarations from an API
+specification file.
+&lt;a href="https://swagger.io/docs/swagger-inspector/how-to-create-an-openapi-definition-using-swagger/"&gt;Swagger tools&lt;/a&gt;
+make it possible to generate an API specification which one could then convert into a collection
+of Python classes.
+This approach is very useful but the generated Python classes would be simply data classes without
+any logic &amp;ndash; your fields with the date would be strings, not &lt;code&gt;datetime&lt;/code&gt; objects.
+I think it works best for APIs that change often, during the development when you are iterating
+on the API design, or when having the raw data classes is sufficient.&lt;/p&gt;
+&lt;p&gt;Another approach is to auto-generate a collection of Python classes from the API specification 
+and extend their initialization logic and to add additional fields/methods as required.
+This approach has worked well for me and would be particularly useful for any internal tooling
+when you have control over the API changes.&lt;/p&gt;
+&lt;p&gt;I found the &lt;a href="https://app.quicktype.io/"&gt;QuickType.io&lt;/a&gt; &amp;ndash; the service that can convert JSON into
+typesafe code in many languages including Python &amp;ndash; to be really helpful.
+The classes declared in the snippet above have been generated by &lt;code&gt;quicktype.io&lt;/code&gt; from JSON and
+then modified so that the root class &lt;code&gt;System&lt;/code&gt; will have other class instances as its fields.
+That is, you just have to provide the root JSON object and the root class &lt;code&gt;System&lt;/code&gt; will populate
+all its fields with respective classes as required.
+For this, a handy Python feature of 
+&lt;a href="https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists"&gt;unpacking keyword arguments&lt;/a&gt; 
+with &lt;code&gt;**&lt;/code&gt; is used.&lt;/p&gt;
+&lt;p&gt;This way, the &lt;code&gt;quicktype.io&lt;/code&gt; service generates all the boilerplate Python code needed 
+and then some additional modification can be done (e.g. to overload the &lt;code&gt;__repr__&lt;/code&gt; magic 
+method to dump a JSON representation of the class instance).
+I think you will see the value of using a Python class to represent a JSON object very quickly and
+with the help of &lt;code&gt;quicktype.io&lt;/code&gt;, autogeneration of Python data classes is incredibly easy.&lt;/p&gt;
+&lt;p&gt;Happy automating!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="json"></category><category term="REST"></category><category term="Swagger"></category></entry><entry><title>Building Python extension modules for C++ code with pybind11</title><link href="/pybind11-python-bindings.html" rel="alternate"></link><published>2020-08-11T00:00:00+01:00</published><updated>2020-08-11T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-11:/pybind11-python-bindings.html</id><summary type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;If you ever needed to provide interface to the C/C++ code from your Python modules,
 you may have used &lt;a href="https://docs.python.org/3/extending/extending.html"&gt;Python extension modules&lt;/a&gt;.
 They are typically created when there is an existing C++ project and it is required to make it
@@ -33,6 +194,9 @@ more complete &amp;ldquo;library&amp;rdquo; where multiple examples are combined
 &lt;p&gt;Here is the C++ file, &lt;code&gt;Geometry.cpp&lt;/code&gt;, I&amp;rsquo;ve written to demonstrate the &lt;code&gt;pybind11&lt;/code&gt; features.
 It showcases constructing custom &lt;code&gt;Point&lt;/code&gt; class instances, finding the distance between them in 2D and 3D space, 
 and overloading C++ comparison operators among a few other things.&lt;/p&gt;
+&lt;figure class='code'&gt;
+
+
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;pybind11/pybind11.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
 &lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;pybind11/operators.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
 &lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;string&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
@@ -150,7 +314,7 @@ and overloading C++ comparison operators among a few other things.&lt;/p&gt;
                 &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;point&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
                 &lt;span class="p"&gt;{&lt;/span&gt;
                     &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Point (&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;xAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;, &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;yAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;
-                            &lt;span class="s"&gt;&amp;quot;, &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;zAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                        &lt;span class="s"&gt;&amp;quot;, &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;zAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
                 &lt;span class="p"&gt;}&lt;/span&gt;
                 &lt;span class="k"&gt;else&lt;/span&gt;
                 &lt;span class="p"&gt;{&lt;/span&gt;
@@ -160,6 +324,8 @@ and overloading C++ comparison operators among a few other things.&lt;/p&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
+
+&lt;/figure&gt;
 
 &lt;h3 id="building-a-python-extension-module"&gt;Building a Python extension module&lt;a class="headerlink" href="#building-a-python-extension-module" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Once you have the &lt;code&gt;Geometry.cpp&lt;/code&gt; file on disk and &lt;code&gt;pybind11&lt;/code&gt; installed, you should be able to compile the C++ code
@@ -176,6 +342,9 @@ for CPython 3.6 on a 64bit Ubuntu, the &lt;code&gt;Geometry.cpython-36m-x86_64-l
 Python module. &lt;/p&gt;
 &lt;h3 id="using-a-python-extension-module"&gt;Using a Python extension module&lt;a class="headerlink" href="#using-a-python-extension-module" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Let&amp;rsquo;s see our library in action by running the file &lt;code&gt;python3 use_geometry.py&lt;/code&gt; containing the code below:&lt;/p&gt;
+&lt;figure class='code'&gt;
+
+
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;math&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Geometry&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Point&lt;/span&gt;
 
@@ -212,6 +381,8 @@ Python module. &lt;/p&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 
+&lt;/figure&gt;
+
 &lt;p&gt;The produced output:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;__init__(*args, **kwargs)
 Overloaded function.
@@ -239,12 +410,12 @@ successful attempts to use &lt;code&gt;pybind11&lt;/code&gt; for binding existin
 such as &lt;a href="https://www.cgal.org/"&gt;CGAL&lt;/a&gt; and &lt;a href="https://pcl.readthedocs.io/projects/tutorials/en/latest/#"&gt;Point Cloud Library&lt;/a&gt;.
 See an example of &lt;a href="https://github.com/rob-smallshire/mesher"&gt;wrapping some of the CGAL functionality with pybind11&lt;/a&gt;
 and &lt;a href="https://github.com/davidcaron/pclpy"&gt;Python bindings for the Point Cloud Library&lt;/a&gt; to learn more.&lt;/p&gt;
-&lt;p&gt;Happy binding!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="pybind11"></category><category term="c++"></category></entry><entry><title>What I think a great tech support should look like</title><link href="/my-version-of-a-great-tech-support.html" rel="alternate"></link><published>2020-08-05T00:00:00+01:00</published><updated>2020-08-11T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-05:/my-version-of-a-great-tech-support.html</id><summary type="html">&lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
+&lt;p&gt;Happy binding!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="pybind11"></category><category term="c++"></category></entry><entry><title>What I think a great tech support should look like</title><link href="/my-version-of-a-great-tech-support.html" rel="alternate"></link><published>2020-08-05T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-05:/my-version-of-a-great-tech-support.html</id><summary type="html">&lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
 are working in a small company.
-If you wearing multiple hats or if you are in professional services or tech support, 
-you will likely be contacted by your customers about issues they may experience using …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
+If you are wearing multiple hats or if you are in professional services or tech support, 
+you will likely be contacted by your customers about issues they may experience …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
 are working in a small company.
-If you wearing multiple hats or if you are in professional services or tech support, 
+If you are wearing multiple hats or if you are in professional services or tech support, 
 you will likely be contacted by your customers about issues they may experience using your 
 product &amp;ndash; a web site, a desktop or a mobile app, or some hardware equipment.&lt;/p&gt;
 &lt;p&gt;Whatever it is, I believe it&amp;rsquo;s best to have a clear plan of actions outlined which you can 

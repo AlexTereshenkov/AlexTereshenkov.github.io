@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python, json, REST, Swagger, python, " />
+
+<meta property="og:title" content="Using quicktype.io service to create Python interfaces from JSON "/>
+<meta property="og:url" content="/quicktype-json-class-generation.html" />
+<meta property="og:description" content="Introduction¶ For the last few years I had to write a few simple Python wrappers around a couple of external services. There are many advantages to having a nice Pythonic interface into libraries and tools that are written in other programming languages. It often makes it easier to automate, more …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2020-08-12T00:00:00+01:00" />
+<meta property="og:article:modified_time" content="2020-08-12T00:00:00+01:00" />
+<meta name="twitter:title" content="Using quicktype.io service to create Python interfaces from JSON ">
+<meta name="twitter:description" content="Introduction¶ For the last few years I had to write a few simple Python wrappers around a couple of external services. There are many advantages to having a nice Pythonic interface into libraries and tools that are written in other programming languages. It often makes it easier to automate, more …">
+
+        <title>Using quicktype.io service to create Python interfaces from JSON  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/quicktype-json-class-generation.html">
+                Using quicktype.io service to create Python interfaces from JSON
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+        <div class="span8 offset2 article-content">
+            
+            <h3 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h3>
+<p>For the last few years I had to write a few simple Python wrappers around a couple of external services.
+There are many advantages to having a nice Pythonic interface into libraries 
+and tools that are written in other programming languages.
+It often makes it easier to automate, more pleasant to interact with, and faster to program in general.</p>
+<h3 id="bindings-and-wrappers">Bindings and wrappers<a class="headerlink" href="#bindings-and-wrappers" title="Permanent link">&para;</a></h3>
+<p>Some wrappers simply expose the original interfaces without adding anything &ndash; these are plain bindings
+and this is often the case for C++ libraries that have Python bindings such <code>Qt</code> with <code>PyQt</code>.
+Python code you&rsquo;d write using plain Python bindings may not feel very Pythonic (due to <code>camelCase</code>) 
+and because you often have to write programs using other, non-Pythonic, paradigms such 
+as <code>obj.setColor('Red')</code> instead of <code>obj.color = 'Red'</code>.
+It is, in fact, not uncommon to write Python wrappers around Python bindings for C++ libraries simply because
+the Python bindings do not make Python developers who use them much more productive.</p>
+<p>Another group of Python wrapping effort exists around wrapping web services interaction to avoid dealing with
+cumbersome HTTP requests construction, response processing, and service communication.
+Likewise, wrapping a CLI tool in Python can be very useful if this is the only way to interact with the underlying software.</p>
+<h3 id="working-with-json">Working with JSON<a class="headerlink" href="#working-with-json" title="Permanent link">&para;</a></h3>
+<p>No matter how you are getting back a JSON response &ndash; from a web service or from a CLI tool &ndash; 
+you will need to process it to either present the result to the end user or to manage it in some other way.
+When dealing with JSON data, the built-in <code>json</code> module comes in handy and extracting the information you
+need out of a JSON object is trivial.
+You could also take advantage of higher level HTTP communication library such as <code>requests</code>.</p>
+<p>At the beginning, the code may look something like this:</p>
+<figure class='code'>
+
+
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://s2k7tnzlhrpw.statuspage.io/api/v2/status.json&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="n">status</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+<span class="n">updated_at</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;page&#39;</span><span class="p">][</span><span class="s1">&#39;updated_at&#39;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="se">\n</span><span class="s2">Updated at: </span><span class="si">{</span><span class="n">updated_at</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+</figure>
+
+<p>Output:</p>
+<div class="highlight"><pre><span></span><code>Status: All Systems Operational
+Updated at: 2020-08-12T08:08:25.828Z
+</code></pre></div>
+
+
+<p>Interacting with the returned JSON objects using only the <code>json</code> module will suffice for smaller scripts
+and ad-hoc web service interrogation.
+If you&rsquo;d like to build a Python wrapper around a large REST interface with many endpoints, however,
+it may be useful to think about having higher level abstractions for the data entities you deal with.</p>
+<p>The code snippet above has a number of issues:</p>
+<ul>
+<li>
+<p>it relies on having the data elements present when using accessing JSON objects 
+(you could work around it using the <code>.get()</code> method &ndash; <code>data.get('status', {}).get('description', 'N/A')</code> but it is still very fragile)</p>
+</li>
+<li>
+<p>as JSON objects keys are represented as strings, it&rsquo;s impossible to run any static type checker 
+(and it has additional complications &ndash; refactoring becomes really hard)</p>
+</li>
+<li>
+<p>it makes it hard to reason about the data entities as their data type is not obvious 
+(and you would have to provide a type hint for each JSON object such as <code>status: Dict[str, str] = data['status']</code> which will become tedious very quickly)</p>
+</li>
+</ul>
+<h3 id="representation-of-json-as-python-classes">Representation of JSON as Python classes<a class="headerlink" href="#representation-of-json-as-python-classes" title="Permanent link">&para;</a></h3>
+<p>To make it easier to interact with JSON objects, they can be used to construct instances of Python classes
+which are much easier to work with: they provide nice abstraction, they are easy to write unit tests for,
+and the code that uses them can be inspected with a static analysis tool such as <code>mypy</code>.</p>
+<figure class='code'>
+
+
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">dateutil</span> <span class="kn">import</span> <span class="n">parser</span>
+
+
+<span class="k">class</span> <span class="nc">Page</span><span class="p">:</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">time_zone</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">updated_at</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                 <span class="n">time_zone</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">updated_at</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_zone</span> <span class="o">=</span> <span class="n">time_zone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updated_at</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">updated_at</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Status</span><span class="p">:</span>
+    <span class="n">indicator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indicator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indicator</span> <span class="o">=</span> <span class="n">indicator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+
+<span class="k">class</span> <span class="nc">System</span><span class="p">:</span>
+    <span class="n">page</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Page</span><span class="p">]</span>
+    <span class="n">status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Status</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">page</span> <span class="o">=</span> <span class="n">Page</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;page&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">Status</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">])</span>
+
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://s2k7tnzlhrpw.statuspage.io/api/v2/status.json&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">status</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">description</span>
+<span class="n">updated_at</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">page</span><span class="o">.</span><span class="n">updated_at</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m/%Y&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="se">\n</span><span class="s2">Updated at: </span><span class="si">{</span><span class="n">updated_at</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+</figure>
+
+<p>Output:</p>
+<div class="highlight"><pre><span></span><code>Status: All Systems Operational
+Updated at: 2020-08-12T08:08:25.828Z
+</code></pre></div>
+
+
+<p>Having these classes will solve the issues that the original code snippet had.
+You can now extend the classes with more fields and add additional logic 
+to any class &ndash; the <code>Page</code> class can have a local time zone property or the 
+<code>Status.description</code> can be an instance of the <code>StatusType(Enum)</code> class, for instance.</p>
+<h3 id="autogeneration-of-python-classes-from-json">Autogeneration of Python classes from JSON<a class="headerlink" href="#autogeneration-of-python-classes-from-json" title="Permanent link">&para;</a></h3>
+<p>It would be very useful if one could generate Python classes declarations from an API
+specification file.
+<a href="https://swagger.io/docs/swagger-inspector/how-to-create-an-openapi-definition-using-swagger/">Swagger tools</a>
+make it possible to generate an API specification which one could then convert into a collection
+of Python classes.
+This approach is very useful but the generated Python classes would be simply data classes without
+any logic &ndash; your fields with the date would be strings, not <code>datetime</code> objects.
+I think it works best for APIs that change often, during the development when you are iterating
+on the API design, or when having the raw data classes is sufficient.</p>
+<p>Another approach is to auto-generate a collection of Python classes from the API specification 
+and extend their initialization logic and to add additional fields/methods as required.
+This approach has worked well for me and would be particularly useful for any internal tooling
+when you have control over the API changes.</p>
+<p>I found the <a href="https://app.quicktype.io/">QuickType.io</a> &ndash; the service that can convert JSON into
+typesafe code in many languages including Python &ndash; to be really helpful.
+The classes declared in the snippet above have been generated by <code>quicktype.io</code> from JSON and
+then modified so that the root class <code>System</code> will have other class instances as its fields.
+That is, you just have to provide the root JSON object and the root class <code>System</code> will populate
+all its fields with respective classes as required.
+For this, a handy Python feature of 
+<a href="https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists">unpacking keyword arguments</a> 
+with <code>**</code> is used.</p>
+<p>This way, the <code>quicktype.io</code> service generates all the boilerplate Python code needed 
+and then some additional modification can be done (e.g. to overload the <code>__repr__</code> magic 
+method to dump a JSON representation of the class instance).
+I think you will see the value of using a Python class to represent a JSON object very quickly and
+with the help of <code>quicktype.io</code>, autogeneration of Python data classes is incredibly easy.</p>
+<p>Happy automating!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2020-08-12T00:00:00+01:00">Wed 12 August 2020</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#python-ref">python</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#json-ref">json
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">2</span>
+</a></li>
+                <li><a href="/tags.html#rest-ref">REST
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="/tags.html#swagger-ref">Swagger
+                    <span class="superscript">1</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

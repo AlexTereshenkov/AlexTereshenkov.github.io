@@ -4,6 +4,11 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
         <meta name="author" content="Alexey Tereshenkov" />
 
         <meta property="og:type" content="article" />
@@ -18,9 +23,6 @@
 <meta property="og:article:author" content="Alexey Tereshenkov" />
         <title>All Tags · Alexey Tereshenkov
 </title>
-        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
-        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.css" media="screen">
-        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
         <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
 
 
@@ -69,16 +71,25 @@
         </form>
         <ul class="list-of-tags">
             <li>
-            <a href="#c-ref">c++<span>1</span></a>
+            <a href="#c-ref">c++<span class="superscript">1</span></a>
             </li>
             <li>
-            <a href="#pybind11-ref">pybind11<span>1</span></a>
+            <a href="#json-ref">json<span class="superscript">1</span></a>
             </li>
             <li>
-            <a href="#python-ref">python<span>1</span></a>
+            <a href="#pybind11-ref">pybind11<span class="superscript">1</span></a>
             </li>
             <li>
-            <a href="#tech-support-ref">tech-support<span>1</span></a>
+            <a href="#python-ref">python<span class="superscript">2</span></a>
+            </li>
+            <li>
+            <a href="#rest-ref">REST<span class="superscript">1</span></a>
+            </li>
+            <li>
+            <a href="#swagger-ref">Swagger<span class="superscript">1</span></a>
+            </li>
+            <li>
+            <a href="#tech-support-ref">tech-support<span class="superscript">1</span></a>
             </li>
         </ul>
     </div>
@@ -87,50 +98,94 @@
 <div class="row-fluid">
     <div class="span8 offset2">
         <h2 id="c-ref" class="tag-title">c++</h2>
-        <ul class="articles-in-tag list-articles-category">
+        <ul class="list-articles-under-tag-category">
             <li itemscope>
-                <time itemprop="dateCreated" datetime="2020-08-11T00:00:00+01:00">
-                    Tue 11 August 2020
-                </time>
                 <a href="/pybind11-python-bindings.html">
                     Building Python extension modules for C++ code with pybind11
                 </a>
+                <time itemprop="dateCreated" datetime="2020-08-11T00:00:00+01:00">
+                    Tue 11 August 2020
+                </time>
+            </li>
+        </ul>
+
+        <h2 id="json-ref" class="tag-title">json</h2>
+        <ul class="list-articles-under-tag-category">
+            <li itemscope>
+                <a href="/quicktype-json-class-generation.html">
+                    Using quicktype.io service to create Python interfaces from JSON
+                </a>
+                <time itemprop="dateCreated" datetime="2020-08-12T00:00:00+01:00">
+                    Wed 12 August 2020
+                </time>
             </li>
         </ul>
 
         <h2 id="pybind11-ref" class="tag-title">pybind11</h2>
-        <ul class="articles-in-tag list-articles-category">
+        <ul class="list-articles-under-tag-category">
             <li itemscope>
-                <time itemprop="dateCreated" datetime="2020-08-11T00:00:00+01:00">
-                    Tue 11 August 2020
-                </time>
                 <a href="/pybind11-python-bindings.html">
                     Building Python extension modules for C++ code with pybind11
                 </a>
+                <time itemprop="dateCreated" datetime="2020-08-11T00:00:00+01:00">
+                    Tue 11 August 2020
+                </time>
             </li>
         </ul>
 
         <h2 id="python-ref" class="tag-title">python</h2>
-        <ul class="articles-in-tag list-articles-category">
+        <ul class="list-articles-under-tag-category">
             <li itemscope>
-                <time itemprop="dateCreated" datetime="2020-08-11T00:00:00+01:00">
-                    Tue 11 August 2020
+                <a href="/quicktype-json-class-generation.html">
+                    Using quicktype.io service to create Python interfaces from JSON
+                </a>
+                <time itemprop="dateCreated" datetime="2020-08-12T00:00:00+01:00">
+                    Wed 12 August 2020
                 </time>
+            </li>
+            <li itemscope>
                 <a href="/pybind11-python-bindings.html">
                     Building Python extension modules for C++ code with pybind11
                 </a>
+                <time itemprop="dateCreated" datetime="2020-08-11T00:00:00+01:00">
+                    Tue 11 August 2020
+                </time>
+            </li>
+        </ul>
+
+        <h2 id="rest-ref" class="tag-title">REST</h2>
+        <ul class="list-articles-under-tag-category">
+            <li itemscope>
+                <a href="/quicktype-json-class-generation.html">
+                    Using quicktype.io service to create Python interfaces from JSON
+                </a>
+                <time itemprop="dateCreated" datetime="2020-08-12T00:00:00+01:00">
+                    Wed 12 August 2020
+                </time>
+            </li>
+        </ul>
+
+        <h2 id="swagger-ref" class="tag-title">Swagger</h2>
+        <ul class="list-articles-under-tag-category">
+            <li itemscope>
+                <a href="/quicktype-json-class-generation.html">
+                    Using quicktype.io service to create Python interfaces from JSON
+                </a>
+                <time itemprop="dateCreated" datetime="2020-08-12T00:00:00+01:00">
+                    Wed 12 August 2020
+                </time>
             </li>
         </ul>
 
         <h2 id="tech-support-ref" class="tag-title">tech-support</h2>
-        <ul class="articles-in-tag list-articles-category">
+        <ul class="list-articles-under-tag-category">
             <li itemscope>
-                <time itemprop="dateCreated" datetime="2020-08-05T00:00:00+01:00">
-                    Wed 05 August 2020
-                </time>
                 <a href="/my-version-of-a-great-tech-support.html">
                     What I think a great tech support should look like
                 </a>
+                <time itemprop="dateCreated" datetime="2020-08-05T00:00:00+01:00">
+                    Wed 05 August 2020
+                </time>
             </li>
         </ul>
 
@@ -153,6 +208,7 @@
     </div>
 </footer>        <script src="//code.jquery.com/jquery.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
         <script>
             function validateForm(query)
             {

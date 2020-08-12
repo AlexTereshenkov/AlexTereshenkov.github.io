@@ -4,6 +4,11 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
         <meta name="author" content="Alexey Tereshenkov" />
 
         <meta property="og:type" content="article" />
@@ -18,9 +23,6 @@
 <meta property="og:article:author" content="Alexey Tereshenkov" />
         <title>All Categories · Alexey Tereshenkov
 </title>
-        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
-        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.css" media="screen">
-        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
         <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
 
         <link href="/feeds/python.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - python Category Atom Feed" />
@@ -71,20 +73,28 @@
         <div class="accordion" id="accordion2">
             <div class="accordion-group">
                 <div class="accordion-heading">
-                    <a class="accordion-toggle list-of-categories" data-toggle="collapse" data-parent="#accordion2" href="#python-ref">
-                        python<span>1</span>
+                    <a class="accordion-toggle category-title-inside-accordion collapsed" data-toggle="collapse" data-parent="#accordion2" href="#python-ref">
+                        python<span class="superscript">2</span>
                     </a>
                 </div>
                 <div id="python-ref" class="accordion-body collapse">
                     <div class="accordion-inner">
-                        <ul class="list-articles-category">
+                        <ul class="list-articles-under-tag-category">
                             <li itemscope>
-                                <time itemprop="dateCreated" datetime="2020-08-11T00:00:00+01:00">
-                                    Tue 11 August 2020
+                                    <a href="/quicktype-json-class-generation.html">
+                                        Using quicktype.io service to create Python interfaces from JSON
+                                    </a>
+                                <time itemprop="dateCreated" datetime="2020-08-12T00:00:00+01:00">
+                                    Wed 12 August 2020
                                 </time>
+                            </li>
+                            <li itemscope>
                                     <a href="/pybind11-python-bindings.html">
                                         Building Python extension modules for C++ code with pybind11
                                     </a>
+                                <time itemprop="dateCreated" datetime="2020-08-11T00:00:00+01:00">
+                                    Tue 11 August 2020
+                                </time>
                             </li>
                         </ul>
                     </div>
@@ -92,20 +102,20 @@
             </div>
             <div class="accordion-group">
                 <div class="accordion-heading">
-                    <a class="accordion-toggle list-of-categories" data-toggle="collapse" data-parent="#accordion2" href="#tech-support-ref">
-                        tech-support<span>1</span>
+                    <a class="accordion-toggle category-title-inside-accordion collapsed" data-toggle="collapse" data-parent="#accordion2" href="#tech-support-ref">
+                        tech-support<span class="superscript">1</span>
                     </a>
                 </div>
                 <div id="tech-support-ref" class="accordion-body collapse">
                     <div class="accordion-inner">
-                        <ul class="list-articles-category">
+                        <ul class="list-articles-under-tag-category">
                             <li itemscope>
-                                <time itemprop="dateCreated" datetime="2020-08-05T00:00:00+01:00">
-                                    Wed 05 August 2020
-                                </time>
                                     <a href="/my-version-of-a-great-tech-support.html">
                                         What I think a great tech support should look like
                                     </a>
+                                <time itemprop="dateCreated" datetime="2020-08-05T00:00:00+01:00">
+                                    Wed 05 August 2020
+                                </time>
                             </li>
                         </ul>
                     </div>
@@ -130,6 +140,7 @@
     </div>
 </footer>        <script src="//code.jquery.com/jquery.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
         <script>
             function validateForm(query)
             {
