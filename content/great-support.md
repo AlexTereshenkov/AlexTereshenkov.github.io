@@ -1,6 +1,6 @@
 title: What I think a great tech support should look like
 date: 2020-08-05
-modified: 2020-08-11
+modified: 2020-08-12
 author: Alexey Tereshenkov
 tags: tech-support
 slug: my-version-of-a-great-tech-support
@@ -8,7 +8,7 @@ category: tech-support
 
 Being a software engineer implies that you may be interacting with customers particularly if you 
 are working in a small company.
-If you wearing multiple hats or if you are in professional services or tech support, 
+If you are wearing multiple hats or if you are in professional services or tech support, 
 you will likely be contacted by your customers about issues they may experience using your 
 product -- a web site, a desktop or a mobile app, or some hardware equipment.
 

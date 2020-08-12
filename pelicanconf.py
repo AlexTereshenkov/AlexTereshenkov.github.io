@@ -6,7 +6,6 @@ from pathlib import Path
 
 AUTHOR = 'Alexey Tereshenkov'
 SITENAME = 'Alexey Tereshenkov'
-SITELOGO = 'images/author.png'
 
 MARKDOWN = {
     'extension_configs': {
@@ -27,11 +26,12 @@ LANDING_PAGE_TITLE = 'Software engineering notes'
 TIMEZONE = 'GB'
 DEFAULT_LANG = 'en'
 
-THEME = Path.home().joinpath('blogging/pelican-themes/elegant').as_posix()
+THEME = Path.home().joinpath('blogging/elegant').as_posix()
 PLUGIN_PATHS = [Path.home().joinpath('blogging/pelican-plugins').as_posix()]
 
-# to enable search on the webpage
-PLUGINS = ['tipue_search', 'sitemap']
+# tipue_search - to enable search on the webpage
+# liquid_tags - to place code from files into the .md file
+PLUGINS = ['tipue_search', 'sitemap', 'liquid_tags.include_code']
 DIRECT_TEMPLATES = ('index', 'tags', 'categories','archives', 'search', '404')
 
 # landing page items
