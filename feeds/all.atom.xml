@@ -1,5 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2020-08-12T00:00:00+01:00</updated><entry><title>Using quicktype.io service to create Python interfaces from JSON</title><link href="/quicktype-json-class-generation.html" rel="alternate"></link><published>2020-08-12T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-12:/quicktype-json-class-generation.html</id><summary type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2020-08-21T00:00:00+01:00</updated><entry><title>Brief overview of the reproducible builds concept</title><link href="/intro-reproducible-builds.html" rel="alternate"></link><published>2020-08-21T00:00:00+01:00</published><updated>2020-08-21T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-21:/intro-reproducible-builds.html</id><summary type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When working with the source code in a project that has multiple build steps 
+(compiling, linking, patching, packaging) when a final &amp;ldquo;product&amp;rdquo; &amp;ndash; a Debian package,
+an installable application, or an executable with shared libraries &amp;ndash; is produced,
+there are many reasons why it can be useful to be able to …&lt;/p&gt;</summary><content type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When working with the source code in a project that has multiple build steps 
+(compiling, linking, patching, packaging) when a final &amp;ldquo;product&amp;rdquo; &amp;ndash; a Debian package,
+an installable application, or an executable with shared libraries &amp;ndash; is produced,
+there are many reasons why it can be useful to be able to get the same binary code
+(bit-by-bit) from the same source code.&lt;/p&gt;
+&lt;p&gt;If you are able to build your project source code and then re-build it again later
+(without making any changes to the source code) and the produced artifacts are identical,
+it is said that your builds are &lt;a href="https://en.wikipedia.org/wiki/Reproducible_builds"&gt;reproducible/deterministic&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id="how-can-one-set-up-a-reproducible-build"&gt;How can one set up a reproducible build?&lt;a class="headerlink" href="#how-can-one-set-up-a-reproducible-build" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;According to the &lt;a href="https://reproducible-builds.org/docs/definition/"&gt;https://reproducible-builds.org&lt;/a&gt; definition:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A build is reproducible if given the same source code, build environment and build instructions, 
+any party can recreate bit-by-bit identical copies of all specified artifacts.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;For a simple project with a small number of movings parts, it may be relatively easy to achieve 
+reproducible builds whereas for a corporate software development project this can be a challenge.
+There are multiple reasons why the binaries produced by a build operation may differ between
+builds run from the same source code.&lt;/p&gt;
+&lt;p&gt;There are a few resources that will help you get started:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://blog.conan.io/2019/09/02/Deterministic-builds-with-C-C++.html"&gt;An introduction to deterministic builds with C/C++&lt;/a&gt; provides a gentle introduction to the concept and its importance and benefits&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://reproducible-builds.org/"&gt;Reproducible builds&lt;/a&gt; will help you learn more about software development practices
+around the reproducible builds.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="elements-of-indeterminism"&gt;Elements of indeterminism&lt;a class="headerlink" href="#elements-of-indeterminism" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Two most common issues are timestamps (when the source code is built) 
+which may be saved into the produced binaries
+and path information (the location of the source code files on disk) 
+which can also be included into the output binaries. 
+However, many other things can have impact and make two binaries different
+(they may have the same size, but still be different when doing bit-by-bit comparison).&lt;/p&gt;
+&lt;p&gt;Some of the things you will have control from the build system tools perspective such
+as compilers and linkers.
+For instance, you can control the order in which files are being processed as 
+file systems generally do not make any promises that when you iterate
+the files in a given directory, they will be retrieved in the same order at all times.
+Other things may be defined in your custom post-processing logic &amp;ndash; for instance, the order in which you
+set certain properties on a binary (such as &lt;code&gt;RPATH&lt;/code&gt; patching) can also result in two different
+binaries.&lt;/p&gt;
+&lt;h3 id="sample-project"&gt;Sample project&lt;a class="headerlink" href="#sample-project" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;I have created a GitHub repository with the source code files that have been used in the Conan
+article &lt;a href="https://blog.conan.io/2019/09/02/Deterministic-builds-with-C-C++.html"&gt;An introduction to deterministic builds with C/C++&lt;/a&gt; and it is available at &lt;a href="https://github.com/AlexTereshenkov/reproducible-builds-example"&gt;reproducible-builds-example&lt;/a&gt;.
+This example project demonstrates the concept of reproducible builds with a few C++ source files and CMake build steps.&lt;/p&gt;
+&lt;p&gt;A great tool that will help you compare the binaries in your effort to achieve reproducible builds 
+is &lt;a href="https://diffoscope.org/"&gt;Diffoscope&lt;/a&gt;.
+It is extremely powerful and has functionality for generating HTML reports showing
+the difference between two objects you are comparing.
+This makes it so much easier to see why your binaries are different.
+Below is a screenshot of the HTML report that shows the difference between two executables.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Diffoscope HTML report snippet" src="images/diff_executables_html.png"&gt;&lt;/p&gt;
+&lt;p&gt;Happy diffing!&lt;/p&gt;</content><category term="build-systems"></category><category term="build-systems"></category><category term="continuous-integration"></category></entry><entry><title>Using quicktype.io service to create Python interfaces from JSON</title><link href="/quicktype-json-class-generation.html" rel="alternate"></link><published>2020-08-12T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-12:/quicktype-json-class-generation.html</id><summary type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;For the last few years I had to write a few simple Python wrappers around a couple of external services.
 There are many advantages to having a nice Pythonic interface into libraries 
 and tools that are written in other programming languages.
