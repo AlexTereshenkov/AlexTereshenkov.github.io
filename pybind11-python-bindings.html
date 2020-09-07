@@ -76,40 +76,53 @@
 </div>
 
 <div class="row-fluid">
-        <div class="span8 offset2 article-content">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#python-bindings">Python bindings</a></li>
+<li><a href="#writing-c-code">Writing C++ code</a></li>
+<li><a href="#building-a-python-extension-module">Building a Python extension module</a></li>
+<li><a href="#using-a-python-extension-module">Using a Python extension module</a></li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
             
-            <h3 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h3>
+            
+<h3 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">¶</a></h3>
 <p>If you ever needed to provide interface to the C/C++ code from your Python modules,
 you may have used <a href="https://docs.python.org/3/extending/extending.html">Python extension modules</a>.
 They are typically created when there is an existing C++ project and it is required to make it
 accessible via Python bindings.
 Alternatively, when performance becomes critical, a certain part of the Python project can be written
 in C/C++ and made accessible to the rest of the Python codebase via some kind of interface.</p>
-<p>Quite a few large C++ libraries and frameworks have associated Python bindings &ndash; they can be used
+<p>Quite a few large C++ libraries and frameworks have associated Python bindings – they can be used
 for prototyping or simply to speed up the development as writing a Python program is supposed to take
 less time than writing an equivalent C++ program.
 Exposing your library interface with another popular language, such as Python, will also make your project
 more accessible for programmers who are not very familiar with C++.</p>
 <p>Refer to excellent <a href="https://realpython.com/python-bindings-overview/">RealPython: Python Bindings: Calling C or C++ From Python</a>
 article to learn more.</p>
-<h3 id="python-bindings">Python bindings<a class="headerlink" href="#python-bindings" title="Permanent link">&para;</a></h3>
+<h3 id="python-bindings">Python bindings<a class="headerlink" href="#python-bindings" title="Permanent link">¶</a></h3>
 <p>There are quite a few options on how you can make your C++ code accessible from Python.
 However, I have personally worked only with <code>SWIG</code> and <code>pybind11</code> so far.
-For now, let&rsquo;s focus on <a href="https://github.com/pybind/pybind11/blob/master/docs/basics.rst"><code>pybind11</code></a>.
-It&rsquo;s extremely easy to set up on Linux or Windows and you should be able to create a compiled Python
+For now, let’s focus on <a href="https://github.com/pybind/pybind11/blob/master/docs/basics.rst"><code>pybind11</code></a>.
+It’s extremely easy to set up on Linux or Windows and you should be able to create a compiled Python
 extension module (<code>.so</code> for Linux and <code>.pyd</code> for Windows) very quickly.</p>
 <p>The <a href="https://pybind11.readthedocs.io/en/stable/basics.html">pybind11 documentation</a> does provide excellent reference
 information with a ton of examples.
 However, those examples often demonstrate features in isolation 
 and I thought it would be useful to share an example of a
-more complete &ldquo;library&rdquo; where multiple examples are combined into something that looks like a MVP.</p>
-<h3 id="writing-c-code">Writing C++ code<a class="headerlink" href="#writing-c-code" title="Permanent link">&para;</a></h3>
-<p>Here is the C++ file, <code>Geometry.cpp</code>, I&rsquo;ve written to demonstrate the <code>pybind11</code> features.
+more complete “library” where multiple examples are combined into something that looks like a MVP.</p>
+<h3 id="writing-c-code">Writing C++ code<a class="headerlink" href="#writing-c-code" title="Permanent link">¶</a></h3>
+<p>Here is the C++ file, <code>Geometry.cpp</code>, I’ve written to demonstrate the <code>pybind11</code> features.
 It showcases constructing custom <code>Point</code> class instances, finding the distance between them in 2D and 3D space, 
 and overloading C++ comparison operators among a few other things.</p>
-<figure class='code'>
-
-
+<figure class="code">
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span> <span class="cpf">&lt;pybind11/pybind11.h&gt;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&lt;pybind11/operators.h&gt;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&lt;string&gt;</span><span class="cp"></span>
@@ -126,17 +139,17 @@ and overloading C++ comparison operators among a few other things.</p>
     <span class="n">Point</span><span class="p">(</span><span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;</span><span class="n">x</span><span class="p">,</span> <span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;</span><span class="n">y</span><span class="p">)</span> <span class="o">:</span> <span class="n">x</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">y</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
     <span class="p">{</span>
         <span class="n">z</span> <span class="o">=</span> <span class="n">numeric_limits</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">quiet_NaN</span><span class="p">();</span>
-        <span class="n">py</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;Constructing a point with z set to nan&quot;</span><span class="p">);</span>
+        <span class="n">py</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">"Constructing a point with z set to nan"</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="n">Point</span><span class="p">(</span><span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;</span><span class="n">x</span><span class="p">,</span> <span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;</span><span class="n">y</span><span class="p">,</span> <span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;</span><span class="n">z</span><span class="p">)</span> <span class="o">:</span> <span class="n">x</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">y</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">z</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
     <span class="p">{</span>
-        <span class="n">py</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;Constructing a point with z set to a user given value&quot;</span><span class="p">);</span>
+        <span class="n">py</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">"Constructing a point with z set to a user given value"</span><span class="p">);</span>
     <span class="p">}</span>
 
     <span class="kt">double</span> <span class="n">x</span><span class="p">;</span>
     <span class="kt">double</span> <span class="n">y</span><span class="p">;</span>
     <span class="kt">double</span> <span class="n">z</span><span class="p">;</span>
-    <span class="n">string</span> <span class="n">shapeType</span> <span class="o">=</span> <span class="s">&quot;Point&quot;</span><span class="p">;</span>
+    <span class="n">string</span> <span class="n">shapeType</span> <span class="o">=</span> <span class="s">"Point"</span><span class="p">;</span>
 
     <span class="kt">double</span> <span class="nf">distanceTo</span><span class="p">(</span><span class="n">Point</span> <span class="n">point</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">in3D</span><span class="p">)</span>
     <span class="p">{</span>
@@ -151,7 +164,7 @@ and overloading C++ comparison operators among a few other things.</p>
             <span class="p">}</span>
             <span class="k">else</span>
             <span class="p">{</span>
-                <span class="n">py</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;Cannot measure distance between points in XY and XYZ space&quot;</span><span class="p">);</span>
+                <span class="n">py</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">"Cannot measure distance between points in XY and XYZ space"</span><span class="p">);</span>
                 <span class="k">return</span> <span class="n">numeric_limits</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">quiet_NaN</span><span class="p">();</span>
             <span class="p">}</span>
         <span class="p">}</span>
@@ -197,27 +210,27 @@ and overloading C++ comparison operators among a few other things.</p>
 
 <span class="n">PYBIND11_MODULE</span><span class="p">(</span><span class="n">Geometry</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">m</span><span class="p">.</span><span class="n">doc</span><span class="p">()</span> <span class="o">=</span> <span class="s">&quot;C++ toy geometry library&quot;</span><span class="p">;</span>
+    <span class="n">m</span><span class="p">.</span><span class="n">doc</span><span class="p">()</span> <span class="o">=</span> <span class="s">"C++ toy geometry library"</span><span class="p">;</span>
 
-    <span class="n">py</span><span class="o">::</span><span class="n">class_</span><span class="o">&lt;</span><span class="n">Point</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&quot;Point&quot;</span><span class="p">,</span> <span class="s">&quot;Point shape class implementation&quot;</span><span class="p">)</span>
+    <span class="n">py</span><span class="o">::</span><span class="n">class_</span><span class="o">&lt;</span><span class="n">Point</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">"Point"</span><span class="p">,</span> <span class="s">"Point shape class implementation"</span><span class="p">)</span>
         <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="n">py</span><span class="o">::</span><span class="n">init</span><span class="o">&lt;</span><span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;</span><span class="p">,</span> <span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;&gt;</span><span class="p">(),</span>
-            <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span> <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">))</span>
+            <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">"x"</span><span class="p">),</span> <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">"y"</span><span class="p">))</span>
         <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="n">py</span><span class="o">::</span><span class="n">init</span><span class="o">&lt;</span><span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;</span><span class="p">,</span> <span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;</span><span class="p">,</span> <span class="k">const</span> <span class="kt">double</span> <span class="o">&amp;&gt;</span><span class="p">(),</span>
-            <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">),</span> <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">),</span> <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">))</span>
-        <span class="p">.</span><span class="n">def_readonly</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">x</span><span class="p">)</span>
-        <span class="p">.</span><span class="n">def_readonly</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">y</span><span class="p">)</span>
-        <span class="p">.</span><span class="n">def_readonly</span><span class="p">(</span><span class="s">&quot;z&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">z</span><span class="p">)</span>
-        <span class="p">.</span><span class="n">def_readonly</span><span class="p">(</span><span class="s">&quot;shapeType&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">shapeType</span><span class="p">)</span>
+            <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">"x"</span><span class="p">),</span> <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">"y"</span><span class="p">),</span> <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">"z"</span><span class="p">))</span>
+        <span class="p">.</span><span class="n">def_readonly</span><span class="p">(</span><span class="s">"x"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">x</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">def_readonly</span><span class="p">(</span><span class="s">"y"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">y</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">def_readonly</span><span class="p">(</span><span class="s">"z"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">z</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">def_readonly</span><span class="p">(</span><span class="s">"shapeType"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">shapeType</span><span class="p">)</span>
 
-        <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">&quot;distanceTo&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">distanceTo</span><span class="p">,</span>
-            <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">&quot;point&quot;</span><span class="p">),</span> <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">&quot;in3D&quot;</span><span class="p">)</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span>
-            <span class="s">&quot;Distance to another point&quot;</span><span class="p">)</span>
-        <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">&quot;is3D&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">is3D</span><span class="p">,</span> <span class="s">&quot;Whether a point has a valid z coordinate&quot;</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"distanceTo"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">distanceTo</span><span class="p">,</span>
+            <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">"point"</span><span class="p">),</span> <span class="n">py</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">"in3D"</span><span class="p">)</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span>
+            <span class="s">"Distance to another point"</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"is3D"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Point</span><span class="o">::</span><span class="n">is3D</span><span class="p">,</span> <span class="s">"Whether a point has a valid z coordinate"</span><span class="p">)</span>
 
         <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="n">py</span><span class="o">::</span><span class="n">self</span> <span class="o">==</span> <span class="n">py</span><span class="o">::</span><span class="n">self</span><span class="p">)</span>
         <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="n">py</span><span class="o">::</span><span class="n">self</span> <span class="o">!=</span> <span class="n">py</span><span class="o">::</span><span class="n">self</span><span class="p">)</span>
 
-        <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">&quot;__repr__&quot;</span><span class="p">,</span>
+        <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"__repr__"</span><span class="p">,</span>
             <span class="p">[](</span><span class="k">const</span> <span class="n">Point</span> <span class="o">&amp;</span><span class="n">point</span><span class="p">)</span> <span class="p">{</span>
                 <span class="n">stringstream</span> <span class="n">xAsString</span><span class="p">,</span> <span class="n">yAsString</span><span class="p">,</span> <span class="n">zAsString</span><span class="p">;</span>
                 <span class="n">xAsString</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">17</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">point</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
@@ -226,38 +239,31 @@ and overloading C++ comparison operators among a few other things.</p>
 
                 <span class="k">if</span> <span class="p">(</span><span class="n">point</span><span class="p">.</span><span class="n">z</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="p">{</span>
-                    <span class="k">return</span> <span class="s">&quot;Point (&quot;</span> <span class="o">+</span> <span class="n">xAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span> <span class="o">+</span> <span class="n">yAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span>
-                        <span class="s">&quot;, &quot;</span> <span class="o">+</span> <span class="n">zAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">;</span>
+                    <span class="k">return</span> <span class="s">"Point ("</span> <span class="o">+</span> <span class="n">xAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span> <span class="s">", "</span> <span class="o">+</span> <span class="n">yAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span>
+                        <span class="s">", "</span> <span class="o">+</span> <span class="n">zAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span> <span class="s">")"</span><span class="p">;</span>
                 <span class="p">}</span>
                 <span class="k">else</span>
                 <span class="p">{</span>
-                    <span class="k">return</span> <span class="s">&quot;Point (&quot;</span> <span class="o">+</span> <span class="n">xAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span> <span class="o">+</span> <span class="n">yAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">;</span>
+                    <span class="k">return</span> <span class="s">"Point ("</span> <span class="o">+</span> <span class="n">xAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span> <span class="s">", "</span> <span class="o">+</span> <span class="n">yAsString</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">+</span> <span class="s">")"</span><span class="p">;</span>
                 <span class="p">}</span>
             <span class="p">});</span>
 <span class="p">}</span>
 </code></pre></div>
-
-
 </figure>
-
-<h3 id="building-a-python-extension-module">Building a Python extension module<a class="headerlink" href="#building-a-python-extension-module" title="Permanent link">&para;</a></h3>
+<h3 id="building-a-python-extension-module">Building a Python extension module<a class="headerlink" href="#building-a-python-extension-module" title="Permanent link">¶</a></h3>
 <p>Once you have the <code>Geometry.cpp</code> file on disk and <code>pybind11</code> installed, you should be able to compile the C++ code
 and link it to the Python headers:</p>
 <div class="highlight"><pre><span></span><code>$ c++ -O3 -Wall -shared -std<span class="o">=</span>c++11 -fPIC <span class="sb">`</span>python3 -m pybind11 --includes<span class="sb">`</span> Geometry.cpp -o Geometry<span class="sb">`</span>python3-config --extension-suffix<span class="sb">`</span>
 </code></pre></div>
-
-
 <p>If you are not very familiar with Bash, command in the backticks in the command above are evaluated by the shell before the main command. </p>
 <p>The <code>python3 -m pybind11 --includes</code> part is used to get the location of Python header files 
-and the <code>python3-config --extension-suffix</code> part is used to get the suffix for the shared library name &ndash;
+and the <code>python3-config --extension-suffix</code> part is used to get the suffix for the shared library name –
 for CPython 3.6 on a 64bit Ubuntu, the <code>Geometry.cpython-36m-x86_64-linux-gnu.so</code> file will be created.</p>
 <p>Now, once you have the shared library file, it can be imported and used pretty much as if it was a regular
 Python module. </p>
-<h3 id="using-a-python-extension-module">Using a Python extension module<a class="headerlink" href="#using-a-python-extension-module" title="Permanent link">&para;</a></h3>
-<p>Let&rsquo;s see our library in action by running the file <code>python3 use_geometry.py</code> containing the code below:</p>
-<figure class='code'>
-
-
+<h3 id="using-a-python-extension-module">Using a Python extension module<a class="headerlink" href="#using-a-python-extension-module" title="Permanent link">¶</a></h3>
+<p>Let’s see our library in action by running the file <code>python3 use_geometry.py</code> containing the code below:</p>
+<figure class="code">
 <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">Geometry</span> <span class="kn">import</span> <span class="n">Point</span>
 
@@ -292,10 +298,7 @@ Python module. </p>
 <span class="nb">print</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span>
 </code></pre></div>
-
-
 </figure>
-
 <p>The produced output:</p>
 <div class="highlight"><pre><span></span><code>__init__(*args, **kwargs)
 Overloaded function.
@@ -313,11 +316,9 @@ Constructing a point with z set to a user given value
 Constructing a point with z set to a user given value
 Constructing a point with z set to a user given value
 Distance between Point (50, 60, 45) and Point (50, 60, 75) is 30.0
-Representation of the p1 is &quot;Point (50, 60, 45)&quot;
-Representation of the p2 is &quot;Point (50, 60, 75)&quot;
+Representation of the p1 is "Point (50, 60, 45)"
+Representation of the p2 is "Point (50, 60, 75)"
 </code></pre></div>
-
-
 <p>This is of course a very trivial example of <code>pybind11</code> usage, however there have been
 successful attempts to use <code>pybind11</code> for binding existing large C++ libraries 
 such as <a href="https://www.cgal.org/">CGAL</a> and <a href="https://pcl.readthedocs.io/projects/tutorials/en/latest/#">Point Cloud Library</a>.
@@ -355,7 +356,7 @@ and <a href="https://github.com/davidcaron/pclpy">Python bindings for the Point 
                     <span class="superscript">1</span>
 </a></li>
                 <li><a href="/tags.html#python-ref">python
-                    <span class="superscript">2</span>
+                    <span class="superscript">3</span>
 </a></li>
             </ul>
             

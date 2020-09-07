@@ -1,18 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all-en.atom.xml" rel="self"></link><id>/</id><updated>2020-08-21T00:00:00+01:00</updated><entry><title>Brief overview of the reproducible builds concept</title><link href="/intro-reproducible-builds.html" rel="alternate"></link><published>2020-08-21T00:00:00+01:00</published><updated>2020-08-21T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-21:/intro-reproducible-builds.html</id><summary type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all-en.atom.xml" rel="self"></link><id>/</id><updated>2020-09-01T00:00:00+01:00</updated><entry><title>Using pyfakefs for unit testing in Python</title><link href="/intro-pyfakefs-python-testing.html" rel="alternate"></link><published>2020-09-01T00:00:00+01:00</published><updated>2020-09-01T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-09-01:/intro-pyfakefs-python-testing.html</id><summary type="html">
+&lt;h3 id="overview-of-unit-testing"&gt;Overview of unit testing&lt;a class="headerlink" href="#overview-of-unit-testing" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When writing unit tests for programs, it is commonly considered to be a good practice 
+to avoid relying on any part of the system infrastructure such as:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;network connectivity (you can’t get data from a web service)&lt;/li&gt;
+&lt;li&gt;operating system functionality (you can’t call &lt;code&gt;grep …&lt;/code&gt;&lt;/li&gt;&lt;/ul&gt;</summary><content type="html">
+&lt;h3 id="overview-of-unit-testing"&gt;Overview of unit testing&lt;a class="headerlink" href="#overview-of-unit-testing" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When writing unit tests for programs, it is commonly considered to be a good practice 
+to avoid relying on any part of the system infrastructure such as:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;network connectivity (you can’t get data from a web service)&lt;/li&gt;
+&lt;li&gt;operating system functionality (you can’t call &lt;code&gt;grep&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;additional software installations (you can’t rely on having &lt;code&gt;Microsoft Excel&lt;/code&gt; installed)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Another suggestion is to avoid making modifications to the files on disk.
+Testing pieces of code where files may be created or modified often involves patching
+the functions responsible for writing on disk such as the built-in &lt;code&gt;open&lt;/code&gt; function,
+various &lt;code&gt;os&lt;/code&gt; module functions such as &lt;code&gt;os.mkdir&lt;/code&gt; and &lt;code&gt;os.makedirs&lt;/code&gt;, and &lt;code&gt;pathlib.Path&lt;/code&gt; methods
+such as &lt;code&gt;Path.touch&lt;/code&gt; and &lt;code&gt;Path.open&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;If writing to file system doesn’t happen very often, using a few simple patches will suffice.
+However, for more heavy data-driven programs or programs that are written for any kind of 
+data processing, patching endless number of function calls throughout the code can become
+rather tedious very soon.&lt;/p&gt;
+&lt;h3 id="using-system-temp-directory"&gt;Using system temp directory&lt;a class="headerlink" href="#using-system-temp-directory" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;At some point, it may be more efficient to use a more relaxed approach which involves using
+the &lt;code&gt;tempfile&lt;/code&gt; module to create and modify files within the operating system temporary directory
+which is guaranteed to exist and be writable (at least on POSIX).&lt;/p&gt;
+&lt;p&gt;This approach has some limitations:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;one wouldn’t be able to make changes to files at system paths 
+if this is an essential part of the program functionality&lt;/li&gt;
+&lt;li&gt;unit tests writing on disk will become slower and with many of them can slow down the
+development-testing iterative cycle&lt;/li&gt;
+&lt;li&gt;running tests in parallel (or using multithreading) can be unreliable as multiple tests
+may attempt to write/read to/from the very same files at the same time&lt;/li&gt;
+&lt;li&gt;running a test making file system modifications can leave the system in a favourable state
+for the subsequent tests to be run which can lead to flaky tests &lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="using-virtual-file-system"&gt;Using virtual file system&lt;a class="headerlink" href="#using-virtual-file-system" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Alternatively, a more robust approach is to not write on disk 
+and instead use a virtual, in-memory file system.
+For Python, there is a package called &lt;a href="http://jmcgeheeiv.github.io/pyfakefs/release/index.html"&gt;&lt;code&gt;pyfakefs&lt;/code&gt;&lt;/a&gt;
+that makes it possible.
+Surprisingly it’s not very well known in the Python community 
+and I thought it would be helpful to share the word as I find this package to be indispensable
+in unit testing of programs which work heavily with files.&lt;/p&gt;
+&lt;p&gt;The package can be used both with &lt;code&gt;unittest&lt;/code&gt; and &lt;code&gt;pytest&lt;/code&gt; frameworks and under any operating system.
+Here is a trivial example of writing a unit test for a function that merges content of all files
+within a given directory into a new file in the same directory.&lt;/p&gt;
+&lt;figure class="code"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pyfakefs.pytest_plugin&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Patcher&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;FakeFileSystem&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;utils&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;merge_files&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_merge_files&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;FakeFileSystem&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;dest_dir&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'/opt/data'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;dest_dir&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mkdir&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;parents&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;dest_dir&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;joinpath&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'file1'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write_text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'line1&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;line2&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;dest_dir&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;joinpath&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'file2'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write_text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'line3&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;line4&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="n"&gt;merge_files&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;source&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;dest_dir&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'result'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;dest_dir&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;joinpath&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+            &lt;span class="s1"&gt;'result'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_text&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;'line1&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;line2&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;line3&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;line4&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/figure&gt;
+&lt;p&gt;Please refer to the &lt;code&gt;pyfakefs&lt;/code&gt; documentation to learn more.&lt;/p&gt;
+&lt;h3 id="virtual-file-system-caveats"&gt;Virtual file system caveats&lt;a class="headerlink" href="#virtual-file-system-caveats" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;A few notes that can help to avoid common pitfalls:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;make sure not to construct &lt;code&gt;Path&lt;/code&gt; objects outside of the patching context 
+(the &lt;code&gt;FakeFileSystem()&lt;/code&gt; in the example above) because it will otherwise be pointing to
+the real file system since the &lt;code&gt;Path&lt;/code&gt; class has not been patched yet&lt;/li&gt;
+&lt;li&gt;when using the fake file system for integration tests, keep in mind that
+you won’t be able to use any external tools such as &lt;code&gt;file&lt;/code&gt; or &lt;code&gt;cp&lt;/code&gt; commands to interact
+with the fake file system files&lt;/li&gt;
+&lt;li&gt;to verify that you are using the virtual, fake file system in your tests,
+you can choose to create files in a directory
+where you won’t have modify permissions on your real file system – this will
+help you identify any cases where &lt;code&gt;pyfakefs&lt;/code&gt; support is limited&lt;/li&gt;
+&lt;li&gt;watch closely the permissions the user running the tests have 
+as &lt;code&gt;pyfakefs&lt;/code&gt; will operate under the &lt;code&gt;root&lt;/code&gt; if run in a Docker container&lt;/li&gt;
+&lt;li&gt;do not use the operating system temporary directory as the fake file system
+destination directory because &lt;a href="http://jmcgeheeiv.github.io/pyfakefs/release/usage.html#os-temporary-directories"&gt;&lt;code&gt;pyfakefs&lt;/code&gt; doesn’t patch the &lt;code&gt;tempfile&lt;/code&gt; module&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Happy faking!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="pyfakefs"></category><category term="pytest"></category><category term="unittest"></category><category term="testing"></category></entry><entry><title>Brief overview of the reproducible builds concept</title><link href="/intro-reproducible-builds.html" rel="alternate"></link><published>2020-08-21T00:00:00+01:00</published><updated>2020-08-21T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-21:/intro-reproducible-builds.html</id><summary type="html">
+&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;When working with the source code in a project that has multiple build steps 
-(compiling, linking, patching, packaging) when a final &amp;ldquo;product&amp;rdquo; &amp;ndash; a Debian package,
-an installable application, or an executable with shared libraries &amp;ndash; is produced,
-there are many reasons why it can be useful to be able to …&lt;/p&gt;</summary><content type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+(compiling, linking, patching, packaging) when a final “product” – a Debian package,
+an installable application, or an executable with shared libraries – is produced,
+there are many reasons why it can be useful to be able to …&lt;/p&gt;</summary><content type="html">
+&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;When working with the source code in a project that has multiple build steps 
-(compiling, linking, patching, packaging) when a final &amp;ldquo;product&amp;rdquo; &amp;ndash; a Debian package,
-an installable application, or an executable with shared libraries &amp;ndash; is produced,
+(compiling, linking, patching, packaging) when a final “product” – a Debian package,
+an installable application, or an executable with shared libraries – is produced,
 there are many reasons why it can be useful to be able to get the same binary code
 (bit-by-bit) from the same source code.&lt;/p&gt;
 &lt;p&gt;If you are able to build your project source code and then re-build it again later
 (without making any changes to the source code) and the produced artifacts are identical,
 it is said that your builds are &lt;a href="https://en.wikipedia.org/wiki/Reproducible_builds"&gt;reproducible/deterministic&lt;/a&gt;.&lt;/p&gt;
-&lt;h3 id="how-can-one-set-up-a-reproducible-build"&gt;How can one set up a reproducible build?&lt;a class="headerlink" href="#how-can-one-set-up-a-reproducible-build" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="how-can-one-set-up-a-reproducible-build"&gt;How can one set up a reproducible build?&lt;a class="headerlink" href="#how-can-one-set-up-a-reproducible-build" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;According to the &lt;a href="https://reproducible-builds.org/docs/definition/"&gt;https://reproducible-builds.org&lt;/a&gt; definition:&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;A build is reproducible if given the same source code, build environment and build instructions, 
@@ -28,7 +118,7 @@ builds run from the same source code.&lt;/p&gt;
 &lt;li&gt;&lt;a href="https://reproducible-builds.org/"&gt;Reproducible builds&lt;/a&gt; will help you learn more about software development practices
 around the reproducible builds.&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id="elements-of-indeterminism"&gt;Elements of indeterminism&lt;a class="headerlink" href="#elements-of-indeterminism" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="elements-of-indeterminism"&gt;Elements of indeterminism&lt;a class="headerlink" href="#elements-of-indeterminism" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Two most common issues are timestamps (when the source code is built) 
 which may be saved into the produced binaries
 and path information (the location of the source code files on disk) 
@@ -40,10 +130,10 @@ as compilers and linkers.
 For instance, you can control the order in which files are being processed as 
 file systems generally do not make any promises that when you iterate
 the files in a given directory, they will be retrieved in the same order at all times.
-Other things may be defined in your custom post-processing logic &amp;ndash; for instance, the order in which you
+Other things may be defined in your custom post-processing logic – for instance, the order in which you
 set certain properties on a binary (such as &lt;code&gt;RPATH&lt;/code&gt; patching) can also result in two different
 binaries.&lt;/p&gt;
-&lt;h3 id="sample-project"&gt;Sample project&lt;a class="headerlink" href="#sample-project" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="sample-project"&gt;Sample project&lt;a class="headerlink" href="#sample-project" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;I have created a GitHub repository with the source code files that have been used in the Conan
 article &lt;a href="https://blog.conan.io/2019/09/02/Deterministic-builds-with-C-C++.html"&gt;An introduction to deterministic builds with C/C++&lt;/a&gt; and it is available at &lt;a href="https://github.com/AlexTereshenkov/reproducible-builds-example"&gt;reproducible-builds-example&lt;/a&gt;.
 This example project demonstrates the concept of reproducible builds with a few C++ source files and CMake build steps.&lt;/p&gt;
@@ -53,20 +143,22 @@ It is extremely powerful and has functionality for generating HTML reports showi
 the difference between two objects you are comparing.
 This makes it so much easier to see why your binaries are different.
 Below is a screenshot of the HTML report that shows the difference between two executables.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Diffoscope HTML report snippet" src="images/diff_executables_html.png"&gt;&lt;/p&gt;
-&lt;p&gt;Happy diffing!&lt;/p&gt;</content><category term="build-systems"></category><category term="build-systems"></category><category term="continuous-integration"></category></entry><entry><title>Using quicktype.io service to create Python interfaces from JSON</title><link href="/quicktype-json-class-generation.html" rel="alternate"></link><published>2020-08-12T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-12:/quicktype-json-class-generation.html</id><summary type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="Diffoscope HTML report snippet" src="images/diff_executables_html.png"/&gt;&lt;/p&gt;
+&lt;p&gt;Happy diffing!&lt;/p&gt;</content><category term="build-systems"></category><category term="build-systems"></category><category term="continuous-integration"></category></entry><entry><title>Using quicktype.io service to create Python interfaces from JSON</title><link href="/quicktype-json-class-generation.html" rel="alternate"></link><published>2020-08-12T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-12:/quicktype-json-class-generation.html</id><summary type="html">
+&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;For the last few years I had to write a few simple Python wrappers around a couple of external services.
 There are many advantages to having a nice Pythonic interface into libraries 
 and tools that are written in other programming languages.
-It often makes it easier to automate, more …&lt;/p&gt;</summary><content type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+It often makes it easier to automate, more …&lt;/p&gt;</summary><content type="html">
+&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;For the last few years I had to write a few simple Python wrappers around a couple of external services.
 There are many advantages to having a nice Pythonic interface into libraries 
 and tools that are written in other programming languages.
 It often makes it easier to automate, more pleasant to interact with, and faster to program in general.&lt;/p&gt;
-&lt;h3 id="bindings-and-wrappers"&gt;Bindings and wrappers&lt;a class="headerlink" href="#bindings-and-wrappers" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;Some wrappers simply expose the original interfaces without adding anything &amp;ndash; these are plain bindings
+&lt;h3 id="bindings-and-wrappers"&gt;Bindings and wrappers&lt;a class="headerlink" href="#bindings-and-wrappers" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Some wrappers simply expose the original interfaces without adding anything – these are plain bindings
 and this is often the case for C++ libraries that have Python bindings such &lt;code&gt;Qt&lt;/code&gt; with &lt;code&gt;PyQt&lt;/code&gt;.
-Python code you&amp;rsquo;d write using plain Python bindings may not feel very Pythonic (due to &lt;code&gt;camelCase&lt;/code&gt;) 
+Python code you’d write using plain Python bindings may not feel very Pythonic (due to &lt;code&gt;camelCase&lt;/code&gt;) 
 and because you often have to write programs using other, non-Pythonic, paradigms such 
 as &lt;code&gt;obj.setColor('Red')&lt;/code&gt; instead of &lt;code&gt;obj.color = 'Red'&lt;/code&gt;.
 It is, in fact, not uncommon to write Python wrappers around Python bindings for C++ libraries simply because
@@ -74,59 +166,50 @@ the Python bindings do not make Python developers who use them much more product
 &lt;p&gt;Another group of Python wrapping effort exists around wrapping web services interaction to avoid dealing with
 cumbersome HTTP requests construction, response processing, and service communication.
 Likewise, wrapping a CLI tool in Python can be very useful if this is the only way to interact with the underlying software.&lt;/p&gt;
-&lt;h3 id="working-with-json"&gt;Working with JSON&lt;a class="headerlink" href="#working-with-json" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;No matter how you are getting back a JSON response &amp;ndash; from a web service or from a CLI tool &amp;ndash; 
+&lt;h3 id="working-with-json"&gt;Working with JSON&lt;a class="headerlink" href="#working-with-json" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;No matter how you are getting back a JSON response – from a web service or from a CLI tool – 
 you will need to process it to either present the result to the end user or to manage it in some other way.
 When dealing with JSON data, the built-in &lt;code&gt;json&lt;/code&gt; module comes in handy and extracting the information you
 need out of a JSON object is trivial.
 You could also take advantage of higher level HTTP communication library such as &lt;code&gt;requests&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;At the beginning, the code may look something like this:&lt;/p&gt;
-&lt;figure class='code'&gt;
-
-
+&lt;figure class="code"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;requests&lt;/span&gt;
 
-&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;https://s2k7tnzlhrpw.statuspage.io/api/v2/status.json&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;description&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;span class="n"&gt;updated_at&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;page&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;updated_at&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Status: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s2"&gt;Updated at: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'https://s2k7tnzlhrpw.statuspage.io/api/v2/status.json'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'status'&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;'description'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;updated_at&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'page'&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;'updated_at'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Status: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s2"&gt;Updated at: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;/figure&gt;
-
 &lt;p&gt;Output:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;Status: All Systems Operational
 Updated at: 2020-08-12T08:08:25.828Z
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;Interacting with the returned JSON objects using only the &lt;code&gt;json&lt;/code&gt; module will suffice for smaller scripts
 and ad-hoc web service interrogation.
-If you&amp;rsquo;d like to build a Python wrapper around a large REST interface with many endpoints, however,
+If you’d like to build a Python wrapper around a large REST interface with many endpoints, however,
 it may be useful to think about having higher level abstractions for the data entities you deal with.&lt;/p&gt;
 &lt;p&gt;The code snippet above has a number of issues:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;it relies on having the data elements present when using accessing JSON objects 
-(you could work around it using the &lt;code&gt;.get()&lt;/code&gt; method &amp;ndash; &lt;code&gt;data.get('status', {}).get('description', 'N/A')&lt;/code&gt; but it is still very fragile)&lt;/p&gt;
+(you could work around it using the &lt;code&gt;.get()&lt;/code&gt; method – &lt;code&gt;data.get('status', {}).get('description', 'N/A')&lt;/code&gt; but it is still very fragile)&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;as JSON objects keys are represented as strings, it&amp;rsquo;s impossible to run any static type checker 
-(and it has additional complications &amp;ndash; refactoring becomes really hard)&lt;/p&gt;
+&lt;p&gt;as JSON objects keys are represented as strings, it’s impossible to run any static type checker 
+(and it has additional complications – refactoring becomes really hard)&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;it makes it hard to reason about the data entities as their data type is not obvious 
 (and you would have to provide a type hint for each JSON object such as &lt;code&gt;status: Dict[str, str] = data['status']&lt;/code&gt; which will become tedious very quickly)&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id="representation-of-json-as-python-classes"&gt;Representation of JSON as Python classes&lt;a class="headerlink" href="#representation-of-json-as-python-classes" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="representation-of-json-as-python-classes"&gt;Representation of JSON as Python classes&lt;a class="headerlink" href="#representation-of-json-as-python-classes" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;To make it easier to interact with JSON objects, they can be used to construct instances of Python classes
 which are much easier to work with: they provide nice abstraction, they are easy to write unit tests for,
 and the code that uses them can be inspected with a static analysis tool such as &lt;code&gt;mypy&lt;/code&gt;.&lt;/p&gt;
-&lt;figure class='code'&gt;
-
-
+&lt;figure class="code"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;requests&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;typing&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;datetime&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;
@@ -163,46 +246,41 @@ and the code that uses them can be inspected with a static analysis tool such as
     &lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Optional&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;Status&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
 
     &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;page&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Page&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;page&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Status&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;page&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Page&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'page'&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Status&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'status'&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
 
 
-&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;https://s2k7tnzlhrpw.statuspage.io/api/v2/status.json&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'https://s2k7tnzlhrpw.statuspage.io/api/v2/status.json'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
 &lt;span class="n"&gt;system&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;System&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;description&lt;/span&gt;
-&lt;span class="n"&gt;updated_at&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;page&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strftime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt;/%m/%Y&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Status: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s2"&gt;Updated at: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;updated_at&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;page&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strftime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt;/%m/%Y'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Status: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s2"&gt;Updated at: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;updated_at&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;/figure&gt;
-
 &lt;p&gt;Output:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;Status: All Systems Operational
 Updated at: 2020-08-12T08:08:25.828Z
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;Having these classes will solve the issues that the original code snippet had.
 You can now extend the classes with more fields and add additional logic 
-to any class &amp;ndash; the &lt;code&gt;Page&lt;/code&gt; class can have a local time zone property or the 
+to any class – the &lt;code&gt;Page&lt;/code&gt; class can have a local time zone property or the 
 &lt;code&gt;Status.description&lt;/code&gt; can be an instance of the &lt;code&gt;StatusType(Enum)&lt;/code&gt; class, for instance.&lt;/p&gt;
-&lt;h3 id="autogeneration-of-python-classes-from-json"&gt;Autogeneration of Python classes from JSON&lt;a class="headerlink" href="#autogeneration-of-python-classes-from-json" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="autogeneration-of-python-classes-from-json"&gt;Autogeneration of Python classes from JSON&lt;a class="headerlink" href="#autogeneration-of-python-classes-from-json" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;It would be very useful if one could generate Python classes declarations from an API
 specification file.
 &lt;a href="https://swagger.io/docs/swagger-inspector/how-to-create-an-openapi-definition-using-swagger/"&gt;Swagger tools&lt;/a&gt;
 make it possible to generate an API specification which one could then convert into a collection
 of Python classes.
 This approach is very useful but the generated Python classes would be simply data classes without
-any logic &amp;ndash; your fields with the date would be strings, not &lt;code&gt;datetime&lt;/code&gt; objects.
+any logic – your fields with the date would be strings, not &lt;code&gt;datetime&lt;/code&gt; objects.
 I think it works best for APIs that change often, during the development when you are iterating
 on the API design, or when having the raw data classes is sufficient.&lt;/p&gt;
 &lt;p&gt;Another approach is to auto-generate a collection of Python classes from the API specification 
 and extend their initialization logic and to add additional fields/methods as required.
 This approach has worked well for me and would be particularly useful for any internal tooling
 when you have control over the API changes.&lt;/p&gt;
-&lt;p&gt;I found the &lt;a href="https://app.quicktype.io/"&gt;QuickType.io&lt;/a&gt; &amp;ndash; the service that can convert JSON into
-typesafe code in many languages including Python &amp;ndash; to be really helpful.
+&lt;p&gt;I found the &lt;a href="https://app.quicktype.io/"&gt;QuickType.io&lt;/a&gt; – the service that can convert JSON into
+typesafe code in many languages including Python – to be really helpful.
 The classes declared in the snippet above have been generated by &lt;code&gt;quicktype.io&lt;/code&gt; from JSON and
 then modified so that the root class &lt;code&gt;System&lt;/code&gt; will have other class instances as its fields.
 That is, you just have to provide the root JSON object and the root class &lt;code&gt;System&lt;/code&gt; will populate
@@ -215,43 +293,43 @@ and then some additional modification can be done (e.g. to overload the &lt;code
 method to dump a JSON representation of the class instance).
 I think you will see the value of using a Python class to represent a JSON object very quickly and
 with the help of &lt;code&gt;quicktype.io&lt;/code&gt;, autogeneration of Python data classes is incredibly easy.&lt;/p&gt;
-&lt;p&gt;Happy automating!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="json"></category><category term="REST"></category><category term="Swagger"></category></entry><entry><title>Building Python extension modules for C++ code with pybind11</title><link href="/pybind11-python-bindings.html" rel="alternate"></link><published>2020-08-11T00:00:00+01:00</published><updated>2020-08-11T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-11:/pybind11-python-bindings.html</id><summary type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Happy automating!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="json"></category><category term="REST"></category><category term="Swagger"></category></entry><entry><title>Building Python extension modules for C++ code with pybind11</title><link href="/pybind11-python-bindings.html" rel="alternate"></link><published>2020-08-11T00:00:00+01:00</published><updated>2020-08-11T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-11:/pybind11-python-bindings.html</id><summary type="html">
+&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;If you ever needed to provide interface to the C/C++ code from your Python modules,
 you may have used &lt;a href="https://docs.python.org/3/extending/extending.html"&gt;Python extension modules&lt;/a&gt;.
 They are typically created when there is an existing C++ project and it is required to make it
 accessible via Python bindings.
-Alternatively, when performance becomes …&lt;/p&gt;</summary><content type="html">&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+Alternatively, when performance becomes …&lt;/p&gt;</summary><content type="html">
+&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;If you ever needed to provide interface to the C/C++ code from your Python modules,
 you may have used &lt;a href="https://docs.python.org/3/extending/extending.html"&gt;Python extension modules&lt;/a&gt;.
 They are typically created when there is an existing C++ project and it is required to make it
 accessible via Python bindings.
 Alternatively, when performance becomes critical, a certain part of the Python project can be written
 in C/C++ and made accessible to the rest of the Python codebase via some kind of interface.&lt;/p&gt;
-&lt;p&gt;Quite a few large C++ libraries and frameworks have associated Python bindings &amp;ndash; they can be used
+&lt;p&gt;Quite a few large C++ libraries and frameworks have associated Python bindings – they can be used
 for prototyping or simply to speed up the development as writing a Python program is supposed to take
 less time than writing an equivalent C++ program.
 Exposing your library interface with another popular language, such as Python, will also make your project
 more accessible for programmers who are not very familiar with C++.&lt;/p&gt;
 &lt;p&gt;Refer to excellent &lt;a href="https://realpython.com/python-bindings-overview/"&gt;RealPython: Python Bindings: Calling C or C++ From Python&lt;/a&gt;
 article to learn more.&lt;/p&gt;
-&lt;h3 id="python-bindings"&gt;Python bindings&lt;a class="headerlink" href="#python-bindings" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="python-bindings"&gt;Python bindings&lt;a class="headerlink" href="#python-bindings" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;There are quite a few options on how you can make your C++ code accessible from Python.
 However, I have personally worked only with &lt;code&gt;SWIG&lt;/code&gt; and &lt;code&gt;pybind11&lt;/code&gt; so far.
-For now, let&amp;rsquo;s focus on &lt;a href="https://github.com/pybind/pybind11/blob/master/docs/basics.rst"&gt;&lt;code&gt;pybind11&lt;/code&gt;&lt;/a&gt;.
-It&amp;rsquo;s extremely easy to set up on Linux or Windows and you should be able to create a compiled Python
+For now, let’s focus on &lt;a href="https://github.com/pybind/pybind11/blob/master/docs/basics.rst"&gt;&lt;code&gt;pybind11&lt;/code&gt;&lt;/a&gt;.
+It’s extremely easy to set up on Linux or Windows and you should be able to create a compiled Python
 extension module (&lt;code&gt;.so&lt;/code&gt; for Linux and &lt;code&gt;.pyd&lt;/code&gt; for Windows) very quickly.&lt;/p&gt;
 &lt;p&gt;The &lt;a href="https://pybind11.readthedocs.io/en/stable/basics.html"&gt;pybind11 documentation&lt;/a&gt; does provide excellent reference
 information with a ton of examples.
 However, those examples often demonstrate features in isolation 
 and I thought it would be useful to share an example of a
-more complete &amp;ldquo;library&amp;rdquo; where multiple examples are combined into something that looks like a MVP.&lt;/p&gt;
-&lt;h3 id="writing-c-code"&gt;Writing C++ code&lt;a class="headerlink" href="#writing-c-code" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;Here is the C++ file, &lt;code&gt;Geometry.cpp&lt;/code&gt;, I&amp;rsquo;ve written to demonstrate the &lt;code&gt;pybind11&lt;/code&gt; features.
+more complete “library” where multiple examples are combined into something that looks like a MVP.&lt;/p&gt;
+&lt;h3 id="writing-c-code"&gt;Writing C++ code&lt;a class="headerlink" href="#writing-c-code" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Here is the C++ file, &lt;code&gt;Geometry.cpp&lt;/code&gt;, I’ve written to demonstrate the &lt;code&gt;pybind11&lt;/code&gt; features.
 It showcases constructing custom &lt;code&gt;Point&lt;/code&gt; class instances, finding the distance between them in 2D and 3D space, 
 and overloading C++ comparison operators among a few other things.&lt;/p&gt;
-&lt;figure class='code'&gt;
-
-
+&lt;figure class="code"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;pybind11/pybind11.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
 &lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;pybind11/operators.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
 &lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;string&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
@@ -268,17 +346,17 @@ and overloading C++ comparison operators among a few other things.&lt;/p&gt;
     &lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
     &lt;span class="p"&gt;{&lt;/span&gt;
         &lt;span class="n"&gt;z&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;numeric_limits&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;double&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;::&lt;/span&gt;&lt;span class="n"&gt;quiet_NaN&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
-        &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Constructing a point with z set to nan&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"Constructing a point with z set to nan"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt;
     &lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;z&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;z&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;z&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
     &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Constructing a point with z set to a user given value&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"Constructing a point with z set to a user given value"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt;
 
     &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="n"&gt;z&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;shapeType&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Point&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;shapeType&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"Point"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
     &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="nf"&gt;distanceTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt; &lt;span class="n"&gt;point&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;bool&lt;/span&gt; &lt;span class="n"&gt;in3D&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
     &lt;span class="p"&gt;{&lt;/span&gt;
@@ -293,7 +371,7 @@ and overloading C++ comparison operators among a few other things.&lt;/p&gt;
             &lt;span class="p"&gt;}&lt;/span&gt;
             &lt;span class="k"&gt;else&lt;/span&gt;
             &lt;span class="p"&gt;{&lt;/span&gt;
-                &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Cannot measure distance between points in XY and XYZ space&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"Cannot measure distance between points in XY and XYZ space"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
                 &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;numeric_limits&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;double&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;::&lt;/span&gt;&lt;span class="n"&gt;quiet_NaN&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
             &lt;span class="p"&gt;}&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
@@ -339,27 +417,27 @@ and overloading C++ comparison operators among a few other things.&lt;/p&gt;
 
 &lt;span class="n"&gt;PYBIND11_MODULE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Geometry&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;doc&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;C++ toy geometry library&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;doc&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"C++ toy geometry library"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
-    &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;class_&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Point&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Point shape class implementation&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;class_&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"Point"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"Point shape class implementation"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
         &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;
-            &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;x&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;y&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+            &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"x"&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"y"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
         &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;
-            &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;x&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;y&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;z&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def_readonly&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;x&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def_readonly&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;y&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def_readonly&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;z&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;z&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def_readonly&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;shapeType&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;shapeType&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"x"&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"y"&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"z"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def_readonly&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"x"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def_readonly&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"y"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def_readonly&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"z"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;z&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def_readonly&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"shapeType"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;shapeType&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 
-        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;distanceTo&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;distanceTo&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-            &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;point&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;in3D&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-            &lt;span class="s"&gt;&amp;quot;Distance to another point&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;is3D&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;is3D&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Whether a point has a valid z coordinate&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"distanceTo"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;distanceTo&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"point"&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;arg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"in3D"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="s"&gt;"Distance to another point"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"is3D"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;Point&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;is3D&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"Whether a point has a valid z coordinate"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 
         &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;self&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
         &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;self&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 
-        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;__repr__&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;def&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"__repr__"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
             &lt;span class="p"&gt;[](&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;Point&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;point&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
                 &lt;span class="n"&gt;stringstream&lt;/span&gt; &lt;span class="n"&gt;xAsString&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;yAsString&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;zAsString&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
                 &lt;span class="n"&gt;xAsString&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;setprecision&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;17&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;point&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -368,38 +446,31 @@ and overloading C++ comparison operators among a few other things.&lt;/p&gt;
 
                 &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;point&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;z&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
                 &lt;span class="p"&gt;{&lt;/span&gt;
-                    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Point (&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;xAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;, &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;yAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;
-                        &lt;span class="s"&gt;&amp;quot;, &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;zAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s"&gt;"Point ("&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;xAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;", "&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;yAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;
+                        &lt;span class="s"&gt;", "&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;zAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;")"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
                 &lt;span class="p"&gt;}&lt;/span&gt;
                 &lt;span class="k"&gt;else&lt;/span&gt;
                 &lt;span class="p"&gt;{&lt;/span&gt;
-                    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Point (&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;xAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;, &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;yAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s"&gt;"Point ("&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;xAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;", "&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;yAsString&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;")"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
                 &lt;span class="p"&gt;}&lt;/span&gt;
             &lt;span class="p"&gt;});&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;/figure&gt;
-
-&lt;h3 id="building-a-python-extension-module"&gt;Building a Python extension module&lt;a class="headerlink" href="#building-a-python-extension-module" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="building-a-python-extension-module"&gt;Building a Python extension module&lt;a class="headerlink" href="#building-a-python-extension-module" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Once you have the &lt;code&gt;Geometry.cpp&lt;/code&gt; file on disk and &lt;code&gt;pybind11&lt;/code&gt; installed, you should be able to compile the C++ code
 and link it to the Python headers:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ c++ -O3 -Wall -shared -std&lt;span class="o"&gt;=&lt;/span&gt;c++11 -fPIC &lt;span class="sb"&gt;`&lt;/span&gt;python3 -m pybind11 --includes&lt;span class="sb"&gt;`&lt;/span&gt; Geometry.cpp -o Geometry&lt;span class="sb"&gt;`&lt;/span&gt;python3-config --extension-suffix&lt;span class="sb"&gt;`&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;If you are not very familiar with Bash, command in the backticks in the command above are evaluated by the shell before the main command. &lt;/p&gt;
 &lt;p&gt;The &lt;code&gt;python3 -m pybind11 --includes&lt;/code&gt; part is used to get the location of Python header files 
-and the &lt;code&gt;python3-config --extension-suffix&lt;/code&gt; part is used to get the suffix for the shared library name &amp;ndash;
+and the &lt;code&gt;python3-config --extension-suffix&lt;/code&gt; part is used to get the suffix for the shared library name –
 for CPython 3.6 on a 64bit Ubuntu, the &lt;code&gt;Geometry.cpython-36m-x86_64-linux-gnu.so&lt;/code&gt; file will be created.&lt;/p&gt;
 &lt;p&gt;Now, once you have the shared library file, it can be imported and used pretty much as if it was a regular
 Python module. &lt;/p&gt;
-&lt;h3 id="using-a-python-extension-module"&gt;Using a Python extension module&lt;a class="headerlink" href="#using-a-python-extension-module" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;Let&amp;rsquo;s see our library in action by running the file &lt;code&gt;python3 use_geometry.py&lt;/code&gt; containing the code below:&lt;/p&gt;
-&lt;figure class='code'&gt;
-
-
+&lt;h3 id="using-a-python-extension-module"&gt;Using a Python extension module&lt;a class="headerlink" href="#using-a-python-extension-module" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Let’s see our library in action by running the file &lt;code&gt;python3 use_geometry.py&lt;/code&gt; containing the code below:&lt;/p&gt;
+&lt;figure class="code"&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;math&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Geometry&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Point&lt;/span&gt;
 
@@ -434,10 +505,7 @@ Python module. &lt;/p&gt;
 &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;p1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;p2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;/figure&gt;
-
 &lt;p&gt;The produced output:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;__init__(*args, **kwargs)
 Overloaded function.
@@ -455,66 +523,66 @@ Constructing a point with z set to a user given value
 Constructing a point with z set to a user given value
 Constructing a point with z set to a user given value
 Distance between Point (50, 60, 45) and Point (50, 60, 75) is 30.0
-Representation of the p1 is &amp;quot;Point (50, 60, 45)&amp;quot;
-Representation of the p2 is &amp;quot;Point (50, 60, 75)&amp;quot;
+Representation of the p1 is "Point (50, 60, 45)"
+Representation of the p2 is "Point (50, 60, 75)"
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;This is of course a very trivial example of &lt;code&gt;pybind11&lt;/code&gt; usage, however there have been
 successful attempts to use &lt;code&gt;pybind11&lt;/code&gt; for binding existing large C++ libraries 
 such as &lt;a href="https://www.cgal.org/"&gt;CGAL&lt;/a&gt; and &lt;a href="https://pcl.readthedocs.io/projects/tutorials/en/latest/#"&gt;Point Cloud Library&lt;/a&gt;.
 See an example of &lt;a href="https://github.com/rob-smallshire/mesher"&gt;wrapping some of the CGAL functionality with pybind11&lt;/a&gt;
 and &lt;a href="https://github.com/davidcaron/pclpy"&gt;Python bindings for the Point Cloud Library&lt;/a&gt; to learn more.&lt;/p&gt;
-&lt;p&gt;Happy binding!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="pybind11"></category><category term="c++"></category></entry><entry><title>What I think a great tech support should look like</title><link href="/my-version-of-a-great-tech-support.html" rel="alternate"></link><published>2020-08-05T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-05:/my-version-of-a-great-tech-support.html</id><summary type="html">&lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
+&lt;p&gt;Happy binding!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="pybind11"></category><category term="c++"></category></entry><entry><title>What I think a great tech support should look like</title><link href="/my-version-of-a-great-tech-support.html" rel="alternate"></link><published>2020-08-05T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-05:/my-version-of-a-great-tech-support.html</id><summary type="html">
+&lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
 are working in a small company.
 If you are wearing multiple hats or if you are in professional services or tech support, 
-you will likely be contacted by your customers about issues they may experience …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
+you will likely be contacted by your customers about issues they may experience …&lt;/p&gt;</summary><content type="html">
+&lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
 are working in a small company.
 If you are wearing multiple hats or if you are in professional services or tech support, 
 you will likely be contacted by your customers about issues they may experience using your 
-product &amp;ndash; a web site, a desktop or a mobile app, or some hardware equipment.&lt;/p&gt;
-&lt;p&gt;Whatever it is, I believe it&amp;rsquo;s best to have a clear plan of actions outlined which you can 
-follow when addressing a customer&amp;rsquo;s issue. No matter how fine-grained your protocol of 
+product – a web site, a desktop or a mobile app, or some hardware equipment.&lt;/p&gt;
+&lt;p&gt;Whatever it is, I believe it’s best to have a clear plan of actions outlined which you can 
+follow when addressing a customer’s issue. No matter how fine-grained your protocol of 
 communication with the customer already is, you can always incorporate some of the ideas 
-I have about how I&amp;rsquo;d like to work with a customer that needs help.&lt;/p&gt;
+I have about how I’d like to work with a customer that needs help.&lt;/p&gt;
 &lt;p&gt;I do understand that it may be difficult or unrealistic to follow the steps below exactly,
 but this is my vision of a great support.&lt;/p&gt;
-&lt;h3 id="customer-gets-in-touch"&gt;Customer gets in touch&lt;a class="headerlink" href="#customer-gets-in-touch" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="customer-gets-in-touch"&gt;Customer gets in touch&lt;a class="headerlink" href="#customer-gets-in-touch" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Customer reaches out to you because some functionality on the web site of a business
-system your team built doesn&amp;rsquo;t work as they expect. &lt;/p&gt;
-&lt;h3 id="pace-yourself"&gt;Pace yourself&lt;a class="headerlink" href="#pace-yourself" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+system your team built doesn’t work as they expect. &lt;/p&gt;
+&lt;h3 id="pace-yourself"&gt;Pace yourself&lt;a class="headerlink" href="#pace-yourself" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Do not attempt to provide any solution or ask any questions just yet.
-If your guess will be accurate &amp;ndash; you ask to enable JavaScript in a web browser or to log
-out and log back in &amp;ndash; the customer is less likely to share any details with you because 
+If your guess will be accurate – you ask to enable JavaScript in a web browser or to log
+out and log back in – the customer is less likely to share any details with you because 
 they can now continue working.&lt;/p&gt;
 &lt;p&gt;You, on the other hand, are missing a chance to document the incident to see if it would be
 possible to prevent it from happening again and to share it with your team members. 
 What was the version of the web browser where the JavaScript is not enabled by default?
 Did they really have to log out and log back in or a simple refresh of a web page would be
 enough (you may tweak server-side caching settings)?
-You may never figure this out and even though the problem is &amp;ldquo;solved&amp;rdquo; and the customer is happy,
+You may never figure this out and even though the problem is “solved” and the customer is happy,
 in the long run this was a lost.&lt;/p&gt;
-&lt;h3 id="show-empathy"&gt;Show empathy&lt;a class="headerlink" href="#show-empathy" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;No matter what channel of communication is being used &amp;ndash; a phone call or an email &amp;ndash; the
+&lt;h3 id="show-empathy"&gt;Show empathy&lt;a class="headerlink" href="#show-empathy" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;No matter what channel of communication is being used – a phone call or an email – the
 first thing you do is to show some empathy: being an engineer, you know better than anyone 
-how frustrating it can be when a computer doesn&amp;rsquo;t do what you want it to do.&lt;/p&gt;
-&lt;h3 id="collect-information"&gt;Collect information&lt;a class="headerlink" href="#collect-information" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;You can start collecting the information you will need to troubleshoot now; don&amp;rsquo;t ask for
-information you can collect yourself, but sometimes it may still be useful &amp;ndash; even if you can 
+how frustrating it can be when a computer doesn’t do what you want it to do.&lt;/p&gt;
+&lt;h3 id="collect-information"&gt;Collect information&lt;a class="headerlink" href="#collect-information" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;You can start collecting the information you will need to troubleshoot now; don’t ask for
+information you can collect yourself, but sometimes it may still be useful – even if you can 
 SSH into a server to get the version of a software installed, it would still be 
 very useful to ask the customer to tell you the version they see on the web page as an older
 version may indicate a web page caching issue.
 You would ideally have a pre-defined template document where you can fill all the information
-you may need so that you don&amp;rsquo;t have think about it during a phone call.&lt;/p&gt;
-&lt;h3 id="share-information"&gt;Share information&lt;a class="headerlink" href="#share-information" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+you may need so that you don’t have think about it during a phone call.&lt;/p&gt;
+&lt;h3 id="share-information"&gt;Share information&lt;a class="headerlink" href="#share-information" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Once you have gathered all the information, make sure to share it with the customer.
 If on the phone, read it back to them.
-If it&amp;rsquo;s an email conversation, either share the complete document or provide access to the
+If it’s an email conversation, either share the complete document or provide access to the
 internal support system (if any) where they would be able to check that the information
-they&amp;rsquo;ve shared with you is accurate.
+they’ve shared with you is accurate.
 This will help to avoid any misunderstandings and provide traceability as the customer
 will acknowledge that the information they have provided is correct.&lt;/p&gt;
-&lt;h3 id="doing-troubleshooting"&gt;Doing troubleshooting&lt;a class="headerlink" href="#doing-troubleshooting" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="doing-troubleshooting"&gt;Doing troubleshooting&lt;a class="headerlink" href="#doing-troubleshooting" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Depending on how urgent the request is, you may or may not have time to do some manual
 production inspection before telling the customer how to fix their problem.
 If they are in a middle of a presentation to a board of directors, it may be best to tell them
@@ -524,38 +592,38 @@ environment to record as much as information as you possibly can.
 For instance, they told you that they are still able to use the system despite not being
 logged in. Instead of telling them to log off and log in hoping it will fix the problem
 (did you know that &lt;a href="https://landing.google.com/sre/sre-book/chapters/introduction/"&gt;hope is not a strategy&lt;/a&gt;?), 
-you may want to log in into the server to find out what&amp;rsquo;s going on with your
-authentication service while the user hasn&amp;rsquo;t left their web browser session (provided you
-don&amp;rsquo;t do any verbose logging of this type of events already).
+you may want to log in into the server to find out what’s going on with your
+authentication service while the user hasn’t left their web browser session (provided you
+don’t do any verbose logging of this type of events already).
 This issue may indicate some serious problem that is worth investigating further because
 it may manifest itself again at some point.&lt;/p&gt;
-&lt;h3 id="update-on-the-progress"&gt;Update on the progress&lt;a class="headerlink" href="#update-on-the-progress" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="update-on-the-progress"&gt;Update on the progress&lt;a class="headerlink" href="#update-on-the-progress" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;If the problem requires more time and you will likely need to spend hours if not days
-working on it, it&amp;rsquo;s best to let the customer know about the progress.
+working on it, it’s best to let the customer know about the progress.
 They would be able to find it very helpful to see that you are working on their issue and
-ideally how much time you&amp;rsquo;ve spent (a support ticket can be &amp;ldquo;in progress&amp;rdquo; for 5 days, but
+ideally how much time you’ve spent (a support ticket can be “in progress” for 5 days, but
 the engineer may have been working on it for just 1 hour).&lt;/p&gt;
-&lt;h3 id="provide-a-temporary-solution-if-applicable"&gt;Provide a temporary solution if applicable&lt;a class="headerlink" href="#provide-a-temporary-solution-if-applicable" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;If it&amp;rsquo;s an option, make sure to provide customer with a workaround to let them continue to 
+&lt;h3 id="provide-a-temporary-solution-if-applicable"&gt;Provide a temporary solution if applicable&lt;a class="headerlink" href="#provide-a-temporary-solution-if-applicable" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;If it’s an option, make sure to provide customer with a workaround to let them continue to 
 do their business.
 If they need to process some files, offer to do it manually for them if possible.
-If their business operation depends on a feature from their &amp;ldquo;basic&amp;rdquo; plan 
-that doesn&amp;rsquo;t work and you know that an alternative feature from the &amp;ldquo;advanced&amp;rdquo; plan would work,
+If their business operation depends on a feature from their “basic” plan 
+that doesn’t work and you know that an alternative feature from the “advanced” plan would work,
 upgrade their account for some time while you are troubleshooting.&lt;/p&gt;
-&lt;h3 id="tell-about-proposed-solution"&gt;Tell about proposed solution&lt;a class="headerlink" href="#tell-about-proposed-solution" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="tell-about-proposed-solution"&gt;Tell about proposed solution&lt;a class="headerlink" href="#tell-about-proposed-solution" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Once you have identified the issue and have been able to solve it, tell the user what was
 happening and what you have done to solve it.
-Adjust the language depending on how technical things get as required but don&amp;rsquo;t be afraid to offer
+Adjust the language depending on how technical things get as required but don’t be afraid to offer
 them a chance to learn; many customers would find it helpful to understand how the product they
 use operate under the hood.
-Ask them to verify that the solution you&amp;rsquo;ve implemented works for them (after you have done everything
+Ask them to verify that the solution you’ve implemented works for them (after you have done everything
 you possibly could to verify this yourself first).&lt;/p&gt;
-&lt;h3 id="document-your-findings"&gt;Document your findings&lt;a class="headerlink" href="#document-your-findings" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id="document-your-findings"&gt;Document your findings&lt;a class="headerlink" href="#document-your-findings" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;After you found the resolution to a problem, make sure to document not only what has to be done to fix it,
-but also what have you attempted to get done which didn&amp;rsquo;t seem to help.
+but also what have you attempted to get done which didn’t seem to help.
 For instance, you thought that the problem may be due to a broken database table index and have decided
 to re-build it.
-That didn&amp;rsquo;t help and then you think that perhaps recalculating the table statistics may help.
+That didn’t help and then you think that perhaps recalculating the table statistics may help.
 You do that now and, yes, the problem is gone.&lt;/p&gt;
 &lt;p&gt;However, documenting that for this problem recalculating the table statistics is necessary may be misleading
 as re-building the table index may also be required.
