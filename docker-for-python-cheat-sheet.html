@@ -15,19 +15,19 @@
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary">
 
-<meta name="keywords" content="python, docker, python, " />
+<meta name="keywords" content="python, docker, testing, python, " />
 
-<meta property="og:title" content="Using Docker for Python development: cheatsheet "/>
-<meta property="og:url" content="/drafts/docker-for-python-cheatsheet.html" />
+<meta property="og:title" content="Using Docker for Python development: cheat sheet "/>
+<meta property="og:url" content="/docker-for-python-cheat-sheet.html" />
 <meta property="og:description" content="The Docker framework can be an extremely useful tool for any Python developer who wants to run their Python programs (either for development or testing purposes) in a certain isolated environment with a pre-defined set of system and Python packages installed. Docker can also help with testing your Python code …" />
 <meta property="og:site_name" content="Alexey Tereshenkov" />
 <meta property="og:article:author" content="Alexey Tereshenkov" />
 <meta property="og:article:published_time" content="2020-09-07T00:00:00+01:00" />
 <meta property="og:article:modified_time" content="2020-09-07T00:00:00+01:00" />
-<meta name="twitter:title" content="Using Docker for Python development: cheatsheet ">
+<meta name="twitter:title" content="Using Docker for Python development: cheat sheet ">
 <meta name="twitter:description" content="The Docker framework can be an extremely useful tool for any Python developer who wants to run their Python programs (either for development or testing purposes) in a certain isolated environment with a pre-defined set of system and Python packages installed. Docker can also help with testing your Python code …">
 
-        <title>Using Docker for Python development: cheatsheet  · Alexey Tereshenkov
+        <title>Using Docker for Python development: cheat sheet  · Alexey Tereshenkov
 </title>
         <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
 
@@ -68,8 +68,8 @@
 <div class="row-fluid">
     <header class="page-header span10 offset2">
         <h1>
-            <a href="/drafts/docker-for-python-cheatsheet.html">
-                Using Docker for Python development: cheatsheet
+            <a href="/docker-for-python-cheat-sheet.html">
+                Using Docker for Python development: cheat sheet
             </a>
         </h1>
     </header>
@@ -84,8 +84,8 @@
 <li><a href="#basic-setup">Basic setup</a></li>
 <li><a href="#experiment-with-a-python-repl-of-any-version">Experiment with a Python REPL of any version</a></li>
 <li><a href="#passing-a-command-to-a-python-docker-image">Passing a command to a Python Docker image</a></li>
-<li><a href="#run-a-python-program-from-your-machine-in-a-docker-container">Run a Python program from your machine in a Docker container</a></li>
-<li><a href="#get-into-a-docker-container-terminal-and-run-a-command">Get into a Docker container terminal and run a command</a></li>
+<li><a href="#run-a-python-program-from-the-host-in-a-docker-container">Run a Python program from the host in a Docker container</a></li>
+<li><a href="#get-into-a-docker-container-shell-and-run-a-command">Get into a Docker container shell and run a command</a></li>
 <li><a href="#access-files-created-in-the-docker-container-on-the-host">Access files created in the Docker container on the host</a></li>
 <li><a href="#copy-files-produced-by-docker-build-command-to-the-host">Copy files produced by Docker build command to the host</a></li>
 <li><a href="#run-python-tests-stored-on-your-host-inside-a-docker-container">Run Python tests stored on your host inside a Docker container</a></li>
@@ -108,9 +108,9 @@ Docker technology works to take advantage of it.
 This blog post contains recipes any Python developer can benefit from regardless how
 experienced you are with Docker and containerization techniques.</p>
 <p>Each recipe or scenario is based on a problem that one may need to solve and provides
-a solution in form of a Dockerfile contents, a <code>docker build</code>, and a <code>docker run</code> command.</p>
+a solution in form of a <code>Dockerfile</code> file, a <code>docker build</code>, and a <code>docker run</code> command.</p>
 <h3 id="basic-setup">Basic setup<a class="headerlink" href="#basic-setup" title="Permanent link">¶</a></h3>
-<p>The base Docker image you’ll be using will likely to be different and depend on a number
+<p>The base Docker image you’ll be using will likely to be different depending on a number
 of factors, however, to keep the build time short, I’ll be using the <code>alpine</code> image in 
 most cases.</p>
 <p>Dockerfile contents:</p>
@@ -119,7 +119,7 @@ most cases.</p>
 </code></pre></div>
 <p>The build step contains the <code>-t</code> flag which defines the tag name of the image 
 that will be built.
-The dot (<code>.</code> ) tell Docker to use the the file named <code>Dockerfile</code> in the current directory.</p>
+The dot (<code>.</code> ) tells Docker to use the the file named <code>Dockerfile</code> in the current directory.</p>
 <p>Building a Docker image:</p>
 <div class="highlight"><pre><span></span><code>$ docker build -t snake .
 </code></pre></div>
@@ -160,7 +160,7 @@ will return a value you may need later as input for the subsequent operations.</
 $ docker run --rm -it snake python3 -c <span class="s2">"import sys; print(sys.platform)"</span>
 <span class="c1"># linux</span>
 </code></pre></div>
-<h3 id="run-a-python-program-from-your-machine-in-a-docker-container">Run a Python program from your machine in a Docker container<a class="headerlink" href="#run-a-python-program-from-your-machine-in-a-docker-container" title="Permanent link">¶</a></h3>
+<h3 id="run-a-python-program-from-the-host-in-a-docker-container">Run a Python program from the host in a Docker container<a class="headerlink" href="#run-a-python-program-from-the-host-in-a-docker-container" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">FROM</span> <span class="s">python:3.7.8-alpine</span>
 </code></pre></div>
 <p>It is possible to mount a local directory (on your disk) as a volume to a Docker 
@@ -197,7 +197,7 @@ if you don’t want to mount any volumes at the run time.</p>
 <div class="highlight"><pre><span></span><code>$ docker run --rm snake python3 main.py
 <span class="c1"># sys.version_info(major=3, minor=7, micro=8, releaselevel='final', serial=0)</span>
 </code></pre></div>
-<h3 id="get-into-a-docker-container-terminal-and-run-a-command">Get into a Docker container terminal and run a command<a class="headerlink" href="#get-into-a-docker-container-terminal-and-run-a-command" title="Permanent link">¶</a></h3>
+<h3 id="get-into-a-docker-container-shell-and-run-a-command">Get into a Docker container shell and run a command<a class="headerlink" href="#get-into-a-docker-container-shell-and-run-a-command" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">FROM</span> <span class="s">python:3.7.8-alpine</span>
 <span class="k">WORKDIR</span><span class="s"> /opt/project/app</span>
 <span class="k">COPY</span> ./app .
@@ -235,7 +235,8 @@ and then copy the file(s) you need to this intermediate location.</p>
 <div class="highlight"><pre><span></span><code>$ docker run --rm -it -v <span class="si">${</span><span class="nv">PWD</span><span class="si">}</span>/datadir:/home/datadir snake
 <span class="c1"># cp /home/data.out /home/datadir/</span>
 </code></pre></div>
-<p>At this point, the <code>data.out</code> file should appear on your host’s disk under the <code>datadir</code> directory.</p>
+<p>At this point, the <code>data.out</code> file should appear on your host’s disk 
+under the <code>datadir</code> directory in your current working directory.</p>
 <h3 id="run-python-tests-stored-on-your-host-inside-a-docker-container">Run Python tests stored on your host inside a Docker container<a class="headerlink" href="#run-python-tests-stored-on-your-host-inside-a-docker-container" title="Permanent link">¶</a></h3>
 <p>To do this, one would need to have a Docker container with the <code>pip</code> installed and
 the necessary Python packages that are required by your tests.
@@ -315,9 +316,13 @@ $ docker run -e <span class="nv">SITE_TOKEN</span><span class="o">=</span><span 
             <h4>Tags</h4>
             <ul class="list-of-tags tags-in-article">
                 <li><a href="/tags.html#docker-ref">docker
+                    <span class="superscript">1</span>
 </a></li>
                 <li><a href="/tags.html#python-ref">python
-                    <span class="superscript">3</span>
+                    <span class="superscript">4</span>
+</a></li>
+                <li><a href="/tags.html#testing-ref">testing
+                    <span class="superscript">2</span>
 </a></li>
             </ul>
             

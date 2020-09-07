@@ -1,5 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all-en.atom.xml" rel="self"></link><id>/</id><updated>2020-09-01T00:00:00+01:00</updated><entry><title>Using pyfakefs for unit testing in Python</title><link href="/intro-pyfakefs-python-testing.html" rel="alternate"></link><published>2020-09-01T00:00:00+01:00</published><updated>2020-09-01T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-09-01:/intro-pyfakefs-python-testing.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all-en.atom.xml" rel="self"></link><id>/</id><updated>2020-09-07T00:00:00+01:00</updated><entry><title>Using Docker for Python development: cheat sheet</title><link href="/docker-for-python-cheat-sheet.html" rel="alternate"></link><published>2020-09-07T00:00:00+01:00</published><updated>2020-09-07T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-09-07:/docker-for-python-cheat-sheet.html</id><summary type="html">
+&lt;p&gt;The Docker framework can be an extremely useful tool for any Python developer
+who wants to run their Python programs (either for development or testing purposes) 
+in a certain isolated environment with a pre-defined set of system and Python packages
+installed.
+Docker can also help with testing your Python code …&lt;/p&gt;</summary><content type="html">
+&lt;p&gt;The Docker framework can be an extremely useful tool for any Python developer
+who wants to run their Python programs (either for development or testing purposes) 
+in a certain isolated environment with a pre-defined set of system and Python packages
+installed.
+Docker can also help with testing your Python code against multiple versions of the
+Python packages in multiple operating systems.&lt;/p&gt;
+&lt;p&gt;The beauty of Docker is that you don’t need to understand the intricate details of how
+Docker technology works to take advantage of it.
+This blog post contains recipes any Python developer can benefit from regardless how
+experienced you are with Docker and containerization techniques.&lt;/p&gt;
+&lt;p&gt;Each recipe or scenario is based on a problem that one may need to solve and provides
+a solution in form of a &lt;code&gt;Dockerfile&lt;/code&gt; file, a &lt;code&gt;docker build&lt;/code&gt;, and a &lt;code&gt;docker run&lt;/code&gt; command.&lt;/p&gt;
+&lt;h3 id="basic-setup"&gt;Basic setup&lt;a class="headerlink" href="#basic-setup" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;The base Docker image you’ll be using will likely to be different depending on a number
+of factors, however, to keep the build time short, I’ll be using the &lt;code&gt;alpine&lt;/code&gt; image in 
+most cases.&lt;/p&gt;
+&lt;p&gt;Dockerfile contents:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7-alpine&lt;/span&gt;
+&lt;span class="k"&gt;CMD&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"python3"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"--version"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The build step contains the &lt;code&gt;-t&lt;/code&gt; flag which defines the tag name of the image 
+that will be built.
+The dot (&lt;code&gt;.&lt;/code&gt; ) tells Docker to use the the file named &lt;code&gt;Dockerfile&lt;/code&gt; in the current directory.&lt;/p&gt;
+&lt;p&gt;Building a Docker image:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker build -t snake .
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;When an image is run, the &lt;code&gt;CMD&lt;/code&gt; command found in the Dockerfile is executed.
+The &lt;code&gt;--rm&lt;/code&gt; (remove) flag will make sure to delete the container once the &lt;code&gt;run&lt;/code&gt;
+command is complete.&lt;/p&gt;
+&lt;p&gt;Running a Docker image:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run --rm snake
+&lt;span class="c1"&gt;# Python 3.7.9&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="experiment-with-a-python-repl-of-any-version"&gt;Experiment with a Python REPL of any version&lt;a class="headerlink" href="#experiment-with-a-python-repl-of-any-version" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7.8-alpine&lt;/span&gt;
+&lt;span class="k"&gt;CMD&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"python3"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;By changing the version, you can get into an interactive Python console
+for the given version.
+This is very handy when you want to test how a certain feature works
+in a newer or an older Python version.&lt;/p&gt;
+&lt;p&gt;When a &lt;code&gt;docker run&lt;/code&gt; command is executed, it will run the &lt;code&gt;CMD&lt;/code&gt; command and exit,
+so you won’t be able to interact with the REPL.
+To work with the container in an interactive mode, the &lt;code&gt;-it&lt;/code&gt; flag should be used.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run --rm -it snake
+&lt;span class="c1"&gt;# Python REPL becomes available&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="passing-a-command-to-a-python-docker-image"&gt;Passing a command to a Python Docker image&lt;a class="headerlink" href="#passing-a-command-to-a-python-docker-image" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7.8-alpine&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;When running a Docker container, it’s possible to pass a command, optionally,
+with additional arguments.
+Python provides support for running a command with 
+the &lt;a href="https://docs.python.org/3/using/cmdline.html#cmdoption-c"&gt;&lt;code&gt;-c&lt;/code&gt; option&lt;/a&gt;
+so that it’s possible to supply the program code as a string.
+This can be very handy when you need to have a one-liner for an operation that
+will return a value you may need later as input for the subsequent operations.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run --rm -it snake python3 --version
+&lt;span class="c1"&gt;# Python 3.7.8&lt;/span&gt;
+
+$ docker run --rm -it snake python3 -c &lt;span class="s2"&gt;"import sys; print(sys.platform)"&lt;/span&gt;
+&lt;span class="c1"&gt;# linux&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="run-a-python-program-from-the-host-in-a-docker-container"&gt;Run a Python program from the host in a Docker container&lt;a class="headerlink" href="#run-a-python-program-from-the-host-in-a-docker-container" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7.8-alpine&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;It is possible to mount a local directory (on your disk) as a volume to a Docker 
+container which is done with the &lt;code&gt;-v&lt;/code&gt; parameter.&lt;/p&gt;
+&lt;p&gt;Running the command below will make the &lt;code&gt;app&lt;/code&gt; directory files available in the
+Docker container.
+This approach can be used when you want to run a Python program in a Docker
+container likely having a different system environment and Python version installed.&lt;/p&gt;
+&lt;p&gt;Having this Python program (stored at &lt;code&gt;app/main.py&lt;/code&gt;):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;sys&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;version_info&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;you can execute it with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/app:/app snake python3 /app/main.py
+&lt;span class="c1"&gt;# sys.version_info(major=3, minor=7, micro=8, releaselevel='final', serial=0)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;It is also possible to copy files to the Docker image when the image is being built
+if you don’t want to mount any volumes at the run time.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7.8-alpine&lt;/span&gt;
+&lt;span class="k"&gt;WORKDIR&lt;/span&gt;&lt;span class="s"&gt; /opt/project/app&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt; ./app
+&lt;span class="k"&gt;CMD&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"python3"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"main.py"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You can now run the Docker container to execute the &lt;code&gt;main.py&lt;/code&gt; file that was copied:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run --rm snake
+&lt;span class="c1"&gt;# sys.version_info(major=3, minor=7, micro=8, releaselevel='final', serial=0)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Alternatively, you could also make the &lt;code&gt;CMD&lt;/code&gt; command a part of the &lt;code&gt;docker run&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7.8-alpine&lt;/span&gt;
+&lt;span class="k"&gt;WORKDIR&lt;/span&gt;&lt;span class="s"&gt; /opt/project/app&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt; ./app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Then you pass the arguments to the container from the shell instead:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run --rm snake python3 main.py
+&lt;span class="c1"&gt;# sys.version_info(major=3, minor=7, micro=8, releaselevel='final', serial=0)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="get-into-a-docker-container-shell-and-run-a-command"&gt;Get into a Docker container shell and run a command&lt;a class="headerlink" href="#get-into-a-docker-container-shell-and-run-a-command" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7.8-alpine&lt;/span&gt;
+&lt;span class="k"&gt;WORKDIR&lt;/span&gt;&lt;span class="s"&gt; /opt/project/app&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt; ./app .
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;It is possible to start a Docker container and run a shell console to execute arbitrary
+commands.
+This resembles connecting to a remote machine via an SSH connection or using a local Bash console.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run --rm -it snake /bin/sh           
+&lt;span class="c1"&gt;# /opt/project/app # ls&lt;/span&gt;
+&lt;span class="c1"&gt;# main.py&lt;/span&gt;
+&lt;span class="c1"&gt;# /opt/project/app # python3 main.py&lt;/span&gt;
+&lt;span class="c1"&gt;# sys.version_info(major=3, minor=7, micro=8, releaselevel='final', serial=0)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="access-files-created-in-the-docker-container-on-the-host"&gt;Access files created in the Docker container on the host&lt;a class="headerlink" href="#access-files-created-in-the-docker-container-on-the-host" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Accessing files that are created by processes run in a Docker container is possible
+by mounting a volume.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7.8-alpine&lt;/span&gt;
+&lt;span class="k"&gt;WORKDIR&lt;/span&gt;&lt;span class="s"&gt; /opt/project/app&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now you can run the container in the interactive mode and attach a shell console:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run -it -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/app:/opt/project/app snake /bin/sh 
+&lt;span class="c1"&gt;# &amp;gt; touch foo.bar&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;foo.bar&lt;/code&gt; file will appear on your host disk under the &lt;code&gt;app&lt;/code&gt; directory.
+This makes it possible to create arbitrary files within your Docker container
+saving them on your host disk making them accessible for further usage locally.&lt;/p&gt;
+&lt;h3 id="copy-files-produced-by-docker-build-command-to-the-host"&gt;Copy files produced by Docker build command to the host&lt;a class="headerlink" href="#copy-files-produced-by-docker-build-command-to-the-host" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;In certain cases, a Dockerfile may create new files which can be accessed
+when starting the container.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;alpine&lt;/span&gt;
+&lt;span class="k"&gt;RUN&lt;/span&gt; &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"some data"&lt;/span&gt; &amp;gt; /home/data.out
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The trick here is to mount your host’s directory to some other directory than container’s &lt;code&gt;home&lt;/code&gt;
+and then copy the file(s) you need to this intermediate location.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run --rm -it -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/datadir:/home/datadir snake
+&lt;span class="c1"&gt;# cp /home/data.out /home/datadir/&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;At this point, the &lt;code&gt;data.out&lt;/code&gt; file should appear on your host’s disk 
+under the &lt;code&gt;datadir&lt;/code&gt; directory in your current working directory.&lt;/p&gt;
+&lt;h3 id="run-python-tests-stored-on-your-host-inside-a-docker-container"&gt;Run Python tests stored on your host inside a Docker container&lt;a class="headerlink" href="#run-python-tests-stored-on-your-host-inside-a-docker-container" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;To do this, one would need to have a Docker container with the &lt;code&gt;pip&lt;/code&gt; installed and
+the necessary Python packages that are required by your tests.
+It can be wise to install a tested version of &lt;code&gt;pip&lt;/code&gt; to avoid getting the latest one
+in case it’s broken (this has happened before a few times).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7.8-alpine&lt;/span&gt;
+
+&lt;span class="k"&gt;RUN&lt;/span&gt; wget -q https://bootstrap.pypa.io/get-pip.py &lt;span class="se"&gt;\&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; python3 get-pip.py &lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="m"&gt;19&lt;/span&gt;.1.1 &lt;span class="se"&gt;\&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; rm get-pip.py
+
+&lt;span class="k"&gt;COPY&lt;/span&gt; app/requirements.txt ./
+
+&lt;span class="k"&gt;RUN&lt;/span&gt; pip install -q --no-cache-dir &lt;span class="se"&gt;\&lt;/span&gt;
+    -r requirements.txt &lt;span class="se"&gt;\&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; rm requirements.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Given that the &lt;code&gt;requirements.txt&lt;/code&gt; contains &lt;code&gt;pytest&lt;/code&gt; and the &lt;code&gt;app&lt;/code&gt; folder has modules with test
+functions, you should be able to run &lt;code&gt;pytest&lt;/code&gt; against the mounted directory:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run --rm -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/app:/opt/project/app snake pytest /opt/project/ -v
+&lt;span class="c1"&gt;# pytest output&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Because your current working directory is mounted as a volume, the files generated by
+the commands you run will be available on the host.
+This means you can run the &lt;code&gt;coverage&lt;/code&gt; command in the Docker container and the &lt;code&gt;.coverage&lt;/code&gt;
+file will be available on the host.
+Given this file, you’ll be able to generate the HTML report to view in your host’s web browser.&lt;/p&gt;
+&lt;h3 id="make-host-environment-variables-available-in-a-docker-container"&gt;Make host environment variables available in a Docker container&lt;a class="headerlink" href="#make-host-environment-variables-available-in-a-docker-container" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;It is common to use environment variables for storing some settings that Python programs
+may depend on.
+Keep in mind that a more robust strategy for storing sensitive information is to use 
+&lt;a href="https://www.docker.com/blog/docker-secrets-management/"&gt;Docker secrets&lt;/a&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;python:3.7.8-alpine&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;By default, host’s environment variables (both permanently stored and temporarily exported) are not
+available in a Docker container.&lt;/p&gt;
+&lt;p&gt;Given this Python program,&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;'Token: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"SITE_TOKEN"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;you can run it in a Docker container:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ &lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;SITE_TOKEN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'mytoken'&lt;/span&gt;
+$ docker build -t snake .
+$ docker run -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/app:/opt/project/app snake python3 /opt/project/app/main.py
+&lt;span class="c1"&gt;# Token: None&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;-e&lt;/code&gt; (&lt;code&gt;--env&lt;/code&gt;) parameter will let you specify the environment variables you want
+to propagate into the Docker container.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ &lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;SITE_TOKEN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'mytoken'&lt;/span&gt;
+$ docker run -e &lt;span class="nv"&gt;SITE_TOKEN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;SITE_TOKEN&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/app:/opt/project/app snake &lt;span class="se"&gt;\&lt;/span&gt;
+    python3 /opt/project/app/main.py
+&lt;span class="c1"&gt;# Token: mytoken&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Happy containerization!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="docker"></category><category term="testing"></category></entry><entry><title>Using pyfakefs for unit testing in Python</title><link href="/intro-pyfakefs-python-testing.html" rel="alternate"></link><published>2020-09-01T00:00:00+01:00</published><updated>2020-09-01T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-09-01:/intro-pyfakefs-python-testing.html</id><summary type="html">
 &lt;h3 id="overview-of-unit-testing"&gt;Overview of unit testing&lt;a class="headerlink" href="#overview-of-unit-testing" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;When writing unit tests for programs, it is commonly considered to be a good practice 
 to avoid relying on any part of the system infrastructure such as:&lt;/p&gt;

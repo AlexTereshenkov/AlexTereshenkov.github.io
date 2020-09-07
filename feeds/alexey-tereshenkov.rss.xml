@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Tue, 01 Sep 2020 00:00:00 +0100</lastBuildDate><item><title>Using pyfakefs for unit testing in Python</title><link>/intro-pyfakefs-python-testing.html</link><description>
+<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Mon, 07 Sep 2020 00:00:00 +0100</lastBuildDate><item><title>Using Docker for Python development: cheat sheet</title><link>/docker-for-python-cheat-sheet.html</link><description>
+&lt;p&gt;The Docker framework can be an extremely useful tool for any Python developer
+who wants to run their Python programs (either for development or testing purposes) 
+in a certain isolated environment with a pre-defined set of system and Python packages
+installed.
+Docker can also help with testing your Python code …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Mon, 07 Sep 2020 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2020-09-07:/docker-for-python-cheat-sheet.html</guid><category>python</category><category>python</category><category>docker</category><category>testing</category></item><item><title>Using pyfakefs for unit testing in Python</title><link>/intro-pyfakefs-python-testing.html</link><description>
 &lt;h3 id="overview-of-unit-testing"&gt;Overview of unit testing&lt;a class="headerlink" href="#overview-of-unit-testing" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;When writing unit tests for programs, it is commonly considered to be a good practice 
 to avoid relying on any part of the system infrastructure such as:&lt;/p&gt;
