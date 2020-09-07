@@ -6,6 +6,8 @@ tags: tech-support
 slug: my-version-of-a-great-tech-support
 category: tech-support
 
+[TOC]
+
 Being a software engineer implies that you may be interacting with customers particularly if you 
 are working in a small company.
 If you are wearing multiple hats or if you are in professional services or tech support, 

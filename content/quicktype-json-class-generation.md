@@ -6,6 +6,8 @@ tags: python,json,REST,Swagger
 slug: quicktype-json-class-generation
 category: python
 
+[TOC]
+
 ### Introduction
 
 For the last few years I had to write a few simple Python wrappers around a couple of external services.

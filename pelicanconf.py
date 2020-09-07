@@ -31,12 +31,16 @@ PLUGIN_PATHS = [Path.home().joinpath('blogging/pelican-plugins').as_posix()]
 
 # tipue_search - to enable search on the webpage
 # liquid_tags - to place code from files into the .md file
-PLUGINS = ['tipue_search', 'sitemap', 'liquid_tags.include_code']
+PLUGINS = ['tipue_search', 'sitemap', 'liquid_tags.include_code', 'extract_toc']
 DIRECT_TEMPLATES = ('index', 'tags', 'categories','archives', 'search', '404')
 
 # landing page items
 PROJECTS_TITLE = "My projects"
 PROJECTS = [{
+    'name': 'CodeQL for Python',
+    'url': 'https://blog.semmle.com/authors/alexey-tereshenkov/',
+    'description': ('My posts about using CodeQL for Python projects.')},
+    {
     'name': 'Geospatial blog',
     'url': 'https://tereshenkov.wordpress.com/',
     'description': ('My blog about programming and managing GIS software and services')},

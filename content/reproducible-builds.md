@@ -6,6 +6,8 @@ tags: build-systems,continuous-integration
 slug: intro-reproducible-builds
 category: build-systems
 
+[TOC]
+
 ### Introduction
 
 When working with the source code in a project that has multiple build steps 

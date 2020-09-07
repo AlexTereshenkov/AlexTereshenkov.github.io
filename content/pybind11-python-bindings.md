@@ -6,6 +6,8 @@ tags: python,pybind11,c++
 slug: pybind11-python-bindings
 category: python
 
+[TOC]
+
 ### Introduction
 
 If you ever needed to provide interface to the C/C++ code from your Python modules,
