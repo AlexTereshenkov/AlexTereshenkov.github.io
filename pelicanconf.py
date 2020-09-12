@@ -4,6 +4,8 @@ import socket
 from datetime import datetime
 from pathlib import Path
 
+GOOGLE_ANALYTICS = 'UA-177875539-1'
+
 AUTHOR = 'Alexey Tereshenkov'
 SITENAME = 'Alexey Tereshenkov'
 
