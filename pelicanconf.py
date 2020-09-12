@@ -59,3 +59,17 @@ PROJECTS = [{
                    'in using Python for GIS: from apprentice to guru')},
     
     ]
+
+SITEMAP = {
+    "format": "xml",
+    "priorities": {
+        "articles": 0.5,
+        "indexes": 0.5,
+        "pages": 0.5
+    },
+    "changefreqs": {
+        "articles": "monthly",
+        "indexes": "daily",
+        "pages": "monthly"
+    }
+}
