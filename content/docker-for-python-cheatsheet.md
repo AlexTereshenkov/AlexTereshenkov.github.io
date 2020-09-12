@@ -284,4 +284,29 @@ to propagate into the Docker container.
         python3 /opt/project/app/main.py
     # Token: mytoken
 
+### Attach to a running Docker container
+
+When running a Python program in a Docker container in debugging mode, 
+it can be useful to be able to pause the program and connect to the container
+to be able to inspect the file system.
+
+A few IDEs such as PyCharm and VSCode provide support for remote Python debugging
+and will be able to start a Docker container running a Python program and then
+later tell you its id.
+This is especially useful when the Python program is expected to produce some files
+and you would like to inspect them to verify the program produces correct results.
+
+If you know the container id, you can attach to it with:
+
+    :::bash
+    $ docker exec -it <container_id> /bin/bash
+
+If you don't know the container id, you will need to get it first which can be done with:
+
+    :::bash
+    $ docker ps --filter status=running
+
+The `CONTAINER ID` field will contain the id of the Docker container you will need to attach to.
+If you have multiple running containers, the one you need is likely to be the first one in the list.
+
 Happy containerization!
