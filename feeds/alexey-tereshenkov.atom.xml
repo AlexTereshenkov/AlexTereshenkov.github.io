@@ -198,6 +198,23 @@ $ docker run -e &lt;span class="nv"&gt;SITE_TOKEN&lt;/span&gt;&lt;span class="o"
     python3 /opt/project/app/main.py
 &lt;span class="c1"&gt;# Token: mytoken&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="attach-to-a-running-docker-container"&gt;Attach to a running Docker container&lt;a class="headerlink" href="#attach-to-a-running-docker-container" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When running a Python program in a Docker container in debugging mode, 
+it can be useful to be able to pause the program and connect to the container
+to be able to inspect the file system.&lt;/p&gt;
+&lt;p&gt;A few IDEs such as PyCharm and VSCode provide support for remote Python debugging
+and will be able to start a Docker container running a Python program and then
+later tell you its id.
+This is especially useful when the Python program is expected to produce some files
+and you would like to inspect them to verify the program produces correct results.&lt;/p&gt;
+&lt;p&gt;If you know the container id, you can attach to it with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; -it &amp;lt;container_id&amp;gt; /bin/bash
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If you don’t know the container id, you will need to get it first which can be done with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker ps --filter &lt;span class="nv"&gt;status&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;running
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;CONTAINER ID&lt;/code&gt; field will contain the id of the Docker container you will need to attach to.
+If you have multiple running containers, the one you need is likely to be the first one in the list.&lt;/p&gt;
 &lt;p&gt;Happy containerization!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="docker"></category><category term="testing"></category></entry><entry><title>Using pyfakefs for unit testing in Python</title><link href="/intro-pyfakefs-python-testing.html" rel="alternate"></link><published>2020-09-01T00:00:00+01:00</published><updated>2020-09-01T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-09-01:/intro-pyfakefs-python-testing.html</id><summary type="html">
 &lt;h3 id="overview-of-unit-testing"&gt;Overview of unit testing&lt;a class="headerlink" href="#overview-of-unit-testing" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;When writing unit tests for programs, it is commonly considered to be a good practice 

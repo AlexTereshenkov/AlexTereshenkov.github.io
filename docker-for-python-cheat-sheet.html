@@ -90,6 +90,7 @@
 <li><a href="#copy-files-produced-by-docker-build-command-to-the-host">Copy files produced by Docker build command to the host</a></li>
 <li><a href="#run-python-tests-stored-on-your-host-inside-a-docker-container">Run Python tests stored on your host inside a Docker container</a></li>
 <li><a href="#make-host-environment-variables-available-in-a-docker-container">Make host environment variables available in a Docker container</a></li>
+<li><a href="#attach-to-a-running-docker-container">Attach to a running Docker container</a></li>
 </ul>
 </div>
         </nav>
@@ -290,6 +291,23 @@ $ docker run -e <span class="nv">SITE_TOKEN</span><span class="o">=</span><span 
     python3 /opt/project/app/main.py
 <span class="c1"># Token: mytoken</span>
 </code></pre></div>
+<h3 id="attach-to-a-running-docker-container">Attach to a running Docker container<a class="headerlink" href="#attach-to-a-running-docker-container" title="Permanent link">¶</a></h3>
+<p>When running a Python program in a Docker container in debugging mode, 
+it can be useful to be able to pause the program and connect to the container
+to be able to inspect the file system.</p>
+<p>A few IDEs such as PyCharm and VSCode provide support for remote Python debugging
+and will be able to start a Docker container running a Python program and then
+later tell you its id.
+This is especially useful when the Python program is expected to produce some files
+and you would like to inspect them to verify the program produces correct results.</p>
+<p>If you know the container id, you can attach to it with:</p>
+<div class="highlight"><pre><span></span><code>$ docker <span class="nb">exec</span> -it &lt;container_id&gt; /bin/bash
+</code></pre></div>
+<p>If you don’t know the container id, you will need to get it first which can be done with:</p>
+<div class="highlight"><pre><span></span><code>$ docker ps --filter <span class="nv">status</span><span class="o">=</span>running
+</code></pre></div>
+<p>The <code>CONTAINER ID</code> field will contain the id of the Docker container you will need to attach to.
+If you have multiple running containers, the one you need is likely to be the first one in the list.</p>
 <p>Happy containerization!</p>
 
 
