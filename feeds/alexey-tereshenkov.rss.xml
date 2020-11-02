@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Mon, 07 Sep 2020 00:00:00 +0100</lastBuildDate><item><title>Using Docker for Python development: cheat sheet</title><link>/docker-for-python-cheat-sheet.html</link><description>
+<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Tue, 03 Nov 2020 00:00:00 +0000</lastBuildDate><item><title>Running Python tests with tox in a Docker container</title><link>/run-python-tests-with-tox-in-docker.html</link><description>
+&lt;h3 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When you are working on Python code that is supposed to be running on Python interpreters
+of multiple versions (and potentially with multiple versions of 3rd party packages),
+to be able to test that your code works and produces expected result you would need
+to create isolated virtual environments …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Tue, 03 Nov 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-11-03:/run-python-tests-with-tox-in-docker.html</guid><category>python</category><category>python</category><category>docker</category><category>tox</category><category>testing</category></item><item><title>Using Docker for Python development: cheat sheet</title><link>/docker-for-python-cheat-sheet.html</link><description>
 &lt;p&gt;The Docker framework can be an extremely useful tool for any Python developer
 who wants to run their Python programs (either for development or testing purposes) 
 in a certain isolated environment with a pre-defined set of system and Python packages
