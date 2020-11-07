@@ -39,9 +39,17 @@ DIRECT_TEMPLATES = ('index', 'tags', 'categories','archives', 'search', '404')
 # landing page items
 PROJECTS_TITLE = "My projects"
 PROJECTS = [{
+    'name': 'Pybutler',
+    'url': 'https://github.com/AlexTereshenkov/pybutler',
+    'description': ('Java interactive CLI tool for scaffolding Python 3 project unit tests using ANTLR')},
+    {
+    'name': 'Shapy',
+    'url': 'https://github.com/AlexTereshenkov/shapy',
+    'description': ('Java CLI tool to read ESRI shapefiles binary data and metadata')},
+    {
     'name': 'CodeQL for Python',
     'url': 'https://blog.semmle.com/authors/alexey-tereshenkov/',
-    'description': ('My posts about using CodeQL for Python projects.')},
+    'description': ('My posts about using CodeQL for Python projects')},
     {
     'name': 'Geospatial blog',
     'url': 'https://tereshenkov.wordpress.com/',
