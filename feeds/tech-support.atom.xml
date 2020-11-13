@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov - tech-support</title><link href="/" rel="alternate"></link><link href="/feeds/tech-support.atom.xml" rel="self"></link><id>/</id><updated>2020-08-12T00:00:00+01:00</updated><entry><title>What I think a great tech support should look like</title><link href="/my-version-of-a-great-tech-support.html" rel="alternate"></link><published>2020-08-05T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-05:/my-version-of-a-great-tech-support.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov - tech-support</title><link href="/" rel="alternate"></link><link href="/feeds/tech-support.atom.xml" rel="self"></link><id>/</id><updated>2020-11-13T00:00:00+00:00</updated><entry><title>What I think a great tech support should look like</title><link href="/my-version-of-a-great-tech-support.html" rel="alternate"></link><published>2020-08-05T00:00:00+01:00</published><updated>2020-11-13T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-05:/my-version-of-a-great-tech-support.html</id><summary type="html">
 &lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
 are working in a small company.
 If you are wearing multiple hats or if you are in professional services or tech support, 
@@ -29,7 +29,7 @@ What was the version of the web browser where the JavaScript is not enabled by d
 Did they really have to log out and log back in or a simple refresh of a web page would be
 enough (you may tweak server-side caching settings)?
 You may never figure this out and even though the problem is “solved” and the customer is happy,
-in the long run this was a lost.&lt;/p&gt;
+in the long run this was a loss.&lt;/p&gt;
 &lt;h3 id="show-empathy"&gt;Show empathy&lt;a class="headerlink" href="#show-empathy" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;No matter what channel of communication is being used – a phone call or an email – the
 first thing you do is to show some empathy: being an engineer, you know better than anyone 

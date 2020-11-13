@@ -1,5 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2020-11-03T00:00:00+00:00</updated><entry><title>Running Python tests with tox in a Docker container</title><link href="/run-python-tests-with-tox-in-docker.html" rel="alternate"></link><published>2020-11-03T00:00:00+00:00</published><updated>2020-11-03T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-03:/run-python-tests-with-tox-in-docker.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2020-11-13T00:00:00+00:00</updated><entry><title>Brief overview of using Git LFS for managing binary files</title><link href="/overview-using-git-lfs-binary-files.html" rel="alternate"></link><published>2020-11-13T00:00:00+00:00</published><updated>2020-11-13T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-13:/overview-using-git-lfs-binary-files.html</id><summary type="html">
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Normally a Git repository is used to manage source code which is stored most often as plain text.
+Tracking changes for text is very easy because only the changes between two commits would need to be
+saved, not the whole copies of the files.
+However, a project source code …&lt;/p&gt;</summary><content type="html">
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Normally a Git repository is used to manage source code which is stored most often as plain text.
+Tracking changes for text is very easy because only the changes between two commits would need to be
+saved, not the whole copies of the files.
+However, a project source code repository may also contain binary files such as images, compiled code, or
+archives.&lt;/p&gt;
+&lt;p&gt;Developers from quite a few industries such as gaming or computer-aided design and digital mapping
+(e.g. textures, CAD drawings, and map style files) often have to manage and store large files.
+Having files of a few megabytes or hundreds of megabytes in size can be very common in 
+the project source code repository, however, there is nothing wrong with having them there
+since this is where they really belong.&lt;/p&gt;
+&lt;h2 id="problem-of-keeping-binary-files-under-git"&gt;Problem of keeping binary files under Git&lt;a class="headerlink" href="#problem-of-keeping-binary-files-under-git" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Because Git cannot track changes between binary files, for each modification of a binary
+file, a copy of the modified file will be created and stored.
+This can make the repository unnecessary large and slow to clone and check out.
+Always overwriting the binary file with the latest file state (to keep only the “latest”) 
+defeats the purpose of the source code management as one should be able to have access to the
+history even if it implies storing a hundred of binary files each differing from others by just
+a few bytes.&lt;/p&gt;
+&lt;p&gt;What is a large file is a subject for discussion.
+I’d also encourage to think about how often a binary file will change; 
+if it’s a couple of megabytes static image used in a background of your terminal app, 
+you may be fine just storing it as is.
+If it’s a dynamic file that will be modified daily by multiple developers, just half a megabyte
+digital drawing file can bloat the repository for all of time if it’s modified often.
+Having many tiny binary files that are changed often can have a similar effect.&lt;/p&gt;
+&lt;h2 id="using-git-lfs-for-tracking-binary-files"&gt;Using Git LFS for tracking binary files&lt;a class="headerlink" href="#using-git-lfs-for-tracking-binary-files" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;A more efficient way to store the binary files is to store them not under the Git repository
+(when a change to a binary file will cause creating its full copy),
+but in a separate storage system such as &lt;a href="https://git-lfs.github.com/"&gt;Git LFS&lt;/a&gt;.
+This system lets you store in the Git repository only the pointers to versions of the binary files,
+whereas the files themselves are stored separately.
+When cloning the repository with the latest &lt;code&gt;master&lt;/code&gt;, 
+you will only need to download the latest file, not its whole history.
+When checking out a &lt;code&gt;feature-branch&lt;/code&gt; (that may have another representation of the very same file),
+another file version will be downloaded.&lt;/p&gt;
+&lt;p&gt;Most of the major source code management providers such as GitHub, GitLab, and BitBucket provide
+support for Git LFS and enabling it is extremely easy.
+To learn more about Git LFS and support for large objects in Git, see the excellent video
+&lt;a href="https://www.youtube.com/watch?v=0sRHRMp-Bpc"&gt;Native Git support for large objects&lt;/a&gt; from the Git Merge 2019.&lt;/p&gt;
+&lt;h2 id="migration-of-files-to-lfs"&gt;Migration of files to LFS&lt;a class="headerlink" href="#migration-of-files-to-lfs" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;The decisions about management of the binary files should be made as early as possible when
+setting up the repository.
+This is because it’s a lot easier to start using Git LFS when a new repository is created rather
+than when binary files have already sneaked into the Git history.
+Ideally, you shouldn’t be tracking with Git binary files that are supposed to be modified often.
+If the files did sneak into the Git history, simply removing the files and then starting storing them
+in a separate LFS system won’t be enough as the Git repository will still have copies of those
+binary files in the history (in the &lt;code&gt;.git&lt;/code&gt; directory).&lt;/p&gt;
+&lt;p&gt;It is possible to remove them completely, but this would require 
+&lt;a href="https://darekkay.com/blog/git-rewriting-history/"&gt;“rewriting” the history&lt;/a&gt; and would 
+require careful coordination with anyone else using the repository to run a few &lt;code&gt;git rebase --onto&lt;/code&gt; sessions.
+For a repository with a few branches used by a few developers this won’t be a problem, but it can become
+impractical and plain tedious to migrate the files for a large repository with many contributors and
+many branches.&lt;/p&gt;
+&lt;p&gt;If you do need to move the files out of a “regular” Git to the LFS system, refer to the
+&lt;a href="https://github.com/git-lfs/git-lfs/wiki/Tutorial#migrating-existing-repository-data-to-lfs"&gt;Migrating existing repository data to LFS&lt;/a&gt; 
+page section in the Git LFS tutorial.&lt;/p&gt;
+&lt;p&gt;Happy storing!&lt;/p&gt;</content><category term="git"></category><category term="git"></category><category term="lfs"></category></entry><entry><title>Running Python tests with tox in a Docker container</title><link href="/run-python-tests-with-tox-in-docker.html" rel="alternate"></link><published>2020-11-03T00:00:00+00:00</published><updated>2020-11-03T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-03:/run-python-tests-with-tox-in-docker.html</id><summary type="html">
 &lt;h3 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;When you are working on Python code that is supposed to be running on Python interpreters
 of multiple versions (and potentially with multiple versions of 3rd party packages),
@@ -960,7 +1024,7 @@ successful attempts to use &lt;code&gt;pybind11&lt;/code&gt; for binding existin
 such as &lt;a href="https://www.cgal.org/"&gt;CGAL&lt;/a&gt; and &lt;a href="https://pcl.readthedocs.io/projects/tutorials/en/latest/#"&gt;Point Cloud Library&lt;/a&gt;.
 See an example of &lt;a href="https://github.com/rob-smallshire/mesher"&gt;wrapping some of the CGAL functionality with pybind11&lt;/a&gt;
 and &lt;a href="https://github.com/davidcaron/pclpy"&gt;Python bindings for the Point Cloud Library&lt;/a&gt; to learn more.&lt;/p&gt;
-&lt;p&gt;Happy binding!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="pybind11"></category><category term="c++"></category></entry><entry><title>What I think a great tech support should look like</title><link href="/my-version-of-a-great-tech-support.html" rel="alternate"></link><published>2020-08-05T00:00:00+01:00</published><updated>2020-08-12T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-05:/my-version-of-a-great-tech-support.html</id><summary type="html">
+&lt;p&gt;Happy binding!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="pybind11"></category><category term="c++"></category></entry><entry><title>What I think a great tech support should look like</title><link href="/my-version-of-a-great-tech-support.html" rel="alternate"></link><published>2020-08-05T00:00:00+01:00</published><updated>2020-11-13T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-08-05:/my-version-of-a-great-tech-support.html</id><summary type="html">
 &lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
 are working in a small company.
 If you are wearing multiple hats or if you are in professional services or tech support, 
@@ -990,7 +1054,7 @@ What was the version of the web browser where the JavaScript is not enabled by d
 Did they really have to log out and log back in or a simple refresh of a web page would be
 enough (you may tweak server-side caching settings)?
 You may never figure this out and even though the problem is “solved” and the customer is happy,
-in the long run this was a lost.&lt;/p&gt;
+in the long run this was a loss.&lt;/p&gt;
 &lt;h3 id="show-empathy"&gt;Show empathy&lt;a class="headerlink" href="#show-empathy" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;No matter what channel of communication is being used – a phone call or an email – the
 first thing you do is to show some empathy: being an engineer, you know better than anyone 
