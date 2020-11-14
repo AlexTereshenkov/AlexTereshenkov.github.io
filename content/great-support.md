@@ -1,6 +1,6 @@
 title: What I think a great tech support should look like
 date: 2020-08-05
-modified: 2020-08-12
+modified: 2020-11-13
 author: Alexey Tereshenkov
 tags: tech-support
 slug: my-version-of-a-great-tech-support
@@ -40,7 +40,7 @@ What was the version of the web browser where the JavaScript is not enabled by d
 Did they really have to log out and log back in or a simple refresh of a web page would be
 enough (you may tweak server-side caching settings)?
 You may never figure this out and even though the problem is "solved" and the customer is happy,
-in the long run this was a lost.
+in the long run this was a loss.
 
 ### Show empathy
 
