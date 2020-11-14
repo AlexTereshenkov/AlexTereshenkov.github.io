@@ -1,5 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2020-11-13T00:00:00+00:00</updated><entry><title>Brief overview of using Git LFS for managing binary files</title><link href="/overview-using-git-lfs-binary-files.html" rel="alternate"></link><published>2020-11-13T00:00:00+00:00</published><updated>2020-11-13T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-13:/overview-using-git-lfs-binary-files.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2020-11-15T00:00:00+00:00</updated><entry><title>Building cli Python applications with Click</title><link href="/building-cli-python-apps-with-click.html" rel="alternate"></link><published>2020-11-15T00:00:00+00:00</published><updated>2020-11-15T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-15:/building-cli-python-apps-with-click.html</id><summary type="html">
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When writing cli tools using Python, if the complexity is low, using a plain &lt;code&gt;argparse&lt;/code&gt; may suffice.
+Despite being a built-in module, it’s still very capable and relatively flexible.
+In fact, a few large open-source projects have survived using &lt;code&gt;argparse&lt;/code&gt; without using any custom
+cli frameworks.
+For instance …&lt;/p&gt;</summary><content type="html">
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When writing cli tools using Python, if the complexity is low, using a plain &lt;code&gt;argparse&lt;/code&gt; may suffice.
+Despite being a built-in module, it’s still very capable and relatively flexible.
+In fact, a few large open-source projects have survived using &lt;code&gt;argparse&lt;/code&gt; without using any custom
+cli frameworks.
+For instance, 
+&lt;a href="https://github.com/conan-io/conan/blob/develop/conans/client/command.py"&gt;Conan&lt;/a&gt; 
+– a popular C/C++ package manager written in Python – 
+and &lt;a href="https://github.com/googleapis/google-api-python-client"&gt;Google API Client for Python&lt;/a&gt; 
+– Google’s discovery based APIs – are using &lt;code&gt;argparse&lt;/code&gt; for their cli interfaces.&lt;/p&gt;
+&lt;p&gt;When &lt;code&gt;argparse&lt;/code&gt; limitations get in the way, you may start looking for &lt;a href="https://docs.python-guide.org/scenarios/cli/"&gt;Python frameworks 
+that allow developing cli applications&lt;/a&gt;.
+There is a post with practical demonstrations of most popular Python cli frameworks
+that is worth reviewing: &lt;a href="https://codeburst.io/building-beautiful-command-line-interfaces-with-python-26c7e1bb54df"&gt;Building Beautiful Command Line Interfaces with Python&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id="building-a-cli-with-click"&gt;Building a cli with Click&lt;a class="headerlink" href="#building-a-cli-with-click" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;My personal preference for a Python cli framework is &lt;a href="https://click.palletsprojects.com/en/7.x/"&gt;Click&lt;/a&gt;.
+It has the functionality I want to have when building cli applications 
+and whenever I needed something a bit peculiar, I was able to find the answers online thanks to
+posts of &lt;a href="https://stackoverflow.com/users/7311767/stephen-rauch?tab=answers"&gt;Stephen Rauch&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;To save time for others, I’ve created a boilerplate repository – 
+&lt;a href="https://github.com/AlexTereshenkov/click-cli-boilerplate"&gt;&lt;code&gt;click-cli-boilerplate&lt;/code&gt;&lt;/a&gt; –
+that contains everything
+that one would need to get started developing a cli application using &lt;code&gt;Click&lt;/code&gt;.
+It features the Python project source code layout, cli interface and implementation relation, 
+tests, packaging, and docs generation.
+You will find some brief notes on how to write tests, how to generate the docs using the
+&lt;a href="https://github.com/click-contrib/sphinx-click"&gt;sphinx-click&lt;/a&gt; extension, and how to distribute
+the cli application as a Python wheel and let users install it with the &lt;code&gt;pipx&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Happy cli-ing!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="click"></category><category term="cli"></category></entry><entry><title>Brief overview of using Git LFS for managing binary files</title><link href="/overview-using-git-lfs-binary-files.html" rel="alternate"></link><published>2020-11-13T00:00:00+00:00</published><updated>2020-11-13T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-13:/overview-using-git-lfs-binary-files.html</id><summary type="html">
 &lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;Normally a Git repository is used to manage source code which is stored most often as plain text.
 Tracking changes for text is very easy because only the changes between two commits would need to be
