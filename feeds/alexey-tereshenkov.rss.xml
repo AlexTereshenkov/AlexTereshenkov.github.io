@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Mon, 16 Nov 2020 00:00:00 +0000</lastBuildDate><item><title>Working with stdout in Python scripts</title><link>/working-with-stdout-python.html</link><description>
+<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Fri, 20 Nov 2020 00:00:00 +0000</lastBuildDate><item><title>Patching with unittest.mock for Python testing: cheat sheet</title><link>/patching-mock-python-unit-testing.html</link><description>
+&lt;h3 id="overview-of-patching"&gt;Overview of patching&lt;a class="headerlink" href="#overview-of-patching" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Python built-in &lt;code&gt;unittest&lt;/code&gt; framework provides the 
+&lt;a href="https://docs.python.org/3/library/unittest.mock.html"&gt;&lt;code&gt;mock&lt;/code&gt;&lt;/a&gt; module 
+which gets very handy when writing unit tests.
+It also provides the &lt;a href="https://docs.python.org/3/library/unittest.mock.html#unittest.mock.patch"&gt;&lt;code&gt;patch&lt;/code&gt;&lt;/a&gt;
+entity which can be used as a function decorator, class decorator or a context manager.&lt;/p&gt;
+&lt;p&gt;The basic idea behind patching is that it lets you temporarily …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Fri, 20 Nov 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-11-20:/patching-mock-python-unit-testing.html</guid><category>python</category><category>python</category><category>mock</category><category>testing</category><category>patch</category></item><item><title>Working with stdout in Python scripts</title><link>/working-with-stdout-python.html</link><description>
 &lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;When working with an existing Python script, particularly a legacy script, 
 or a script that was supposed to be used once and then thrown away but grew into a business
