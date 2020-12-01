@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python, docker, testing, linux, apt, debian, python, " />
+
+<meta property="og:title" content="Using python3-apt Debian package for system package management with Python "/>
+<meta property="og:url" content="/use-apt-from-python.html" />
+<meta property="og:description" content="For Debian-based systems such as Ubuntu, most package management happens via the apt system package. It provides a friendly command line interface, however, there aren’t many robust ways to use it in some other way other than via a terminal. Fortunately, there is a Python package, python3-apt, which provides …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2020-12-01T00:00:00+00:00" />
+<meta property="og:article:modified_time" content="2020-12-01T00:00:00+00:00" />
+<meta name="twitter:title" content="Using python3-apt Debian package for system package management with Python ">
+<meta name="twitter:description" content="For Debian-based systems such as Ubuntu, most package management happens via the apt system package. It provides a friendly command line interface, however, there aren’t many robust ways to use it in some other way other than via a terminal. Fortunately, there is a Python package, python3-apt, which provides …">
+
+        <title>Using python3-apt Debian package for system package management with Python  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/use-apt-from-python.html">
+                Using python3-apt Debian package for system package management with Python
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#installing-a-package">Installing a package</a></li>
+<li><a href="#checking-what-packages-are-installed">Checking what packages are installed</a></li>
+<li><a href="#adding-additional-debian-sources">Adding additional Debian sources</a><ul>
+<li><a href="#adding-public-sources">Adding public sources</a></li>
+<li><a href="#adding-private-sources">Adding private sources</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<p>For Debian-based systems such as Ubuntu, most package management happens via the <code>apt</code>
+system package.
+It provides a friendly command line interface, however, there aren’t many robust ways to use
+it in some other way other than via a terminal.
+Fortunately, there is a Python package, <code>python3-apt</code>, which provides a Python 3 interface 
+to the <code>libapt-pkg</code> library.
+With this package, you’ll be able to list installed packages, check what packages are 
+available for installation, install new packages and so much more.</p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h2>
+<p><code>python3-apt</code> package should be installed with <code>apt</code>.
+The sources are currently available at 
+<a href="https://salsa.debian.org/apt-team/python-apt">GitLab: python-apt repo</a>.
+There isn’t a great amount of resources that will help you get started with <code>python3-apt</code>,
+but the <a href="https://apt-team.pages.debian.net/python-apt/library/index.html">official documentation</a> 
+is very comprehensive.</p>
+<p>To experiment with the basic usage of the <code>python3-apt</code> package, let’s define a Docker image:</p>
+<div class="highlight"><pre><span></span><code><span class="k">FROM</span> <span class="s">ubuntu:18.04</span>
+
+<span class="k">RUN</span> apt-get -qq update
+<span class="k">RUN</span> apt-get install -y --no-install-recommends <span class="se">\</span>
+    python3-apt <span class="se">\</span>
+    ca-certificates <span class="se">\ </span>       
+    gnupg
+</code></pre></div>
+<p>and build it:</p>
+<div class="highlight"><pre><span></span><code>$ docker build -t python-apt-docker .
+</code></pre></div>
+<h2 id="installing-a-package">Installing a package<a class="headerlink" href="#installing-a-package" title="Permanent link">¶</a></h2>
+<p>Let’s install a package, make sure that it’s available, and then delete it.
+This can be useful when you need to install a package, but simply using <code>subprocess</code>
+to make a system command call won’t suffice.
+Parsing <code>apt</code> output is very unreliable and is strongly discouraged.</p>
+<figure class="code">
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="kn">import</span> <span class="nn">apt</span>
+
+<span class="c1"># check that tree is not installed</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"tree executable location: </span><span class="si">{</span><span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s1">'tree'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># update the cache</span>
+<span class="n">cache</span> <span class="o">=</span> <span class="n">apt</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">Cache</span><span class="p">()</span>
+<span class="n">cache</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="n">cache</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+
+<span class="c1"># mark packages you'd like to install</span>
+<span class="n">package</span> <span class="o">=</span> <span class="n">cache</span><span class="p">[</span><span class="s1">'tree'</span><span class="p">]</span>
+<span class="n">package</span><span class="o">.</span><span class="n">candidate</span> <span class="o">=</span> <span class="n">package</span><span class="o">.</span><span class="n">versions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'1.7.0-5'</span><span class="p">)</span>
+<span class="n">package</span><span class="o">.</span><span class="n">mark_install</span><span class="p">()</span>
+<span class="n">cache</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="c1"># open the cache again and inspect installed package</span>
+<span class="n">cache</span> <span class="o">=</span> <span class="n">apt</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">Cache</span><span class="p">()</span>
+<span class="n">pkg</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'tree'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Package installed: </span><span class="si">{</span><span class="n">pkg</span><span class="o">.</span><span class="n">is_installed</span><span class="si">}</span><span class="s2">; version: </span><span class="si">{</span><span class="n">pkg</span><span class="o">.</span><span class="n">installed</span><span class="o">.</span><span class="n">source_version</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Package location: </span><span class="si">{</span><span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s1">'tree'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># delete the package</span>
+<span class="n">pkg</span><span class="o">.</span><span class="n">mark_delete</span><span class="p">()</span>
+<span class="n">cache</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="c1"># open the cache again and check that the tree package is gone</span>
+<span class="n">cache</span> <span class="o">=</span> <span class="n">apt</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">Cache</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"tree executable location: </span><span class="si">{</span><span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s1">'tree'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+</figure>
+<p>Let’s run this code in a Docker container:</p>
+<div class="highlight"><pre><span></span><code>$ docker run -it --rm -v <span class="si">${</span><span class="nv">PWD</span><span class="si">}</span>/:/project python-apt-docker /bin/bash -c <span class="s1">'python3 /project/install_tree.py'</span>
+tree executable location: None
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package tree.
+<span class="o">(</span>Reading database ... <span class="m">5200</span> files and directories currently installed.<span class="o">)</span>
+Preparing to unpack .../tree_1.7.0-5_amd64.deb ...
+Unpacking tree <span class="o">(</span><span class="m">1</span>.7.0-5<span class="o">)</span> ...
+Setting up tree <span class="o">(</span><span class="m">1</span>.7.0-5<span class="o">)</span> ...
+Package installed: True<span class="p">;</span> version: <span class="m">1</span>.7.0-5
+Package location: /usr/bin/tree
+<span class="o">(</span>Reading database ... <span class="m">5207</span> files and directories currently installed.<span class="o">)</span>
+Removing tree <span class="o">(</span><span class="m">1</span>.7.0-5<span class="o">)</span> ...
+tree executable location: None
+</code></pre></div>
+<h2 id="checking-what-packages-are-installed">Checking what packages are installed<a class="headerlink" href="#checking-what-packages-are-installed" title="Permanent link">¶</a></h2>
+<p>Let’s find out what Python related packages are available in a system.
+This can be handy for a script that makes sure that system dependencies have
+been installed.</p>
+<figure class="code">
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">apt_pkg</span>
+<span class="n">apt_pkg</span><span class="o">.</span><span class="n">init_config</span><span class="p">()</span>
+<span class="n">apt_pkg</span><span class="o">.</span><span class="n">init_system</span><span class="p">()</span>
+
+<span class="n">pkgs</span> <span class="o">=</span> <span class="p">[</span><span class="n">pkg</span> <span class="k">for</span> <span class="n">pkg</span> <span class="ow">in</span> <span class="n">apt_pkg</span><span class="o">.</span><span class="n">Cache</span><span class="p">()</span><span class="o">.</span><span class="n">packages</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'python'</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pkg</span><span class="o">.</span><span class="n">name</span><span class="p">)]</span>
+
+<span class="k">for</span> <span class="n">pkg</span> <span class="ow">in</span> <span class="p">[</span><span class="n">pkg</span> <span class="k">for</span> <span class="n">pkg</span> <span class="ow">in</span> <span class="n">pkgs</span> <span class="k">if</span> <span class="n">pkg</span><span class="o">.</span><span class="n">current_state</span> <span class="o">==</span> <span class="n">apt_pkg</span><span class="o">.</span><span class="n">CURSTATE_INSTALLED</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">pkg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</code></pre></div>
+</figure>
+<p>Let’s run this code in a Docker container:</p>
+<div class="highlight"><pre><span></span><code>$ docker run -it --rm -v <span class="si">${</span><span class="nv">PWD</span><span class="si">}</span>/:/project python-apt-docker /bin/bash -c <span class="s1">'python3 /project/list_pythons.py'</span>
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+python3.6
+python-apt-common
+python3
+python3.6-minimal
+python3-minimal
+python3-apt
+</code></pre></div>
+<h2 id="adding-additional-debian-sources">Adding additional Debian sources<a class="headerlink" href="#adding-additional-debian-sources" title="Permanent link">¶</a></h2>
+<p>If the default sources available for system packages do not provide the packages you need
+(which is a common case for legacy packages or corporate environment Debian pools),
+it is possible to add additional <code>apt</code> sources using <a href="https://wiki.debian.org/SourcesList">SourcesList</a>
+on demand.</p>
+<h3 id="adding-public-sources">Adding public sources<a class="headerlink" href="#adding-public-sources" title="Permanent link">¶</a></h3>
+<figure class="code">
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">aptsources.sourceslist</span> <span class="k">as</span> <span class="nn">sourceslist</span>
+
+<span class="c1"># showing original sources</span>
+<span class="n">sources</span> <span class="o">=</span> <span class="n">sourceslist</span><span class="o">.</span><span class="n">SourcesList</span><span class="p">()</span>
+<span class="n">uris_before</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">source</span><span class="o">.</span><span class="n">uri</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">list</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">uris_before</span><span class="p">)</span>
+
+<span class="c1"># adding a custom apt source</span>
+<span class="n">source</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"deb [trusted=yes]"</span><span class="p">,</span> <span class="s2">"http://download.virtualbox.org/virtualbox/debian"</span><span class="p">,</span> <span class="s2">"bionic"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"contrib"</span><span class="p">])</span>
+<span class="n">sources</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">source</span><span class="p">)</span>
+<span class="n">sources</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+<span class="c1"># showing extended sources</span>
+<span class="n">uris_after</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">source</span><span class="o">.</span><span class="n">uri</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">list</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">uris_after</span><span class="p">)</span>
+
+<span class="c1"># printing the contents of the sources.list file</span>
+<span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">"tail"</span><span class="p">,</span> <span class="s2">"/etc/apt/sources.list"</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+<span class="n">out</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+
+<span class="c1"># install a package from the VirtualBox Debian pool</span>
+<span class="o">...</span>
+</code></pre></div>
+</figure>
+<p>Let’s run this code in a Docker container:</p>
+<div class="highlight"><pre><span></span><code>$ docker run -it --rm -v <span class="si">${</span><span class="nv">PWD</span><span class="si">}</span>/:/project python-apt-docker /bin/bash -c <span class="s1">'python3 /project/install_from_public.py'</span>
+<span class="o">{</span><span class="s1">''</span>, <span class="s1">'http://archive.ubuntu.com/ubuntu/'</span>, <span class="s1">'http://archive.canonical.com/ubuntu'</span>, <span class="s1">'http://security.ubuntu.com/ubuntu/'</span><span class="o">}</span>
+<span class="o">{</span><span class="s1">''</span>, <span class="s1">'http://archive.ubuntu.com/ubuntu/'</span>, <span class="s1">'http://archive.canonical.com/ubuntu'</span>, <span class="s1">'http://security.ubuntu.com/ubuntu/'</span>, <span class="s1">'http://download.virtualbox.org/virtualbox/debian'</span><span class="o">}</span>
+<span class="c1"># deb http://archive.canonical.com/ubuntu bionic partner</span>
+<span class="c1"># deb-src http://archive.canonical.com/ubuntu bionic partner</span>
+
+deb http://security.ubuntu.com/ubuntu/ bionic-security main restricted
+<span class="c1"># deb-src http://security.ubuntu.com/ubuntu/ bionic-security main restricted</span>
+deb http://security.ubuntu.com/ubuntu/ bionic-security universe
+<span class="c1"># deb-src http://security.ubuntu.com/ubuntu/ bionic-security universe</span>
+deb http://security.ubuntu.com/ubuntu/ bionic-security multiverse
+<span class="c1"># deb-src http://security.ubuntu.com/ubuntu/ bionic-security multiverse</span>
+deb <span class="o">[</span><span class="nv">trusted</span><span class="o">=</span>yes<span class="o">]</span> http://download.virtualbox.org/virtualbox/debian bionic contrib
+</code></pre></div>
+<h3 id="adding-private-sources">Adding private sources<a class="headerlink" href="#adding-private-sources" title="Permanent link">¶</a></h3>
+<p>To add private sources (that may require authentication), you would need to make some changes.
+In the Docker image, you may need to download the GPG key from the server that hosts Debian packages.
+The key can be added later using the <code>apt-key add</code> command.</p>
+<p>You would also need to add authentication file(s) to the <code>/etc/apt/</code> directory so that <code>apt</code>
+would be able to use the authentication details when attempting to download the Debian packages
+from the private repository.
+<a href="https://manpages.debian.org/testing/apt/apt_auth.conf.5.en.html"><code>apt_auth.conf</code></a> files 
+can be handled using a built-in <code>netrc</code> Python module so writing a custom file parser is not necessary.</p>
+<p>Once the <code>sources.list</code> has the private repository listed, you can install the packages from
+the repository that requires authentication in the same way as we have installed the <code>tree</code> package earlier.</p>
+<p>Happy packaging!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2020-12-01T00:00:00+00:00">Tue 01 December 2020</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#python-ref">python</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#apt-ref">apt
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="/tags.html#debian-ref">debian
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="/tags.html#docker-ref">docker
+                    <span class="superscript">3</span>
+</a></li>
+                <li><a href="/tags.html#linux-ref">linux
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">9</span>
+</a></li>
+                <li><a href="/tags.html#testing-ref">testing
+                    <span class="superscript">5</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

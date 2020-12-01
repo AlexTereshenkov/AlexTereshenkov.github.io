@@ -1,5 +1,181 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/alexey-tereshenkov.atom.xml" rel="self"></link><id>/</id><updated>2020-11-20T00:00:00+00:00</updated><entry><title>Patching with unittest.mock for Python testing: cheat sheet</title><link href="/patching-mock-python-unit-testing.html" rel="alternate"></link><published>2020-11-20T00:00:00+00:00</published><updated>2020-11-20T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-20:/patching-mock-python-unit-testing.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/alexey-tereshenkov.atom.xml" rel="self"></link><id>/</id><updated>2020-12-01T00:00:00+00:00</updated><entry><title>Using python3-apt Debian package for system package management with Python</title><link href="/use-apt-from-python.html" rel="alternate"></link><published>2020-12-01T00:00:00+00:00</published><updated>2020-12-01T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-12-01:/use-apt-from-python.html</id><summary type="html">
+&lt;p&gt;For Debian-based systems such as Ubuntu, most package management happens via the &lt;code&gt;apt&lt;/code&gt;
+system package.
+It provides a friendly command line interface, however, there aren’t many robust ways to use
+it in some other way other than via a terminal.
+Fortunately, there is a Python package, &lt;code&gt;python3-apt&lt;/code&gt;, which provides …&lt;/p&gt;</summary><content type="html">
+&lt;p&gt;For Debian-based systems such as Ubuntu, most package management happens via the &lt;code&gt;apt&lt;/code&gt;
+system package.
+It provides a friendly command line interface, however, there aren’t many robust ways to use
+it in some other way other than via a terminal.
+Fortunately, there is a Python package, &lt;code&gt;python3-apt&lt;/code&gt;, which provides a Python 3 interface 
+to the &lt;code&gt;libapt-pkg&lt;/code&gt; library.
+With this package, you’ll be able to list installed packages, check what packages are 
+available for installation, install new packages and so much more.&lt;/p&gt;
+&lt;h2 id="installation"&gt;Installation&lt;a class="headerlink" href="#installation" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;python3-apt&lt;/code&gt; package should be installed with &lt;code&gt;apt&lt;/code&gt;.
+The sources are currently available at 
+&lt;a href="https://salsa.debian.org/apt-team/python-apt"&gt;GitLab: python-apt repo&lt;/a&gt;.
+There isn’t a great amount of resources that will help you get started with &lt;code&gt;python3-apt&lt;/code&gt;,
+but the &lt;a href="https://apt-team.pages.debian.net/python-apt/library/index.html"&gt;official documentation&lt;/a&gt; 
+is very comprehensive.&lt;/p&gt;
+&lt;p&gt;To experiment with the basic usage of the &lt;code&gt;python3-apt&lt;/code&gt; package, let’s define a Docker image:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="s"&gt;ubuntu:18.04&lt;/span&gt;
+
+&lt;span class="k"&gt;RUN&lt;/span&gt; apt-get -qq update
+&lt;span class="k"&gt;RUN&lt;/span&gt; apt-get install -y --no-install-recommends &lt;span class="se"&gt;\&lt;/span&gt;
+    python3-apt &lt;span class="se"&gt;\&lt;/span&gt;
+    ca-certificates &lt;span class="se"&gt;\ &lt;/span&gt;       
+    gnupg
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;and build it:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker build -t python-apt-docker .
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="installing-a-package"&gt;Installing a package&lt;a class="headerlink" href="#installing-a-package" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Let’s install a package, make sure that it’s available, and then delete it.
+This can be useful when you need to install a package, but simply using &lt;code&gt;subprocess&lt;/code&gt;
+to make a system command call won’t suffice.
+Parsing &lt;code&gt;apt&lt;/code&gt; output is very unreliable and is strongly discouraged.&lt;/p&gt;
+&lt;figure class="code"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;subprocess&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;shutil&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;apt&lt;/span&gt;
+
+&lt;span class="c1"&gt;# check that tree is not installed&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"tree executable location: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;shutil&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;which&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'tree'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# update the cache&lt;/span&gt;
+&lt;span class="n"&gt;cache&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cache&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Cache&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;cache&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;update&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;cache&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="c1"&gt;# mark packages you'd like to install&lt;/span&gt;
+&lt;span class="n"&gt;package&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cache&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'tree'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;package&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;candidate&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;package&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;versions&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'1.7.0-5'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;package&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mark_install&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;cache&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;commit&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="c1"&gt;# open the cache again and inspect installed package&lt;/span&gt;
+&lt;span class="n"&gt;cache&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cache&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Cache&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;pkg&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cache&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'tree'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Package installed: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_installed&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;; version: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;installed&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;source_version&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"Package location: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;shutil&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;which&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'tree'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# delete the package&lt;/span&gt;
+&lt;span class="n"&gt;pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mark_delete&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;cache&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;commit&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="c1"&gt;# open the cache again and check that the tree package is gone&lt;/span&gt;
+&lt;span class="n"&gt;cache&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cache&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Cache&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"tree executable location: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;shutil&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;which&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'tree'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/figure&gt;
+&lt;p&gt;Let’s run this code in a Docker container:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run -it --rm -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/:/project python-apt-docker /bin/bash -c &lt;span class="s1"&gt;'python3 /project/install_tree.py'&lt;/span&gt;
+tree executable location: None
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package tree.
+&lt;span class="o"&gt;(&lt;/span&gt;Reading database ... &lt;span class="m"&gt;5200&lt;/span&gt; files and directories currently installed.&lt;span class="o"&gt;)&lt;/span&gt;
+Preparing to unpack .../tree_1.7.0-5_amd64.deb ...
+Unpacking tree &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;.7.0-5&lt;span class="o"&gt;)&lt;/span&gt; ...
+Setting up tree &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;.7.0-5&lt;span class="o"&gt;)&lt;/span&gt; ...
+Package installed: True&lt;span class="p"&gt;;&lt;/span&gt; version: &lt;span class="m"&gt;1&lt;/span&gt;.7.0-5
+Package location: /usr/bin/tree
+&lt;span class="o"&gt;(&lt;/span&gt;Reading database ... &lt;span class="m"&gt;5207&lt;/span&gt; files and directories currently installed.&lt;span class="o"&gt;)&lt;/span&gt;
+Removing tree &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;.7.0-5&lt;span class="o"&gt;)&lt;/span&gt; ...
+tree executable location: None
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="checking-what-packages-are-installed"&gt;Checking what packages are installed&lt;a class="headerlink" href="#checking-what-packages-are-installed" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Let’s find out what Python related packages are available in a system.
+This can be handy for a script that makes sure that system dependencies have
+been installed.&lt;/p&gt;
+&lt;figure class="code"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;re&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;apt_pkg&lt;/span&gt;
+&lt;span class="n"&gt;apt_pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;init_config&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;apt_pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;init_system&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="n"&gt;pkgs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;pkg&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;pkg&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;apt_pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Cache&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;packages&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;re&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;r&lt;/span&gt;&lt;span class="s1"&gt;'python'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;match&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;pkg&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;pkg&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;pkg&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;pkgs&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current_state&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;apt_pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;CURSTATE_INSTALLED&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;pkg&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/figure&gt;
+&lt;p&gt;Let’s run this code in a Docker container:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run -it --rm -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/:/project python-apt-docker /bin/bash -c &lt;span class="s1"&gt;'python3 /project/list_pythons.py'&lt;/span&gt;
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+python3.6
+python-apt-common
+python3
+python3.6-minimal
+python3-minimal
+python3-apt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="adding-additional-debian-sources"&gt;Adding additional Debian sources&lt;a class="headerlink" href="#adding-additional-debian-sources" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;If the default sources available for system packages do not provide the packages you need
+(which is a common case for legacy packages or corporate environment Debian pools),
+it is possible to add additional &lt;code&gt;apt&lt;/code&gt; sources using &lt;a href="https://wiki.debian.org/SourcesList"&gt;SourcesList&lt;/a&gt;
+on demand.&lt;/p&gt;
+&lt;h3 id="adding-public-sources"&gt;Adding public sources&lt;a class="headerlink" href="#adding-public-sources" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;figure class="code"&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;subprocess&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;aptsources.sourceslist&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;sourceslist&lt;/span&gt;
+
+&lt;span class="c1"&gt;# showing original sources&lt;/span&gt;
+&lt;span class="n"&gt;sources&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sourceslist&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SourcesList&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;uris_before&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;set&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;source&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;source&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;sources&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;list&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;uris_before&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# adding a custom apt source&lt;/span&gt;
+&lt;span class="n"&gt;source&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"deb [trusted=yes]"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"http://download.virtualbox.org/virtualbox/debian"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"bionic"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"contrib"&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;span class="n"&gt;sources&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;source&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;sources&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;save&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="c1"&gt;# showing extended sources&lt;/span&gt;
+&lt;span class="n"&gt;uris_after&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;set&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;source&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;source&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;sources&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;list&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;uris_after&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# printing the contents of the sources.list file&lt;/span&gt;
+&lt;span class="n"&gt;process&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;subprocess&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Popen&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s2"&gt;"tail"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"/etc/apt/sources.list"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;stdout&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;subprocess&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;PIPE&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;stderr&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;subprocess&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;PIPE&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;out&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;errors&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;process&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;communicate&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;out&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;errors&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+
+&lt;span class="c1"&gt;# install a package from the VirtualBox Debian pool&lt;/span&gt;
+&lt;span class="o"&gt;...&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;/figure&gt;
+&lt;p&gt;Let’s run this code in a Docker container:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run -it --rm -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/:/project python-apt-docker /bin/bash -c &lt;span class="s1"&gt;'python3 /project/install_from_public.py'&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;, &lt;span class="s1"&gt;'http://archive.ubuntu.com/ubuntu/'&lt;/span&gt;, &lt;span class="s1"&gt;'http://archive.canonical.com/ubuntu'&lt;/span&gt;, &lt;span class="s1"&gt;'http://security.ubuntu.com/ubuntu/'&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;, &lt;span class="s1"&gt;'http://archive.ubuntu.com/ubuntu/'&lt;/span&gt;, &lt;span class="s1"&gt;'http://archive.canonical.com/ubuntu'&lt;/span&gt;, &lt;span class="s1"&gt;'http://security.ubuntu.com/ubuntu/'&lt;/span&gt;, &lt;span class="s1"&gt;'http://download.virtualbox.org/virtualbox/debian'&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="c1"&gt;# deb http://archive.canonical.com/ubuntu bionic partner&lt;/span&gt;
+&lt;span class="c1"&gt;# deb-src http://archive.canonical.com/ubuntu bionic partner&lt;/span&gt;
+
+deb http://security.ubuntu.com/ubuntu/ bionic-security main restricted
+&lt;span class="c1"&gt;# deb-src http://security.ubuntu.com/ubuntu/ bionic-security main restricted&lt;/span&gt;
+deb http://security.ubuntu.com/ubuntu/ bionic-security universe
+&lt;span class="c1"&gt;# deb-src http://security.ubuntu.com/ubuntu/ bionic-security universe&lt;/span&gt;
+deb http://security.ubuntu.com/ubuntu/ bionic-security multiverse
+&lt;span class="c1"&gt;# deb-src http://security.ubuntu.com/ubuntu/ bionic-security multiverse&lt;/span&gt;
+deb &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;trusted&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes&lt;span class="o"&gt;]&lt;/span&gt; http://download.virtualbox.org/virtualbox/debian bionic contrib
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="adding-private-sources"&gt;Adding private sources&lt;a class="headerlink" href="#adding-private-sources" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;To add private sources (that may require authentication), you would need to make some changes.
+In the Docker image, you may need to download the GPG key from the server that hosts Debian packages.
+The key can be added later using the &lt;code&gt;apt-key add&lt;/code&gt; command.&lt;/p&gt;
+&lt;p&gt;You would also need to add authentication file(s) to the &lt;code&gt;/etc/apt/&lt;/code&gt; directory so that &lt;code&gt;apt&lt;/code&gt;
+would be able to use the authentication details when attempting to download the Debian packages
+from the private repository.
+&lt;a href="https://manpages.debian.org/testing/apt/apt_auth.conf.5.en.html"&gt;&lt;code&gt;apt_auth.conf&lt;/code&gt;&lt;/a&gt; files 
+can be handled using a built-in &lt;code&gt;netrc&lt;/code&gt; Python module so writing a custom file parser is not necessary.&lt;/p&gt;
+&lt;p&gt;Once the &lt;code&gt;sources.list&lt;/code&gt; has the private repository listed, you can install the packages from
+the repository that requires authentication in the same way as we have installed the &lt;code&gt;tree&lt;/code&gt; package earlier.&lt;/p&gt;
+&lt;p&gt;Happy packaging!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="docker"></category><category term="testing"></category><category term="linux"></category><category term="apt"></category><category term="debian"></category></entry><entry><title>Patching with unittest.mock for Python testing: cheat sheet</title><link href="/patching-mock-python-unit-testing.html" rel="alternate"></link><published>2020-11-20T00:00:00+00:00</published><updated>2020-11-20T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-20:/patching-mock-python-unit-testing.html</id><summary type="html">
 &lt;h3 id="overview-of-patching"&gt;Overview of patching&lt;a class="headerlink" href="#overview-of-patching" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Python built-in &lt;code&gt;unittest&lt;/code&gt; framework provides the 
 &lt;a href="https://docs.python.org/3/library/unittest.mock.html"&gt;&lt;code&gt;mock&lt;/code&gt;&lt;/a&gt; module 

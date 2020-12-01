@@ -15,19 +15,19 @@
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary">
 
-<meta name="keywords" content="python, click, cli, python, " />
+<meta name="keywords" content="tech-support, tech-support, " />
 
-<meta property="og:title" content="Building cli Python applications with Click "/>
-<meta property="og:url" content="/building-cli-python-apps-with-click.html" />
-<meta property="og:description" content="Overview¶ When writing cli tools using Python, if the complexity is low, using a plain argparse may suffice. Despite being a built-in module, it’s still very capable and relatively flexible. In fact, a few large open-source projects have survived using argparse without using any custom cli frameworks. For instance …" />
+<meta property="og:title" content="What I think about programming QA forums "/>
+<meta property="og:url" content="/drafts/programming-qa-forums.html" />
+<meta property="og:description" content="Overview¶ Writing code these days is a lot easier in many regards at least because it’s much easier to get help if you are stuck. When you get an error running a program, after giving it a thought and looking around the source code, I think most of us …" />
 <meta property="og:site_name" content="Alexey Tereshenkov" />
 <meta property="og:article:author" content="Alexey Tereshenkov" />
-<meta property="og:article:published_time" content="2020-11-15T00:00:00+00:00" />
-<meta property="og:article:modified_time" content="2020-11-15T00:00:00+00:00" />
-<meta name="twitter:title" content="Building cli Python applications with Click ">
-<meta name="twitter:description" content="Overview¶ When writing cli tools using Python, if the complexity is low, using a plain argparse may suffice. Despite being a built-in module, it’s still very capable and relatively flexible. In fact, a few large open-source projects have survived using argparse without using any custom cli frameworks. For instance …">
+<meta property="og:article:published_time" content="2020-11-29T00:00:00+00:00" />
+<meta property="og:article:modified_time" content="2020-11-29T00:00:00+00:00" />
+<meta name="twitter:title" content="What I think about programming QA forums ">
+<meta name="twitter:description" content="Overview¶ Writing code these days is a lot easier in many regards at least because it’s much easier to get help if you are stuck. When you get an error running a program, after giving it a thought and looking around the source code, I think most of us …">
 
-        <title>Building cli Python applications with Click  · Alexey Tereshenkov
+        <title>What I think about programming QA forums  · Alexey Tereshenkov
 </title>
         <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
 <script>
@@ -76,8 +76,8 @@
 <div class="row-fluid">
     <header class="page-header span10 offset2">
         <h1>
-            <a href="/building-cli-python-apps-with-click.html">
-                Building cli Python applications with Click
+            <a href="/drafts/programming-qa-forums.html">
+                What I think about programming QA forums
             </a>
         </h1>
     </header>
@@ -90,7 +90,9 @@
         <div class="toc">
 <ul>
 <li><a href="#overview">Overview</a></li>
-<li><a href="#building-a-cli-with-click">Building a cli with Click</a></li>
+<li><a href="#a-chance-to-learn">A chance to learn</a></li>
+<li><a href="#using-qa-forums">Using QA forums</a></li>
+<li><a href="#_1"></a></li>
 </ul>
 </div>
         </nav>
@@ -99,34 +101,47 @@
             
             
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>When writing cli tools using Python, if the complexity is low, using a plain <code>argparse</code> may suffice.
-Despite being a built-in module, it’s still very capable and relatively flexible.
-In fact, a few large open-source projects have survived using <code>argparse</code> without using any custom
-cli frameworks.
-For instance, 
-<a href="https://github.com/conan-io/conan/blob/develop/conans/client/command.py">Conan</a> 
-– a popular C/C++ package manager written in Python – 
-and <a href="https://github.com/googleapis/google-api-python-client">Google API Client for Python</a> 
-– Google’s discovery based APIs – are using <code>argparse</code> for their cli interfaces.</p>
-<p>When <code>argparse</code> limitations get in the way, you may start looking for <a href="https://docs.python-guide.org/scenarios/cli/">Python frameworks 
-that allow developing cli applications</a>.
-There is a post with practical demonstrations of most popular Python cli frameworks
-that is worth reviewing: <a href="https://codeburst.io/building-beautiful-command-line-interfaces-with-python-26c7e1bb54df">Building Beautiful Command Line Interfaces with Python</a>.</p>
-<h2 id="building-a-cli-with-click">Building a cli with Click<a class="headerlink" href="#building-a-cli-with-click" title="Permanent link">¶</a></h2>
-<p>My personal preference for a Python cli framework is <a href="https://click.palletsprojects.com/en/7.x/">Click</a>.
-It has the functionality I want to have when building cli applications 
-and whenever I needed something a bit peculiar, I was able to find the answers online thanks to
-posts of <a href="https://stackoverflow.com/users/7311767/stephen-rauch?tab=answers">Stephen Rauch</a>.</p>
-<p>To save time for others, I’ve created a boilerplate repository – 
-<a href="https://github.com/AlexTereshenkov/click-cli-boilerplate"><code>click-cli-boilerplate</code></a> –
-that contains everything
-that one would need to get started developing a cli application using <code>Click</code>.
-It features the Python project source code layout, cli interface and implementation relation, 
-tests, packaging, and docs generation.
-You will find some brief notes on how to write tests, how to generate the docs using the
-<a href="https://github.com/click-contrib/sphinx-click">sphinx-click</a> extension, and how to distribute
-the cli application as a Python wheel and let users install it with the <code>pipx</code>.</p>
-<p>Happy cli-ing!</p>
+<p>Writing code these days is a lot easier in many regards at least because it’s much easier to
+get help if you are stuck. 
+When you get an error running a program, after giving it a thought and looking around the source code,
+I think most of us would do an online search.
+There is even a joke about being a 
+<a href="https://www.reddit.com/r/ProgrammerHumor/comments/d0dyln/fullstackoverflow_developer/">Full StackOverflow developer</a>.
+This is so because most often you’d be able to find most relevant results online.
+When you have figured out the solution, I find it to be very helpful to get to the docs
+and then read more about the particular error message if it was documented as well as 
+about the concepts that are involved.</p>
+<h2 id="a-chance-to-learn">A chance to learn<a class="headerlink" href="#a-chance-to-learn" title="Permanent link">¶</a></h2>
+<p>I think it’s very tempting to continue coding immediately after you have fixed the problem 
+(by finding the problem explanation and the solution online),
+but I think you’d miss a great opportunity to learn more.
+This is because learning about the concept right when you are facing a related issue is perfect in terms of timing.</p>
+<p>Let’s say you run a Python program and you get a <code>SyntaxError</code> in a line with an f-string.
+You search online and found a post by someone who also had this issue and people told them
+that f-strings are added to Python 3.6 and are not supported in lower versions.
+You say “ah, of course!” and fix the shebang line of your Python program to be <code>#!/usr/bin/python3</code>
+instead of <code>/usr/bin/python</code>.
+You can continue coding as you are unblocked.
+But I’d pace myself and would try to learn more (when time permits).</p>
+<ul>
+<li>What is the shebang line and how does it work? </li>
+<li>Is it possible to port f-strings to use in Python 2?</li>
+<li>How do I make sure that my Python programs will be run on Python 3.6+ in production (and not be mistakenly run on Python 2)? </li>
+<li>Do we need to support earlier versions of Python at all? 
+  If so, how do we write and run tests to be sure that our code is backwards compatible?</li>
+</ul>
+<p>Getting answers to all those questions is very helpful.
+It’s hard to come up with all those questions at an arbitrary point of time, but is extremely easy to think of them
+while you are dealing with a related problem.</p>
+<h2 id="using-qa-forums">Using QA forums<a class="headerlink" href="#using-qa-forums" title="Permanent link">¶</a></h2>
+<p>Given how many different frameworks, technologies, and programming languages a software engineer may need to use on a daily basis,
+I think it would be counterproductive not to take advantage of the sheer amount of resources that QA forums under the 
+StackExchange umbrella (such as StackOverflow.com) are offering.</p>
+<p>If a person is a zoologist who needs to filter out some records in a .csv file and they are in a rush,
+I don’t see a particular problem helping them by providing a working solution.
+Isn’t it about being useful to others and being able to apply your skills for the good?</p>
+<h2 id="_1"><a class="headerlink" href="#_1" title="Permanent link">¶</a></h2>
+<p>Happy helping!</p>
 
 
              
@@ -145,20 +160,14 @@ the cli application as a Python wheel and let users install it with the <code>pi
         </div>
         <section id="article-sidebar" class="span2">
             <h4>Published</h4>
-            <time itemprop="dateCreated" datetime="2020-11-15T00:00:00+00:00">Sun 15 November 2020</time>
+            <time itemprop="dateCreated" datetime="2020-11-29T00:00:00+00:00">Sun 29 November 2020</time>
 
             <h4>Category</h4>
-            <a class="category-link" href="/categories.html#python-ref">python</a>
+            <a class="category-link" href="/categories.html#tech-support-ref">tech-support</a>
             <h4>Tags</h4>
             <ul class="list-of-tags tags-in-article">
-                <li><a href="/tags.html#cli-ref">cli
+                <li><a href="/tags.html#tech-support-ref">tech-support
                     <span class="superscript">1</span>
-</a></li>
-                <li><a href="/tags.html#click-ref">click
-                    <span class="superscript">1</span>
-</a></li>
-                <li><a href="/tags.html#python-ref">python
-                    <span class="superscript">9</span>
 </a></li>
             </ul>
             

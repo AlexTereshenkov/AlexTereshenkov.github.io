@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Fri, 20 Nov 2020 00:00:00 +0000</lastBuildDate><item><title>Patching with unittest.mock for Python testing: cheat sheet</title><link>/patching-mock-python-unit-testing.html</link><description>
+<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Tue, 01 Dec 2020 00:00:00 +0000</lastBuildDate><item><title>Using python3-apt Debian package for system package management with Python</title><link>/use-apt-from-python.html</link><description>
+&lt;p&gt;For Debian-based systems such as Ubuntu, most package management happens via the &lt;code&gt;apt&lt;/code&gt;
+system package.
+It provides a friendly command line interface, however, there aren’t many robust ways to use
+it in some other way other than via a terminal.
+Fortunately, there is a Python package, &lt;code&gt;python3-apt&lt;/code&gt;, which provides …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-12-01:/use-apt-from-python.html</guid><category>python</category><category>python</category><category>docker</category><category>testing</category><category>linux</category><category>apt</category><category>debian</category></item><item><title>Patching with unittest.mock for Python testing: cheat sheet</title><link>/patching-mock-python-unit-testing.html</link><description>
 &lt;h3 id="overview-of-patching"&gt;Overview of patching&lt;a class="headerlink" href="#overview-of-patching" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Python built-in &lt;code&gt;unittest&lt;/code&gt; framework provides the 
 &lt;a href="https://docs.python.org/3/library/unittest.mock.html"&gt;&lt;code&gt;mock&lt;/code&gt;&lt;/a&gt; module 
