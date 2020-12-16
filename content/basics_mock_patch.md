@@ -1,6 +1,6 @@
 title: Patching with unittest.mock for Python testing: cheat sheet
 date: 2020-11-20
-modified: 2020-11-20
+modified: 2020-12-15
 author: Alexey Tereshenkov
 tags: python,mock,testing,patch
 slug: patching-mock-python-unit-testing
@@ -151,6 +151,56 @@ Test:
         with patch('static_class.Address.to_string', lambda value: "Address formatted"):
             address = Address(*("1", "New Road", "99999", "City"))
             assert address.print() == "Address formatted"
+
+## Patching class instance method that modifies `self`
+
+Use case:
+
+You have a method which doesn't return anything but instead sets 
+or modifies its object (`self`) properties.
+You cannot patch the mock's method with `.return_value` 
+and thus need instead modify the values of the `self`.
+
+Code:
+
+    :::python
+    class Client:
+
+        def __init__(self, guid):
+            self.guid = guid
+            self.visited = False
+            self.last_time_visited = None
+
+        def visit(self):
+            self.visited = True
+            self.last_time_visited = datetime.now()
+
+        def process(self):
+            self.visit()
+
+Test:
+
+We would like to test the `process()` method without letting it to execute the `visit()` method,
+but still check that after running the `process()` method, the `Client` instance would get
+certain fields set.
+
+    :::python
+    from client import Client
+
+    def setattrs(obj, **kwargs):
+        for k, v in kwargs.items():
+            setattr(obj, k, v)
+
+
+    def test_process():
+        mock_client = Mock()
+        with patch('client.Client', lambda: mock_client):
+            mock_client.process.side_effect = lambda: setattrs(mock_client,
+                visited=True, last_time_visited=datetime.now())
+            client = Client(99)
+            client.process()
+            assert client.visited is True
+            assert isinstance(client.last_time_visited, datetime)
 
 ## Patching multiple calls to the same function 
 
