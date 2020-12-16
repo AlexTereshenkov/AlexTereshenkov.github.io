@@ -1,5 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all-en.atom.xml" rel="self"></link><id>/</id><updated>2020-12-01T00:00:00+00:00</updated><entry><title>Using python3-apt Debian package for system package management with Python</title><link href="/use-apt-from-python.html" rel="alternate"></link><published>2020-12-01T00:00:00+00:00</published><updated>2020-12-01T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-12-01:/use-apt-from-python.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all-en.atom.xml" rel="self"></link><id>/</id><updated>2020-12-15T00:00:00+00:00</updated><entry><title>Some helpful Bash notes</title><link href="/some-helpful-bash-notes.html" rel="alternate"></link><published>2020-12-15T00:00:00+00:00</published><updated>2020-12-15T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-12-15:/some-helpful-bash-notes.html</id><summary type="html">
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;There are quite a few resources online on Bash scripting which are extremely useful.
+I particularly recommend &lt;a href="https://github.com/awesome-lists/awesome-bash"&gt;Awesome Bash&lt;/a&gt; and 
+&lt;a href="https://github.com/jlevy/the-art-of-command-line"&gt;The Art of Command Line&lt;/a&gt;.
+There is little point writing yet another Bash tutorial, however, I’d like to share
+a few helpful notes which others who just start …&lt;/p&gt;</summary><content type="html">
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;There are quite a few resources online on Bash scripting which are extremely useful.
+I particularly recommend &lt;a href="https://github.com/awesome-lists/awesome-bash"&gt;Awesome Bash&lt;/a&gt; and 
+&lt;a href="https://github.com/jlevy/the-art-of-command-line"&gt;The Art of Command Line&lt;/a&gt;.
+There is little point writing yet another Bash tutorial, however, I’d like to share
+a few helpful notes which others who just start using a command line 
+may find useful.&lt;/p&gt;
+&lt;h3 id="multiple-arguments-to-the-same-command"&gt;Multiple arguments to the same command&lt;a class="headerlink" href="#multiple-arguments-to-the-same-command" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Many Unix commands accept multiple arguments, one after another:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ ls *.jar *.vsix
+tmp-142zodmSW1YLvRv.vsix    tmp-417e1PTGYuSLOnV.vsix  winstone10385665803316081333.jar
+tmp-192iFDUu55RqcPk.vsix    tmp-417qbhJlHnXzkZl.vsix  winstone4439219046698760640.jar
+tmp-31894bwaoyq9zL7em.vsix  tmp-549k8JeuzrFyHMC.vsix  winstone4470366079702491377.jar
+
+$ touch foo.bar foo.baz
+$ ls foo.*       
+foo.bar  foo.baz
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="one-line-for-loop"&gt;One line &lt;code&gt;for&lt;/code&gt; loop&lt;a class="headerlink" href="#one-line-for-loop" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;It’s common to see a &lt;code&gt;for&lt;/code&gt; loop that spans over multiple lines in shell scripts:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;for&lt;/span&gt; jarfile in *.jar&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;do&lt;/span&gt; file &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;jarfile&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;done&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;However, working with the &lt;code&gt;for&lt;/code&gt; loop spanning over multiple lines in terminal
+can be cumbersome.
+Fortunately, the &lt;code&gt;for&lt;/code&gt; loop can be put into a single line:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ &lt;span class="k"&gt;for&lt;/span&gt; jarfile in *.jar&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; file &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;jarfile&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;done&lt;/span&gt;
+winstone10385665803316081333.jar: Java archive data &lt;span class="o"&gt;(&lt;/span&gt;JAR&lt;span class="o"&gt;)&lt;/span&gt;
+winstone4439219046698760640.jar: Java archive data &lt;span class="o"&gt;(&lt;/span&gt;JAR&lt;span class="o"&gt;)&lt;/span&gt;
+winstone4470366079702491377.jar: Java archive data &lt;span class="o"&gt;(&lt;/span&gt;JAR&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="reading-standard-input"&gt;Reading standard input&lt;a class="headerlink" href="#reading-standard-input" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Some programs are limited and may not accept files as input arguments.
+Another use case is when you have to pass sensitive data such as passwords
+as input to programs using a command line interface (so that it doesn’t
+end up in the terminal history).&lt;/p&gt;
+&lt;p&gt;For example, you may need to produce a semicolon separated list of files
+(and some program has already produced a list of files):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ cat files.txt
+winstone10385665803316081333.jar
+winstone4439219046698760640.jar
+winstone4470366079702491377.jar
+
+$ tr &lt;span class="s1"&gt;'\n'&lt;/span&gt; &lt;span class="s1"&gt;';'&lt;/span&gt; &amp;lt; files.txt
+winstone10385665803316081333.jar&lt;span class="p"&gt;;&lt;/span&gt;winstone4439219046698760640.jar&lt;span class="p"&gt;;&lt;/span&gt;winstone4470366079702491377.jar&lt;span class="p"&gt;;&lt;/span&gt;%
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="submit-multiline-input-to-a-command"&gt;Submit multiline input to a command&lt;a class="headerlink" href="#submit-multiline-input-to-a-command" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When you need to supply a multiline input to a command, particularly if this needs to happen interactively,
+you can use a &lt;a href="https://en.wikipedia.org/wiki/Here_document"&gt;here document&lt;/a&gt; 
+which can be used within a shell script file or at a prompt:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ tr &lt;span class="s1"&gt;'[:lower:]'&lt;/span&gt; &lt;span class="s1"&gt;'[:upper:]'&lt;/span&gt; &lt;span class="s"&gt;&amp;lt;&amp;lt; END&lt;/span&gt;
+&lt;span class="s"&gt;first line&lt;/span&gt;
+&lt;span class="s"&gt;and second line&lt;/span&gt;
+&lt;span class="s"&gt;and third line&lt;/span&gt;
+&lt;span class="s"&gt;END&lt;/span&gt;
+
+FIRST LINE
+AND SECOND LINE
+AND THIRD LINE
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Another useful feature is to be able to write multiline input to a file.
+This can be very handy when you have to create a multiline file 
+(potentially with non trivial indentation) and the machine you are connected to 
+does not have any text editors available.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ cat &lt;span class="s"&gt;&amp;lt;&amp;lt; EOF &amp;gt; dummy.txt&lt;/span&gt;
+&lt;span class="s"&gt;The file contents to be written: line 1&lt;/span&gt;
+&lt;span class="s"&gt;and line 2&lt;/span&gt;
+&lt;span class="s"&gt;EOF&lt;/span&gt;
+
+$ cat dummy.txt             
+The file contents to be written: line &lt;span class="m"&gt;1&lt;/span&gt;
+and line &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="single-and-double-quotes"&gt;Single and double quotes&lt;a class="headerlink" href="#single-and-double-quotes" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Single quotes do not let filename and variable expansion to happen in the quoted text.
+Be very careful mixing the single and double quotes!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ &lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;SITE_TOKEN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'mytoken'&lt;/span&gt; 
+$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="nv"&gt;$SITE_TOKEN&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;        
+mytoken
+$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;'$SITE_TOKEN'&lt;/span&gt;
+&lt;span class="nv"&gt;$SITE_TOKEN&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="grouping-commands-and-values-using-curly-braces"&gt;Grouping commands and values using curly braces&lt;a class="headerlink" href="#grouping-commands-and-values-using-curly-braces" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;It can be very useful to be able to run multiple commands, one after another,
+and save the output to a file.
+This would let you avoid having multiple lines in your script (where each line would be 
+appending to the file).
+For instance, to create a log of some system operation:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ &lt;span class="o"&gt;{&lt;/span&gt; date&lt;span class="p"&gt;;&lt;/span&gt; whoami&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"----"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; ls /var &lt;span class="o"&gt;}&lt;/span&gt; &amp;gt; log&lt;span class="k"&gt;$(&lt;/span&gt;date &lt;span class="s1"&gt;'+%Y-%m-%d'&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;.txt
+
+$ head -n &lt;span class="m"&gt;5&lt;/span&gt; log2020-12-15.txt 
+Tue Dec &lt;span class="m"&gt;15&lt;/span&gt; &lt;span class="m"&gt;22&lt;/span&gt;:21:59 GMT &lt;span class="m"&gt;2020&lt;/span&gt;
+username
+----
+backups
+cache
+crash
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Happy shelling!&lt;/p&gt;</content><category term="bash"></category><category term="bash"></category><category term="linux"></category></entry><entry><title>Using python3-apt Debian package for system package management with Python</title><link href="/use-apt-from-python.html" rel="alternate"></link><published>2020-12-01T00:00:00+00:00</published><updated>2020-12-01T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-12-01:/use-apt-from-python.html</id><summary type="html">
 &lt;p&gt;For Debian-based systems such as Ubuntu, most package management happens via the &lt;code&gt;apt&lt;/code&gt;
 system package.
 It provides a friendly command line interface, however, there aren’t many robust ways to use
@@ -175,7 +281,7 @@ from the private repository.
 can be handled using a built-in &lt;code&gt;netrc&lt;/code&gt; Python module so writing a custom file parser is not necessary.&lt;/p&gt;
 &lt;p&gt;Once the &lt;code&gt;sources.list&lt;/code&gt; has the private repository listed, you can install the packages from
 the repository that requires authentication in the same way as we have installed the &lt;code&gt;tree&lt;/code&gt; package earlier.&lt;/p&gt;
-&lt;p&gt;Happy packaging!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="docker"></category><category term="testing"></category><category term="linux"></category><category term="apt"></category><category term="debian"></category></entry><entry><title>Patching with unittest.mock for Python testing: cheat sheet</title><link href="/patching-mock-python-unit-testing.html" rel="alternate"></link><published>2020-11-20T00:00:00+00:00</published><updated>2020-11-20T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-20:/patching-mock-python-unit-testing.html</id><summary type="html">
+&lt;p&gt;Happy packaging!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="docker"></category><category term="testing"></category><category term="linux"></category><category term="apt"></category><category term="debian"></category></entry><entry><title>Patching with unittest.mock for Python testing: cheat sheet</title><link href="/patching-mock-python-unit-testing.html" rel="alternate"></link><published>2020-11-20T00:00:00+00:00</published><updated>2020-12-15T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-20:/patching-mock-python-unit-testing.html</id><summary type="html">
 &lt;h3 id="overview-of-patching"&gt;Overview of patching&lt;a class="headerlink" href="#overview-of-patching" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Python built-in &lt;code&gt;unittest&lt;/code&gt; framework provides the 
 &lt;a href="https://docs.python.org/3/library/unittest.mock.html"&gt;&lt;code&gt;mock&lt;/code&gt;&lt;/a&gt; module 
@@ -303,6 +409,48 @@ is universal for all the methods types.&lt;/p&gt;
     &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;patch&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'static_class.Address.to_string'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;"Address formatted"&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
         &lt;span class="n"&gt;address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Address&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"1"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"New Road"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"99999"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"City"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
         &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;address&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;print&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;"Address formatted"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="patching-class-instance-method-that-modifies-self"&gt;Patching class instance method that modifies &lt;code&gt;self&lt;/code&gt;&lt;a class="headerlink" href="#patching-class-instance-method-that-modifies-self" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Use case:&lt;/p&gt;
+&lt;p&gt;You have a method which doesn’t return anything but instead sets 
+or modifies its object (&lt;code&gt;self&lt;/code&gt;) properties.
+You cannot patch the mock’s method with &lt;code&gt;.return_value&lt;/code&gt; 
+and thus need instead modify the values of the &lt;code&gt;self&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Code:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Client&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;guid&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;guid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;guid&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;visited&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;False&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;last_time_visited&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;None&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;visit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;visited&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;True&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;last_time_visited&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;now&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;process&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;visit&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Test:&lt;/p&gt;
+&lt;p&gt;We would like to test the &lt;code&gt;process()&lt;/code&gt; method without letting it to execute the &lt;code&gt;visit()&lt;/code&gt; method,
+but still check that after running the &lt;code&gt;process()&lt;/code&gt; method, the &lt;code&gt;Client&lt;/code&gt; instance would get
+certain fields set.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;client&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Client&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;setattrs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;obj&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+        &lt;span class="nb"&gt;setattr&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;obj&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_process&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;mock_client&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Mock&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;patch&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'client.Client'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;lambda&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;mock_client&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;mock_client&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;process&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;side_effect&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;lambda&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;setattrs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mock_client&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="n"&gt;visited&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;last_time_visited&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;now&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+        &lt;span class="n"&gt;client&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Client&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;99&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;client&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;process&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;client&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;visited&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="kc"&gt;True&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="nb"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;client&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;last_time_visited&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h2 id="patching-multiple-calls-to-the-same-function"&gt;Patching multiple calls to the same function&lt;a class="headerlink" href="#patching-multiple-calls-to-the-same-function" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;Use case: &lt;/p&gt;

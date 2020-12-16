@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Tue, 01 Dec 2020 00:00:00 +0000</lastBuildDate><item><title>Using python3-apt Debian package for system package management with Python</title><link>/use-apt-from-python.html</link><description>
+<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Tue, 15 Dec 2020 00:00:00 +0000</lastBuildDate><item><title>Some helpful Bash notes</title><link>/some-helpful-bash-notes.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;There are quite a few resources online on Bash scripting which are extremely useful.
+I particularly recommend &lt;a href="https://github.com/awesome-lists/awesome-bash"&gt;Awesome Bash&lt;/a&gt; and 
+&lt;a href="https://github.com/jlevy/the-art-of-command-line"&gt;The Art of Command Line&lt;/a&gt;.
+There is little point writing yet another Bash tutorial, however, I’d like to share
+a few helpful notes which others who just start …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Tue, 15 Dec 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-12-15:/some-helpful-bash-notes.html</guid><category>bash</category><category>bash</category><category>linux</category></item><item><title>Using python3-apt Debian package for system package management with Python</title><link>/use-apt-from-python.html</link><description>
 &lt;p&gt;For Debian-based systems such as Ubuntu, most package management happens via the &lt;code&gt;apt&lt;/code&gt;
 system package.
 It provides a friendly command line interface, however, there aren’t many robust ways to use
