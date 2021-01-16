@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Tue, 15 Dec 2020 00:00:00 +0000</lastBuildDate><item><title>Some helpful Bash notes</title><link>/some-helpful-bash-notes.html</link><description>
+<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Sat, 16 Jan 2021 00:00:00 +0000</lastBuildDate><item><title>Python raising SyntaxError when having too many nested for loops</title><link>/python-too-many-nested-loops.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When writing programs in any programming language,
+it is common to see some syntax or runtime errors.
+For instance, in Python, it is easy to &lt;a href="https://www.flake8rules.com/rules/E101.html"&gt;mess up the indentation&lt;/a&gt;
+in a file after merging files from different codebases.
+Likewise, one can make an &lt;a href="https://en.wikipedia.org/wiki/Off-by-one_error"&gt;off-by-one error&lt;/a&gt; 
+when accessing an array …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Sat, 16 Jan 2021 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2021-01-16:/python-too-many-nested-loops.html</guid><category>python</category><category>python</category></item><item><title>Some helpful Bash notes</title><link>/some-helpful-bash-notes.html</link><description>
 &lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;There are quite a few resources online on Bash scripting which are extremely useful.
 I particularly recommend &lt;a href="https://github.com/awesome-lists/awesome-bash"&gt;Awesome Bash&lt;/a&gt; and 

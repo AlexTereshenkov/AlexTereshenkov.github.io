@@ -1,5 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov - python</title><link href="/" rel="alternate"></link><link href="/feeds/python.atom.xml" rel="self"></link><id>/</id><updated>2020-12-15T00:00:00+00:00</updated><entry><title>Using python3-apt Debian package for system package management with Python</title><link href="/use-apt-from-python.html" rel="alternate"></link><published>2020-12-01T00:00:00+00:00</published><updated>2020-12-01T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-12-01:/use-apt-from-python.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov - python</title><link href="/" rel="alternate"></link><link href="/feeds/python.atom.xml" rel="self"></link><id>/</id><updated>2021-01-16T00:00:00+00:00</updated><entry><title>Python raising SyntaxError when having too many nested for loops</title><link href="/python-too-many-nested-loops.html" rel="alternate"></link><published>2021-01-16T00:00:00+00:00</published><updated>2021-01-16T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2021-01-16:/python-too-many-nested-loops.html</id><summary type="html">
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When writing programs in any programming language,
+it is common to see some syntax or runtime errors.
+For instance, in Python, it is easy to &lt;a href="https://www.flake8rules.com/rules/E101.html"&gt;mess up the indentation&lt;/a&gt;
+in a file after merging files from different codebases.
+Likewise, one can make an &lt;a href="https://en.wikipedia.org/wiki/Off-by-one_error"&gt;off-by-one error&lt;/a&gt; 
+when accessing an array …&lt;/p&gt;</summary><content type="html">
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When writing programs in any programming language,
+it is common to see some syntax or runtime errors.
+For instance, in Python, it is easy to &lt;a href="https://www.flake8rules.com/rules/E101.html"&gt;mess up the indentation&lt;/a&gt;
+in a file after merging files from different codebases.
+Likewise, one can make an &lt;a href="https://en.wikipedia.org/wiki/Off-by-one_error"&gt;off-by-one error&lt;/a&gt; 
+when accessing an array which will be found at the runtime only.&lt;/p&gt;
+&lt;p&gt;Some other types of errors, however, are very rare 
+and it is likely that you will not see many of them in your lifetime as a
+Python programmer.
+For instance, if you never use recursion to process a large array,
+you may never be hit by the &lt;a href="https://stackoverflow.com/questions/3323001/what-is-the-maximum-recursion-depth-in-python-and-how-to-increase-it"&gt;maximum recursion depth limitation&lt;/a&gt;
+that exists to guard against a stack overflow.&lt;/p&gt;
+&lt;p&gt;In this post, I document my findings around an issue I have faced
+when attempting to run auto-generated Python code that contained
+many nested &lt;code&gt;for&lt;/code&gt; loops.&lt;/p&gt;
+&lt;h2 id="use-case"&gt;Use case&lt;a class="headerlink" href="#use-case" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;I was working on a simple code generation library that given input numeric matrix 
+would produce boilerplate Python program code that could be extended further.
+I thought it would be useful to experiment how the tool would behave on a matrix
+of many dimensions because that would involve creating quite a few nested loops.
+I’ve been planning to start using &lt;code&gt;itertools.product&lt;/code&gt; instead of relying on nested &lt;code&gt;for&lt;/code&gt; loops,
+but wanted to experiment before refactoring.&lt;/p&gt;
+&lt;p&gt;The generated Python code looked like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+  &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+      &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+      &lt;span class="c1"&gt;# all the way to the 20th nested "for" loop &lt;/span&gt;
+      &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;18&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+          &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;19&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+          &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+            &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You can generate this Python code programmatically if you’d like to experiment:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;loop&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"""&lt;/span&gt;&lt;span class="si"&gt;{for_spaces}&lt;/span&gt;&lt;span class="s2"&gt;for i in range(1):&lt;/span&gt;
+&lt;span class="si"&gt;{print_spaces}&lt;/span&gt;&lt;span class="s2"&gt;print(&lt;/span&gt;&lt;span class="si"&gt;{loop_number}&lt;/span&gt;&lt;span class="s2"&gt;)&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s2"&gt;"""&lt;/span&gt;
+
+&lt;span class="n"&gt;code&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;""&lt;/span&gt;
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;21&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;code&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;loop&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+        &lt;span class="n"&gt;for_spaces&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;" "&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="n"&gt;print_spaces&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;" "&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s2"&gt;"  "&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="n"&gt;loop_number&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;code&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;A very useful tool I’ve been using occasionally to verify that Python module
+contains syntactically valid code is &lt;a href="https://docs.python.org/3/library/compileall.html"&gt;&lt;code&gt;compileall&lt;/code&gt;&lt;/a&gt;
+which can be used both from a command line and in Python programs.
+&lt;code&gt;compileall&lt;/code&gt; tool will compile your source code into bytecode files (&lt;code&gt;.pyc&lt;/code&gt;)
+and if there are any syntax errors, the compilation will fail reporting the problem.&lt;/p&gt;
+&lt;p&gt;Bytecompiling the following Python code:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nb"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;"hello!"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;produces&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ python3 -m compileall code.py                     
+Compiling &lt;span class="s1"&gt;'code.py'&lt;/span&gt;...
+***   File &lt;span class="s2"&gt;"code.py"&lt;/span&gt;, line &lt;span class="m"&gt;1&lt;/span&gt;
+    print &lt;span class="s2"&gt;"hello!"&lt;/span&gt;
+                ^
+SyntaxError: Missing parentheses in call to &lt;span class="s1"&gt;'print'&lt;/span&gt;. Did you mean print&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"hello!"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;?
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;compileall&lt;/code&gt; has also been very useful when migrating legacy codebases from Python 2 to Python 3
+when it was used for the first-level sanity check.&lt;/p&gt;
+&lt;h2 id="too-many-statically-nested-blocks"&gt;Too many statically nested blocks&lt;a class="headerlink" href="#too-many-statically-nested-blocks" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Bytecompiling the module with 20+ nested &lt;code&gt;for&lt;/code&gt; loops:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ python3 -m compileall too_many_nested_for_loops.py 
+Compiling &lt;span class="s1"&gt;'too_many_nested_for_loops.py'&lt;/span&gt;...
+***   File &lt;span class="s2"&gt;"too_many_nested_for_loops.py"&lt;/span&gt;, line None
+SyntaxError: too many statically nested blocks
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;It turns out that Python has a limit on how many nested blocks (so not just &lt;code&gt;for&lt;/code&gt; loops)
+one is allowed to have.
+This seems to be a design decision that was made when the CPython interpreter was developed. 
+CPython has a concept of a stack, namely &lt;code&gt;blockstack&lt;/code&gt;, which is used to execute code blocks,
+and it’s maximum size is 20.&lt;/p&gt;
+&lt;p&gt;This is an internal implementation detail which I’d unlikely ever hit dealing with
+human written Python code, but I find it to be very exciting to be able to see a low level detail
+of CPython design. This &lt;a href="https://stackoverflow.com/questions/44972719/why-does-python-have-a-limit-on-the-number-of-static-blocks-that-can-be-nested/44973363"&gt;Stackoverflow question&lt;/a&gt; 
+provides a more thorough explanation of this limit.&lt;/p&gt;
+&lt;p&gt;Happy coding!&lt;/p&gt;</content><category term="python"></category><category term="python"></category></entry><entry><title>Using python3-apt Debian package for system package management with Python</title><link href="/use-apt-from-python.html" rel="alternate"></link><published>2020-12-01T00:00:00+00:00</published><updated>2020-12-01T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-12-01:/use-apt-from-python.html</id><summary type="html">
 &lt;p&gt;For Debian-based systems such as Ubuntu, most package management happens via the &lt;code&gt;apt&lt;/code&gt;
 system package.
 It provides a friendly command line interface, however, there aren’t many robust ways to use
