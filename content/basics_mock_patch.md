@@ -1,6 +1,6 @@
 title: Patching with unittest.mock for Python testing: cheat sheet
 date: 2020-11-20
-modified: 2020-12-15
+modified: 2021-01-19
 author: Alexey Tereshenkov
 tags: python,mock,testing,patch
 slug: patching-mock-python-unit-testing
@@ -151,6 +151,61 @@ Test:
         with patch('static_class.Address.to_string', lambda value: "Address formatted"):
             address = Address(*("1", "New Road", "99999", "City"))
             assert address.print() == "Address formatted"
+
+## Patching a nested class instance attribute
+
+Use case:
+
+You have a class that when instantiated has an attribute that itself is
+an instance of a class with additional instance attributes.
+You are interested in patching this nested attribute to be set to some
+value.
+
+Code:
+
+    :::python
+    from typing import List
+
+
+    class City:
+        def __init__(self, name: str):
+            self.name = name
+
+
+    class Address:
+        def __init__(self, address: List[str]):
+            self.city = City(address[0])
+            self.street = address[1]
+            self.house = address[2]
+
+
+    class Customer:
+        def __init__(self, address: List[str]):
+            self.address = Address(str)
+
+        def get_address(self):
+            return self.address
+
+Test:
+
+We want to patch the `get_address()` method on the class instance 
+and then set a returned object to have a nested attribute set to some value.
+This may be necessary when you are trying to cover a code branch which
+will be executed only when a value of the nested attribute is equal to a certain value.
+
+    :::python
+    from typing import List
+    from unittest.mock import patch, MagicMock
+
+    def test_customer_address():
+        with patch('customer.Customer') as mock_customer:
+            c = mock_customer.return_value
+            mock_address = MagicMock()
+            # MagicMock lets you define nested attributes
+            mock_address.city.name = "BigCity"
+            c.get_address.return_value = mock_address
+            assert c.get_address().city.name == 'BigCity'
+
 
 ## Patching class instance method that modifies `self`
 

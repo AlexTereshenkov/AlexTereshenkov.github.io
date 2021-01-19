@@ -2,7 +2,6 @@ from typing import Tuple
 
 
 class Address:
-
     def __init__(self, house: str, street: str, postal_code: str, city: str):
         self.house = Address.numerize(house)
         self.street = street
@@ -24,6 +23,7 @@ class Address:
         fmt = self.to_string()
         print(fmt)
         return fmt
+
 
 def is_valid_address(address_tuple):
     try:

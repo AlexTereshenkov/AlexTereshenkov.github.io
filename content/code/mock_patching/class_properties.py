@@ -1,7 +1,7 @@
 class Process:
     def __init__(self, pid: int):
         self._pid = pid
-        
+
     @property
     def pid(self):
         return self._pid

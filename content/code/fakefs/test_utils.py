@@ -12,5 +12,4 @@ def test_merge_files():
         dest_dir.joinpath('file2').write_text('line3\nline4\n')
 
         merge_files(source=dest_dir, target='result')
-        assert dest_dir.joinpath(
-            'result').read_text() == 'line1\nline2\nline3\nline4\n'
+        assert dest_dir.joinpath('result').read_text() == 'line1\nline2\nline3\nline4\n'

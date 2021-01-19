@@ -2,7 +2,6 @@ from datetime import datetime
 
 
 class Client:
-
     def __init__(self, guid):
         self.guid = guid
         self.visited = False

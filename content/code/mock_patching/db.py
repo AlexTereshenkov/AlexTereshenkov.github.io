@@ -5,6 +5,7 @@ import pytest
 def get_table(name):
     return True
 
+
 def delete_table(name):
     return True
 
