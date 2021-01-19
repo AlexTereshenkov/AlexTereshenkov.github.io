@@ -23,7 +23,7 @@
 <meta property="og:site_name" content="Alexey Tereshenkov" />
 <meta property="og:article:author" content="Alexey Tereshenkov" />
 <meta property="og:article:published_time" content="2020-11-20T00:00:00+00:00" />
-<meta property="og:article:modified_time" content="2020-12-15T00:00:00+00:00" />
+<meta property="og:article:modified_time" content="2021-01-19T00:00:00+00:00" />
 <meta name="twitter:title" content="Patching with unittest.mock for Python testing: cheat sheet ">
 <meta name="twitter:description" content="Overview of patching¶ Python built-in unittest framework provides the mock module which gets very handy when writing unit tests. It also provides the patch entity which can be used as a function decorator, class decorator or a context manager. The basic idea behind patching is that it lets you temporarily …">
 
@@ -92,6 +92,7 @@
 <li><a href="#overview-of-patching">Overview of patching</a></li>
 <li><a href="#patching-class-initialization">Patching class initialization</a></li>
 <li><a href="#patching-static-class-and-instance-methods">Patching static, class, and instance methods</a></li>
+<li><a href="#patching-a-nested-class-instance-attribute">Patching a nested class instance attribute</a></li>
 <li><a href="#patching-class-instance-method-that-modifies-self">Patching class instance method that modifies self</a></li>
 <li><a href="#patching-multiple-calls-to-the-same-function">Patching multiple calls to the same function</a></li>
 <li><a href="#patching-function-and-its-returned-object">Patching function and its returned object</a></li>
@@ -225,6 +226,52 @@ is universal for all the methods types.</p>
     <span class="k">with</span> <span class="n">patch</span><span class="p">(</span><span class="s1">'static_class.Address.to_string'</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">value</span><span class="p">:</span> <span class="s2">"Address formatted"</span><span class="p">):</span>
         <span class="n">address</span> <span class="o">=</span> <span class="n">Address</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="s2">"1"</span><span class="p">,</span> <span class="s2">"New Road"</span><span class="p">,</span> <span class="s2">"99999"</span><span class="p">,</span> <span class="s2">"City"</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">address</span><span class="o">.</span><span class="n">print</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"Address formatted"</span>
+</code></pre></div>
+<h2 id="patching-a-nested-class-instance-attribute">Patching a nested class instance attribute<a class="headerlink" href="#patching-a-nested-class-instance-attribute" title="Permanent link">¶</a></h2>
+<p>Use case:</p>
+<p>You have a class that when instantiated has an attribute that itself is
+an instance of a class with additional instance attributes.
+You are interested in patching this nested attribute to be set to some
+value.</p>
+<p>Code:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+
+<span class="k">class</span> <span class="nc">City</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+
+<span class="k">class</span> <span class="nc">Address</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">city</span> <span class="o">=</span> <span class="n">City</span><span class="p">(</span><span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">street</span> <span class="o">=</span> <span class="n">address</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">house</span> <span class="o">=</span> <span class="n">address</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">Customer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">Address</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span>
+</code></pre></div>
+<p>Test:</p>
+<p>We want to patch the <code>get_address()</code> method on the class instance 
+and then set a returned object to have a nested attribute set to some value.
+This may be necessary when you are trying to cover a code branch which
+will be executed only when a value of the nested attribute is equal to a certain value.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="kn">import</span> <span class="n">patch</span><span class="p">,</span> <span class="n">MagicMock</span>
+
+<span class="k">def</span> <span class="nf">test_customer_address</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">patch</span><span class="p">(</span><span class="s1">'customer.Customer'</span><span class="p">)</span> <span class="k">as</span> <span class="n">mock_customer</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">mock_customer</span><span class="o">.</span><span class="n">return_value</span>
+        <span class="n">mock_address</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+        <span class="c1"># MagicMock lets you define nested attributes</span>
+        <span class="n">mock_address</span><span class="o">.</span><span class="n">city</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"BigCity"</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">get_address</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="n">mock_address</span>
+        <span class="k">assert</span> <span class="n">c</span><span class="o">.</span><span class="n">get_address</span><span class="p">()</span><span class="o">.</span><span class="n">city</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">'BigCity'</span>
 </code></pre></div>
 <h2 id="patching-class-instance-method-that-modifies-self">Patching class instance method that modifies <code>self</code><a class="headerlink" href="#patching-class-instance-method-that-modifies-self" title="Permanent link">¶</a></h2>
 <p>Use case:</p>
@@ -434,7 +481,7 @@ plugin provides handy custom markers.</p>
             <h4>Published</h4>
             <time itemprop="dateCreated" datetime="2020-11-20T00:00:00+00:00">Fri 20 November 2020</time>
 <h4>Last Updated</h4>
-<time datetime="2020-12-15T00:00:00+00:00">Dec 15, 2020</time>
+<time datetime="2021-01-19T00:00:00+00:00">Jan 19, 2021</time>
 
             <h4>Category</h4>
             <a class="category-link" href="/categories.html#python-ref">python</a>

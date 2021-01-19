@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Sat, 16 Jan 2021 00:00:00 +0000</lastBuildDate><item><title>Python raising SyntaxError when having too many nested for loops</title><link>/python-too-many-nested-loops.html</link><description>
+<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Tue, 19 Jan 2021 00:00:00 +0000</lastBuildDate><item><title>Python raising SyntaxError when having too many nested for loops</title><link>/python-too-many-nested-loops.html</link><description>
 &lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;When writing programs in any programming language,
 it is common to see some syntax or runtime errors.

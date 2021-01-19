@@ -230,7 +230,8 @@ on demand.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">uris_before</span><span class="p">)</span>
 
 <span class="c1"># adding a custom apt source</span>
-<span class="n">source</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"deb [trusted=yes]"</span><span class="p">,</span> <span class="s2">"http://download.virtualbox.org/virtualbox/debian"</span><span class="p">,</span> <span class="s2">"bionic"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"contrib"</span><span class="p">])</span>
+<span class="n">source</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"deb [trusted=yes]"</span><span class="p">,</span> <span class="s2">"http://download.virtualbox.org/virtualbox/debian"</span><span class="p">,</span>
+          <span class="s2">"bionic"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"contrib"</span><span class="p">])</span>
 <span class="n">sources</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">source</span><span class="p">)</span>
 <span class="n">sources</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 
@@ -239,7 +240,9 @@ on demand.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">uris_after</span><span class="p">)</span>
 
 <span class="c1"># printing the contents of the sources.list file</span>
-<span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">"tail"</span><span class="p">,</span> <span class="s2">"/etc/apt/sources.list"</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+<span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">"tail"</span><span class="p">,</span> <span class="s2">"/etc/apt/sources.list"</span><span class="p">],</span>
+                           <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                           <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
 <span class="n">out</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
