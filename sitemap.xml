@@ -5,43 +5,50 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/</loc>
-<lastmod>2021-01-19T21:00:50-00:00</lastmod>
+<lastmod>2021-02-06T22:08:38-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/tags.html</loc>
-<lastmod>2021-01-19T21:00:50-00:00</lastmod>
+<lastmod>2021-02-06T22:08:38-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/categories.html</loc>
-<lastmod>2021-01-19T21:00:50-00:00</lastmod>
+<lastmod>2021-02-06T22:08:38-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/archives.html</loc>
-<lastmod>2021-01-19T21:00:50-00:00</lastmod>
+<lastmod>2021-02-06T22:08:38-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/search.html</loc>
-<lastmod>2021-01-19T21:00:50-00:00</lastmod>
+<lastmod>2021-02-06T22:08:38-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/404.html</loc>
-<lastmod>2021-01-19T21:00:50-00:00</lastmod>
+<lastmod>2021-02-06T22:08:38-00:00</lastmod>
 <changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>/python-recursion-intro.html</loc>
+<lastmod>2021-02-06T00:00:00+00:00</lastmod>
+<changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
@@ -166,7 +173,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/category/python.html</loc>
-<lastmod>2021-01-19T00:00:00-00:01</lastmod>
+<lastmod>2021-02-06T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -180,7 +187,21 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/tag/python.html</loc>
-<lastmod>2021-01-19T00:00:00-00:01</lastmod>
+<lastmod>2021-02-06T00:00:00-00:01</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>/tag/recursion.html</loc>
+<lastmod>2021-02-06T00:00:00-00:01</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>/tag/functional-programming.html</loc>
+<lastmod>2021-02-06T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -362,7 +383,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/author/alexey-tereshenkov.html</loc>
-<lastmod>2021-01-19T00:00:00-00:01</lastmod>
+<lastmod>2021-02-06T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
