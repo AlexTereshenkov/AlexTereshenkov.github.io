@@ -1,6 +1,6 @@
 title: Introducton to recursion with Python
 date: 2021-02-06
-modified: 2021-02-06
+modified: 2021-02-28
 author: Alexey Tereshenkov
 tags: python,recursion,functional-programming
 slug: python-recursion-intro
@@ -184,6 +184,42 @@ find the sum of all numbers in the array.
             return []
         else:
             return [arr[0][0]] + firsts(arr[1:])
+
+### Get digits of a number in a given base (up to base of 10)
+
+    :::python
+    def get_digits_in_base(num, base):
+        """Get digits of a number in a given base (up to base of 10).
+        >>> get_digits_in_base(192837, 10)
+        ['1', '9', '2', '8', '3', '7']
+        >>> get_digits_in_base(16, 2)
+        ['1', '0', '0', '0', '0']
+        >>> get_digits(1000, 16)
+        ['3', 'E', '8']
+        """
+        if num == 0:
+            return []
+        quotient, remainder = divmod(num, base)
+        return get_digits_in_base(quotient, base) + [str(remainder)]
+
+### Get digits of a number in a given base (up to base of 16)
+
+    :::python
+    def get_digits(num, base):
+        """Get digits of a number in a given base (up to base of 16).
+        >>> get_digits_in_base(192837, 10)
+        ['1', '9', '2', '8', '3', '7']
+        >>> get_digits_in_base(16, 2)
+        ['1', '0', '0', '0', '0']
+        >>> get_digits_in_base(256, 16)
+        ['1', '0', '0']
+        """
+        lookup = '0123456789ABCDEF'
+        if num < base:
+            return [lookup[num]]
+        else:
+            quotient, remainder = divmod(num, base)
+            return get_digits(quotient, base) + [lookup[remainder]]
 
 ## Tail recursion optimizations
 
