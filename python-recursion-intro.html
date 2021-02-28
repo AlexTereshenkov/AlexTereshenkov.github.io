@@ -23,7 +23,7 @@
 <meta property="og:site_name" content="Alexey Tereshenkov" />
 <meta property="og:article:author" content="Alexey Tereshenkov" />
 <meta property="og:article:published_time" content="2021-02-06T00:00:00+00:00" />
-<meta property="og:article:modified_time" content="2021-02-06T00:00:00+00:00" />
+<meta property="og:article:modified_time" content="2021-02-28T00:00:00+00:00" />
 <meta name="twitter:title" content="Introducton to recursion with Python ">
 <meta name="twitter:description" content="Overview¶ Recursion can be one of the programming concepts that can be a bit of a challenge to understand. I believe this is because the recursive call to a function is not written in a procedural way so that one cannot see the actual sequence of operations that will be …">
 
@@ -97,6 +97,8 @@
 <li><a href="#merge-two-arrays-of-items">Merge two arrays of items</a></li>
 <li><a href="#sum-integers-in-a-list-of-pairs">Sum integers in a list of pairs</a></li>
 <li><a href="#get-first-elements-of-sub-arrays-in-array">Get first elements of sub-arrays in array</a></li>
+<li><a href="#get-digits-of-a-number-in-a-given-base-up-to-base-of-10">Get digits of a number in a given base (up to base of 10)</a></li>
+<li><a href="#get-digits-of-a-number-in-a-given-base-up-to-base-of-16">Get digits of a number in a given base (up to base of 16)</a></li>
 </ul>
 </li>
 <li><a href="#tail-recursion-optimizations">Tail recursion optimizations</a><ul>
@@ -257,6 +259,38 @@ find the sum of all numbers in the array.</p>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">firsts</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 </code></pre></div>
+<h3 id="get-digits-of-a-number-in-a-given-base-up-to-base-of-10">Get digits of a number in a given base (up to base of 10)<a class="headerlink" href="#get-digits-of-a-number-in-a-given-base-up-to-base-of-10" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_digits_in_base</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="p">):</span>
+    <span class="sd">"""Get digits of a number in a given base (up to base of 10).</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(192837, 10)</span>
+<span class="sd">    ['1', '9', '2', '8', '3', '7']</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(16, 2)</span>
+<span class="sd">    ['1', '0', '0', '0', '0']</span>
+<span class="sd">    &gt;&gt;&gt; get_digits(1000, 16)</span>
+<span class="sd">    ['3', 'E', '8']</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">quotient</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_digits_in_base</span><span class="p">(</span><span class="n">quotient</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">remainder</span><span class="p">)]</span>
+</code></pre></div>
+<h3 id="get-digits-of-a-number-in-a-given-base-up-to-base-of-16">Get digits of a number in a given base (up to base of 16)<a class="headerlink" href="#get-digits-of-a-number-in-a-given-base-up-to-base-of-16" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_digits</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="p">):</span>
+    <span class="sd">"""Get digits of a number in a given base (up to base of 16).</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(192837, 10)</span>
+<span class="sd">    ['1', '9', '2', '8', '3', '7']</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(16, 2)</span>
+<span class="sd">    ['1', '0', '0', '0', '0']</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(256, 16)</span>
+<span class="sd">    ['1', '0', '0']</span>
+<span class="sd">    """</span>
+    <span class="n">lookup</span> <span class="o">=</span> <span class="s1">'0123456789ABCDEF'</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="n">base</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lookup</span><span class="p">[</span><span class="n">num</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">quotient</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_digits</span><span class="p">(</span><span class="n">quotient</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">lookup</span><span class="p">[</span><span class="n">remainder</span><span class="p">]]</span>
+</code></pre></div>
 <h2 id="tail-recursion-optimizations">Tail recursion optimizations<a class="headerlink" href="#tail-recursion-optimizations" title="Permanent link">¶</a></h2>
 <p>A special, perhaps more difficult concept to understand, is tail recursion.
 The recursive functions we have above have a pattern in the <code>return</code> statement.
@@ -407,6 +441,8 @@ and you find the code examples illustrative and useful.</p>
         <section id="article-sidebar" class="span2">
             <h4>Published</h4>
             <time itemprop="dateCreated" datetime="2021-02-06T00:00:00+00:00">Sat 06 February 2021</time>
+<h4>Last Updated</h4>
+<time datetime="2021-02-28T00:00:00+00:00">Feb 28, 2021</time>
 
             <h4>Category</h4>
             <a class="category-link" href="/categories.html#python-ref">python</a>
