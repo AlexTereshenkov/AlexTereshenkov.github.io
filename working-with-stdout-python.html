@@ -23,7 +23,7 @@
 <meta property="og:site_name" content="Alexey Tereshenkov" />
 <meta property="og:article:author" content="Alexey Tereshenkov" />
 <meta property="og:article:published_time" content="2020-11-16T00:00:00+00:00" />
-<meta property="og:article:modified_time" content="2020-11-16T00:00:00+00:00" />
+<meta property="og:article:modified_time" content="2020-03-06T00:00:00+00:00" />
 <meta name="twitter:title" content="Working with stdout in Python scripts ">
 <meta name="twitter:description" content="Overview¶ When working with an existing Python script, particularly a legacy script, or a script that was supposed to be used once and then thrown away but grew into a business critical application (yep, this happens), it can be common to see extensive usage of print or logging statements. Those …">
 
@@ -93,6 +93,7 @@
 <li><a href="#redirecting-to-a-file">Redirecting to a file</a></li>
 <li><a href="#redirecting-to-stringio">Redirecting to StringIO</a></li>
 <li><a href="#overriding-the-sysstdoutwrite-method">Overriding the sys.stdout.write method</a></li>
+<li><a href="#buffering-and-flushing">Buffering and flushing</a></li>
 </ul>
 </div>
         </nav>
@@ -232,6 +233,51 @@ Finished script
 
 Getting work done 1
 Getting work done 2
+</code></pre></div>
+<h2 id="buffering-and-flushing">Buffering and flushing<a class="headerlink" href="#buffering-and-flushing" title="Permanent link">¶</a></h2>
+<p>When you run a Python program, if the standard output (<code>stdout</code>) of its process is redirected 
+to some other target (different from your active terminal), then the output of this process will be
+buffered into a buffer.
+Therefore, output of Python programs that have any text sent to the <code>stdout</code> may be buffered and not shown 
+until the newline character (<code>\n</code>) is sent.</p>
+<p>This program won’t print anything in your Python console or terminal when being run:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">time</span> 
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">" "</span><span class="p">)</span> 
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p>In contrast, if there is a <code>print</code> call (which by default has the newline character as its 
+<a href="https://docs.python.org/3/library/functions.html#print"><code>end</code> parameter</a>), the output will be shown; 
+however, all the numbers will be printed at once (not one after another with 0.2 second interval) :</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">time</span> 
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">" "</span><span class="p">)</span> 
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">2</span><span class="p">)</span> 
+<span class="nb">print</span><span class="p">()</span>
+</code></pre></div>
+<p>To be able to see each number being printed instead of waiting for the loop 
+to complete and see them all at once,
+one can change the <code>stdout</code> buffering with the <a href="https://www.gnu.org/software/coreutils/manual/html_node/stdbuf-invocation.html"><code>stdbuf</code></a> utility.
+However, the <code>end</code> parameter has to be a newline character:</p>
+<div class="highlight"><pre><span></span><code>$ stdbuf -oL python3 program.py &gt; result.log
+</code></pre></div>
+<p>Alternatively, one can use the <code>flush</code> parameter of the <code>print</code> function:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">time</span> 
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> 
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p>and the call becomes (running <code>tail -F result.log</code> will let you see numbers printed in real time):</p>
+<div class="highlight"><pre><span></span><code>$ python3 std.py &gt; result.log
+</code></pre></div>
+<p>A solution that does not involve flushing is to set the 
+<a href="https://docs.python.org/3/using/cmdline.html#cmdoption-u"><code>PYTHONUNBUFFERED</code></a>
+environment variable.
+When this environment variable is set, the <code>stdout</code> of the Python process will be sent 
+to the active terminal in real time (which can be useful for tailing any application
+logs, particularly inside a Docker container).</p>
+<p>The same effect can also be achieved by passing the <code>-u</code> parameter:</p>
+<div class="highlight"><pre><span></span><code>$ python3 -u std.py &gt; result.log
 </code></pre></div>
 <p>Happy printing!</p>
 

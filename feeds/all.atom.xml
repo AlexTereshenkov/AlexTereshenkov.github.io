@@ -1051,7 +1051,7 @@ The &lt;a href="https://github.com/kiwicom/pytest-recording"&gt;&lt;code&gt;pyte
 plugin provides handy custom markers.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;Happy patching!                &lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="mock"></category><category term="testing"></category><category term="patch"></category></entry><entry><title>Working with stdout in Python scripts</title><link href="/working-with-stdout-python.html" rel="alternate"></link><published>2020-11-16T00:00:00+00:00</published><updated>2020-11-16T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-16:/working-with-stdout-python.html</id><summary type="html">
+&lt;p&gt;Happy patching!                &lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="mock"></category><category term="testing"></category><category term="patch"></category></entry><entry><title>Working with stdout in Python scripts</title><link href="/working-with-stdout-python.html" rel="alternate"></link><published>2020-11-16T00:00:00+00:00</published><updated>2020-03-06T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-16:/working-with-stdout-python.html</id><summary type="html">
 &lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;When working with an existing Python script, particularly a legacy script, 
 or a script that was supposed to be used once and then thrown away but grew into a business
@@ -1190,6 +1190,51 @@ Finished script
 
 Getting work done 1
 Getting work done 2
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="buffering-and-flushing"&gt;Buffering and flushing&lt;a class="headerlink" href="#buffering-and-flushing" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When you run a Python program, if the standard output (&lt;code&gt;stdout&lt;/code&gt;) of its process is redirected 
+to some other target (different from your active terminal), then the output of this process will be
+buffered into a buffer.
+Therefore, output of Python programs that have any text sent to the &lt;code&gt;stdout&lt;/code&gt; may be buffered and not shown 
+until the newline character (&lt;code&gt;\n&lt;/code&gt;) is sent.&lt;/p&gt;
+&lt;p&gt;This program won’t print anything in your Python console or terminal when being run:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;time&lt;/span&gt; 
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt; 
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;end&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;" "&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; 
+    &lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sleep&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In contrast, if there is a &lt;code&gt;print&lt;/code&gt; call (which by default has the newline character as its 
+&lt;a href="https://docs.python.org/3/library/functions.html#print"&gt;&lt;code&gt;end&lt;/code&gt; parameter&lt;/a&gt;), the output will be shown; 
+however, all the numbers will be printed at once (not one after another with 0.2 second interval) :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;time&lt;/span&gt; 
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt; 
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;end&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;" "&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; 
+    &lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sleep&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; 
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;To be able to see each number being printed instead of waiting for the loop 
+to complete and see them all at once,
+one can change the &lt;code&gt;stdout&lt;/code&gt; buffering with the &lt;a href="https://www.gnu.org/software/coreutils/manual/html_node/stdbuf-invocation.html"&gt;&lt;code&gt;stdbuf&lt;/code&gt;&lt;/a&gt; utility.
+However, the &lt;code&gt;end&lt;/code&gt; parameter has to be a newline character:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ stdbuf -oL python3 program.py &amp;gt; result.log
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Alternatively, one can use the &lt;code&gt;flush&lt;/code&gt; parameter of the &lt;code&gt;print&lt;/code&gt; function:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;time&lt;/span&gt; 
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt; 
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;flush&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; 
+    &lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sleep&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;and the call becomes (running &lt;code&gt;tail -F result.log&lt;/code&gt; will let you see numbers printed in real time):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ python3 std.py &amp;gt; result.log
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;A solution that does not involve flushing is to set the 
+&lt;a href="https://docs.python.org/3/using/cmdline.html#cmdoption-u"&gt;&lt;code&gt;PYTHONUNBUFFERED&lt;/code&gt;&lt;/a&gt;
+environment variable.
+When this environment variable is set, the &lt;code&gt;stdout&lt;/code&gt; of the Python process will be sent 
+to the active terminal in real time (which can be useful for tailing any application
+logs, particularly inside a Docker container).&lt;/p&gt;
+&lt;p&gt;The same effect can also be achieved by passing the &lt;code&gt;-u&lt;/code&gt; parameter:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ python3 -u std.py &amp;gt; result.log
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Happy printing!&lt;/p&gt;</content><category term="python"></category><category term="python"></category><category term="logging"></category></entry><entry><title>Building cli Python applications with Click</title><link href="/building-cli-python-apps-with-click.html" rel="alternate"></link><published>2020-11-15T00:00:00+00:00</published><updated>2020-11-15T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2020-11-15:/building-cli-python-apps-with-click.html</id><summary type="html">
 &lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
