@@ -1,6 +1,6 @@
 title: Working with stdout in Python scripts
 date: 2020-11-16
-modified: 2020-11-16
+modified: 2020-03-06
 author: Alexey Tereshenkov
 tags: python,logging
 slug: working-with-stdout-python
@@ -87,6 +87,69 @@ Finished script
 
 Getting work done 1
 Getting work done 2
+```
+
+## Buffering and flushing
+
+When you run a Python program, if the standard output (`stdout`) of its process is redirected 
+to some other target (different from your active terminal), then the output of this process will be
+buffered into a buffer.
+Therefore, output of Python programs that have any text sent to the `stdout` may be buffered and not shown 
+until the newline character (`\n`) is sent.
+
+This program won't print anything in your Python console or terminal when being run:
+
+    :::python
+    import time 
+    for i in range(5): 
+        print(i, end=" ") 
+        time.sleep(.2) 
+
+In contrast, if there is a `print` call (which by default has the newline character as its 
+[`end` parameter](https://docs.python.org/3/library/functions.html#print)), the output will be shown; 
+however, all the numbers will be printed at once (not one after another with 0.2 second interval) :
+
+    :::python
+    import time 
+    for i in range(5): 
+        print(i, end=" ") 
+        time.sleep(.2) 
+    print()
+
+To be able to see each number being printed instead of waiting for the loop 
+to complete and see them all at once,
+one can change the `stdout` buffering with the [`stdbuf`](https://www.gnu.org/software/coreutils/manual/html_node/stdbuf-invocation.html) utility.
+However, the `end` parameter has to be a newline character:
+
+```
+$ stdbuf -oL python3 program.py > result.log
+```
+
+Alternatively, one can use the `flush` parameter of the `print` function:
+
+    :::python
+    import time 
+    for i in range(5): 
+        print(i, flush=True) 
+        time.sleep(2) 
+
+and the call becomes (running `tail -F result.log` will let you see numbers printed in real time):
+
+```
+$ python3 std.py > result.log
+```
+
+A solution that does not involve flushing is to set the 
+[`PYTHONUNBUFFERED`](https://docs.python.org/3/using/cmdline.html#cmdoption-u)
+environment variable.
+When this environment variable is set, the `stdout` of the Python process will be sent 
+to the active terminal in real time (which can be useful for tailing any application
+logs, particularly inside a Docker container).
+
+The same effect can also be achieved by passing the `-u` parameter:
+
+```
+$ python3 -u std.py > result.log
 ```
 
 Happy printing!
