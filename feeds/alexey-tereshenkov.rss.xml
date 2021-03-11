@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Sun, 28 Feb 2021 00:00:00 +0000</lastBuildDate><item><title>Introducton to recursion with Python</title><link>/python-recursion-intro.html</link><description>
+<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Thu, 11 Mar 2021 00:00:00 +0000</lastBuildDate><item><title>Introduction to higher order functions with Python</title><link>/python-higher-order-functions-intro.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Python is not considered to be a functional language, however it does support the functional
+paradigm.
+The Python documentation provides a gentle introduction to 
+&lt;a href="https://docs.python.org/3/howto/functional.html"&gt;functional programming&lt;/a&gt; with excellent narrative.
+As I continue to learn &lt;a href="https://en.wikipedia.org/wiki/ML_(programming_language)"&gt;ML&lt;/a&gt;, 
+I wanted to share a few interesting concepts around higher-order functions with a few …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Thu, 11 Mar 2021 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2021-03-11:/python-higher-order-functions-intro.html</guid><category>python</category><category>python</category><category>functional-programming</category></item><item><title>Introducton to recursion with Python</title><link>/python-recursion-intro.html</link><description>
 &lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;Recursion can be one of the programming concepts that can be a bit of a challenge
 to understand.
