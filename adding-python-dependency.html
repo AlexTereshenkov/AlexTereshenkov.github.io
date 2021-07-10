@@ -23,7 +23,7 @@
 <meta property="og:site_name" content="Alexey Tereshenkov" />
 <meta property="og:article:author" content="Alexey Tereshenkov" />
 <meta property="og:article:published_time" content="2021-06-19T00:00:00+01:00" />
-<meta property="og:article:modified_time" content="2021-06-19T00:00:00+01:00" />
+<meta property="og:article:modified_time" content="2021-07-10T00:00:00+01:00" />
 <meta name="twitter:title" content="Adding a dependency to your Python project: a practical guide ">
 <meta name="twitter:description" content="After managing Python projects for quite a few years now, I’ve learned several things one should think about when bringing a 3rd party dependency to a project. In this post, I’ll cover some of the points that are worth considering when deciding to rely on code external to …">
 
@@ -124,10 +124,15 @@
 <p>If the Python program you write can complete a task without using any 3rd party code, keep it that way. Any code that you haven’t written yourself (or is not originated and maintained within your team or organization) that becomes part of your software adds additional risks and maintenance costs. Using a Python library may indeed save development time for the team, however, adding a new dependency should be justified; very often it may not be worth it. </p>
 <p>Say your program needs to read an input <code>.csv</code> file, apply some filter on the data rows, and produce a new <code>.csv</code> file with a subset of the original one. <code>pandas</code> library would make doing this very easy – this could likely be done in a single line of code. However, unless the program needs to read very large files and do it very often (so there are some performance constraints), you are better off using Python standard library <a href="https://docs.python.org/3/library/csv.html">csv</a> module that makes working with <code>.csv</code> files fairly easy.</p>
 <p>In contrast, when writing a new machine learning library, it would be a pity not to take advantage of existing numerical computation libraries such as <code>numpy</code> and <code>scipy</code> because they are likely to be core foundation of the project. In this case, it is very unlikely that you would need to implement own data structures that would meet the functional and performance requirements of your project, and overall be a better solution than an existing battle tested library.</p>
+<p>It may also be the case that a 3rd party dependency that you already use in your project provides the desired functionality.
+For instance, when looking for linear algebra tools, <code>scipy.linalg</code> contains all the functions in <code>numpy.linalg</code>, so if you depend on <code>numpy</code>, you may already have everything you need.</p>
 <h2 id="explore-the-external-dependency">Explore the external dependency<a class="headerlink" href="#explore-the-external-dependency" title="Permanent link">¶</a></h2>
 <p>When you have identified a dependency to bring in, it may be worth spending some time learning more about it. Do the research and explore <a href="https://snyk.io/advisor/python/pandas">Snyk Advisor</a>, the <a href="https://github.com/pandas-dev/pandas">project’s source code repository</a>, code quality <a href="https://lgtm.com/projects/g/pandas-dev/pandas">reports</a>, and the <a href="https://pypi.org/project/pandas/">PyPI project page</a> to learn more about the project.</p>
 <h3 id="library-maintenance-status-and-release-cadence">Library maintenance status and release cadence<a class="headerlink" href="#library-maintenance-status-and-release-cadence" title="Permanent link">¶</a></h3>
-<p>High commit frequency would indicate active development, and projects that are actively developed are more favorable than stale ones.</p>
+<p>High commit frequency would indicate active development, and projects that are actively developed are more favorable than stale ones.
+It is also helpful to see the project owners being receptive to contributions from users which implies that
+you’d likely be able to submit patches for the bugs that may impact your project.
+Having a comprehensive test harness with a decent code coverage is highly desired as well.</p>
 <h3 id="number-of-downloads-from-the-pypi">Number of downloads from the PyPI<a class="headerlink" href="#number-of-downloads-from-the-pypi" title="Permanent link">¶</a></h3>
 <p>This should give an idea whether the project is used by other organizations and individuals. </p>
 <h3 id="any-known-security-issues-and-vulnerabilities">Any known security issues and vulnerabilities<a class="headerlink" href="#any-known-security-issues-and-vulnerabilities" title="Permanent link">¶</a></h3>
@@ -143,7 +148,8 @@
 <h3 id="licensing">Licensing<a class="headerlink" href="#licensing" title="Permanent link">¶</a></h3>
 <p>A 3rd party package license may or may now allow further distribution of the code or using it in a commercial product.</p>
 <h3 id="distribution-formats">Distribution formats<a class="headerlink" href="#distribution-formats" title="Permanent link">¶</a></h3>
-<p>Having only source distributions (<code>sdist</code>) may imply that you may need to build the wheel(s) (<code>bdist_wheel</code>) to make a binary distribution accessible for your own project build process. Unless you are able to build the wheels yourself and make them available via a binary repository manager such as a hosted PyPI repository or in some other way, libraries with wheels published on PyPI are more preferable.</p>
+<p>Having only source distributions (<code>sdist</code>) may imply that you may need to build the wheel(s) (<code>bdist_wheel</code>) to make a binary distribution accessible for your own project build process. Unless you are able to build the wheels yourself and make them available via a binary repository manager such as a hosted PyPI repository or in some other way, libraries with wheels published on PyPI are more preferable.
+Ideally, there should be wheels available in PyPI for all of your current target architectures (e.g., MacOS wheels for development and Linux for production deployment).</p>
 <h3 id="source-code-programming-languages">Source code programming languages<a class="headerlink" href="#source-code-programming-languages" title="Permanent link">¶</a></h3>
 <p>Having a <a href="https://packaging.python.org/guides/distributing-packages-using-setuptools/#pure-python-wheels">non-pure Python package</a> with certain bits written in a compiled language such as C or Rust would make building binary distributions harder since you’ll need to have the necessary toolchain set up and may imply building multiple wheels for each target platform and/or architecture.</p>
 <h2 id="adding-the-dependency">Adding the dependency<a class="headerlink" href="#adding-the-dependency" title="Permanent link">¶</a></h2>
@@ -169,6 +175,8 @@
         <section id="article-sidebar" class="span2">
             <h4>Published</h4>
             <time itemprop="dateCreated" datetime="2021-06-19T00:00:00+01:00">Sat 19 June 2021</time>
+<h4>Last Updated</h4>
+<time datetime="2021-07-10T00:00:00+01:00">Jul 10, 2021</time>
 
             <h4>Category</h4>
             <a class="category-link" href="/categories.html#python-ref">python</a>
