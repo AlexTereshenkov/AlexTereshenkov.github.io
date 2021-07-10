@@ -1,6 +1,6 @@
 title: Adding a dependency to your Python project: a practical guide
 date: 2021-06-19
-modified: 2021-06-19
+modified: 2021-07-10
 author: Alexey Tereshenkov
 tags: python, build-systems
 slug: adding-python-dependency
@@ -27,6 +27,9 @@ Say your program needs to read an input `.csv` file, apply some filter on the da
 
 In contrast, when writing a new machine learning library, it would be a pity not to take advantage of existing numerical computation libraries such as `numpy` and `scipy` because they are likely to be core foundation of the project. In this case, it is very unlikely that you would need to implement own data structures that would meet the functional and performance requirements of your project, and overall be a better solution than an existing battle tested library.
 
+It may also be the case that a 3rd party dependency that you already use in your project provides the desired functionality.
+For instance, when looking for linear algebra tools, `scipy.linalg` contains all the functions in `numpy.linalg`, so if you depend on `numpy`, you may already have everything you need.
+
 ## Explore the external dependency
 
 When you have identified a dependency to bring in, it may be worth spending some time learning more about it. Do the research and explore [Snyk Advisor](https://snyk.io/advisor/python/pandas), the [project's source code repository](https://github.com/pandas-dev/pandas), code quality [reports](https://lgtm.com/projects/g/pandas-dev/pandas), and the [PyPI project page](https://pypi.org/project/pandas/) to learn more about the project.
@@ -34,6 +37,9 @@ When you have identified a dependency to bring in, it may be worth spending some
 ### Library maintenance status and release cadence
 
 High commit frequency would indicate active development, and projects that are actively developed are more favorable than stale ones.
+It is also helpful to see the project owners being receptive to contributions from users which implies that
+you'd likely be able to submit patches for the bugs that may impact your project.
+Having a comprehensive test harness with a decent code coverage is highly desired as well.
 
 ### Number of downloads from the PyPI
 
@@ -66,6 +72,7 @@ A 3rd party package license may or may now allow further distribution of the cod
 ### Distribution formats
 
 Having only source distributions (`sdist`) may imply that you may need to build the wheel(s) (`bdist_wheel`) to make a binary distribution accessible for your own project build process. Unless you are able to build the wheels yourself and make them available via a binary repository manager such as a hosted PyPI repository or in some other way, libraries with wheels published on PyPI are more preferable.
+Ideally, there should be wheels available in PyPI for all of your current target architectures (e.g., MacOS wheels for development and Linux for production deployment).
 
 ### Source code programming languages 
 
