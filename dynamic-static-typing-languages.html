@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="computer-science, programming, computer-science, " />
+
+<meta property="og:title" content="Thinking about programming languages with dynamic and static type system "/>
+<meta property="og:url" content="/dynamic-static-typing-languages.html" />
+<meta property="og:description" content="After writing programs for a while in several programming languages, both professionally and for learning, I started thinking about benefits and drawbacks of programming languages with dynamic and static type systems. As with many other aspects of the software engineering industry, there are developers advocating for using interpreted, dynamically typed …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2021-07-25T00:00:00+01:00" />
+<meta property="og:article:modified_time" content="2021-07-25T00:00:00+01:00" />
+<meta name="twitter:title" content="Thinking about programming languages with dynamic and static type system ">
+<meta name="twitter:description" content="After writing programs for a while in several programming languages, both professionally and for learning, I started thinking about benefits and drawbacks of programming languages with dynamic and static type systems. As with many other aspects of the software engineering industry, there are developers advocating for using interpreted, dynamically typed …">
+
+        <title>Thinking about programming languages with dynamic and static type system  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/dynamic-static-typing-languages.html">
+                Thinking about programming languages with dynamic and static type system
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#interpreted-vs-compiled-languages">Interpreted vs compiled languages</a><ul>
+<li><a href="#speed-of-development">Speed of development</a></li>
+<li><a href="#rapid-prototyping">Rapid prototyping</a></li>
+<li><a href="#suitability">Suitability</a></li>
+<li><a href="#type-safety">Type safety</a></li>
+</ul>
+</li>
+<li><a href="#succeeding-developing-in-dynamically-typed-language">Succeeding developing in dynamically typed language</a><ul>
+<li><a href="#expectations">Expectations</a></li>
+<li><a href="#design-principles">Design principles</a></li>
+<li><a href="#aggressive-build-pipeline">Aggressive build pipeline</a></li>
+</ul>
+</li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<p>After writing programs for a while in several programming languages, both professionally and for learning, I started thinking about benefits and drawbacks of programming languages with dynamic and static type systems. As with many other aspects of the software engineering industry, there are developers advocating for using interpreted, dynamically typed languages such as Python<sup id="fnref:python-interpreted"><a class="footnote-ref" href="#fn:python-interpreted">1</a></sup>. Likewise, there are ones who wouldn’t consider using such a language for anything other than a minor script or a utility program and rather stick to compiled, statically typed languages such as C++ and Java<sup id="fnref:java-compiled"><a class="footnote-ref" href="#fn:java-compiled">2</a></sup>.
+In this post, I’d like to outline my considerations and share some thoughts and personal experiences. Given that I am mostly familiar with Python and Java, I’ll use these two languages when reasoning about the use cases.</p>
+<h2 id="interpreted-vs-compiled-languages">Interpreted vs compiled languages<a class="headerlink" href="#interpreted-vs-compiled-languages" title="Permanent link">¶</a></h2>
+<h3 id="speed-of-development">Speed of development<a class="headerlink" href="#speed-of-development" title="Permanent link">¶</a></h3>
+<p>When there isn’t a lot of time available for development or when the business requirements are not clear (so it’s important to be able to make future changes easily), a team may decide to use an interpreted language. It becomes possible to complete writing a program significantly faster, however, the performance of an interpreted program will likely be worse. This is not necessarily a negative thing if the program run time is acceptable given the performance constraints, if any.</p>
+<h3 id="rapid-prototyping">Rapid prototyping<a class="headerlink" href="#rapid-prototyping" title="Permanent link">¶</a></h3>
+<p>Being able to complete an initial prototype fast makes an option to use a dynamic language very attractive. There may be a need to redo the implementation completely – plan to throw one away; you will anyhow<sup id="fnref:brooks"><a class="footnote-ref" href="#fn:brooks">3</a></sup>. It is suggested to prototype in an interpreted language before coding in a compiled language such as C<sup id="fnref:raymond-prototype"><a class="footnote-ref" href="#fn:raymond-prototype">4</a></sup> because general-purpose scripting languages make it very easy to construct framework of a program relying on external tools only when there is a special-purpose task<sup id="fnref:practical-scripting"><a class="footnote-ref" href="#fn:practical-scripting">5</a></sup>. There has been a claim that code can be written 5 to 10 times faster in a scripting language, but would run 10 to 20 times faster in a traditional compiled systems language<sup id="fnref:Ous98"><a class="footnote-ref" href="#fn:Ous98">6</a></sup>. An approach to implement a performance critical parts in a compiled language leaving the rest of the code in a dynamic language is so ubiquitous that perhaps the argument that dynamic languages shouldn’t be used because they are “slow” is not relevant any longer.</p>
+<h3 id="suitability">Suitability<a class="headerlink" href="#suitability" title="Permanent link">¶</a></h3>
+<p>If most developers would probably agree on the prototyping story of scripting languages, what about writing a sophisticated piece of software with a dynamic language? Some of these languages were created for purposes other than building complex production software such as to teach programming, write short text-processing utilities, or be a glue language to integrate existing programs within a larger system. Some of the dynamic languages, however, were intended by their designers for general-purpose use, to support “programming in the large”<sup id="fnref2:practical-scripting"><a class="footnote-ref" href="#fn:practical-scripting">5</a></sup>. However, as the size of the software increases, so often does the complexity of source code management. What often is taken in a statically typed, compiled language for granted (type checking, project-wide refactoring tools, dependency inference) becomes harder and harder when using a dynamically typed, interpreted language.</p>
+<h3 id="type-safety">Type safety<a class="headerlink" href="#type-safety" title="Permanent link">¶</a></h3>
+<p>Type annotations have been introduced to Python fairly recently and there are many code bases which are still not typed or typed only partially. Lots of software written in Python was written by professionals in adjacent domains such as engineering, finance, and data science. Those open-source projects often lack a vigorous build pipeline that would be considered a norm in a statically typed language commercial setting (code coverage, linting, static analysis). Therefore, I think in the eyes of Java developers, many large Python projects may look less mature and less robust for this very reason. When experimenting using a Python framework and getting a runtime type error, a programmer writing in a statically typed, compiled language may thus find a dynamic language not suitable for large scale development.</p>
+<h2 id="succeeding-developing-in-dynamically-typed-language">Succeeding developing in dynamically typed language<a class="headerlink" href="#succeeding-developing-in-dynamically-typed-language" title="Permanent link">¶</a></h2>
+<p>However, I believe it is possible to write great software with a dynamically typed, interpreted language. To be able to do that, a few things are required.</p>
+<h3 id="expectations">Expectations<a class="headerlink" href="#expectations" title="Permanent link">¶</a></h3>
+<p>Set the same expectations for programs written in a dynamically typed language that are set for programs written in a statically typed language. The programs written in Python can be made much easier to maintain and reason about if they follow the software engineering best practices which can be drawn from various sources (e.g., <a href="https://rules.sonarsource.com/python/tag/brain-overload">source code complexity</a>, <a href="https://google.github.io/styleguide/pyguide.html">readability</a>, and <a href="https://dropbox.tech/application/our-journey-to-type-checking-4-million-lines-of-python">type safety</a>)</p>
+<h3 id="design-principles">Design principles<a class="headerlink" href="#design-principles" title="Permanent link">¶</a></h3>
+<p>Apply the design principles and implementation restrictions from statically typed languages in your dynamically typed language. For example, Java won’t let you define multiple classes in the same file, so make sure in your Python project, you put only closely related units of work into a single file.
+<a href="https://pvs-studio.com/en/docs/warnings/v2565/">MISRA C guidelines</a> prohibit using recursion, so make sure you don’t use <a href="https://stackoverflow.com/questions/3323001/what-is-the-maximum-recursion-depth-in-python-and-how-to-increase-it">recursion</a> in your Python programs.
+Strongly and statically typed languages force you to specify the method return type, so you may want to make sure all your <a href="https://mypy.readthedocs.io/en/stable/existing_code.html#introduce-stricter-options">Python functions have a return type</a>.</p>
+<h3 id="aggressive-build-pipeline">Aggressive build pipeline<a class="headerlink" href="#aggressive-build-pipeline" title="Permanent link">¶</a></h3>
+<p>In line with the DevOps practices, when building a project in CI, the build pipeline should be looking for reasons to reject a build. If any of the steps - formatting, linting, spell checking, testing, type checking – fails, the code coverage percentage goes down, or in case of any other declared event, then the build fails and the code can’t be merged. This principle of “Reject it”<sup id="fnref:release-it"><a class="footnote-ref" href="#fn:release-it">7</a></sup> is applicable to any programming language, of course, but is particularly relevant for dynamic languages given the flexibility they provide.</p>
+<p>There are a few examples of highly successful Python projects that follow the principles outlined above such as the <a href="https://github.com/wemake-services/wemake-python-styleguide">wemake-services Python linter</a> and <a href="https://github.com/pantsbuild/pants">Pants build system</a>.</p>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p>An argument against enforcing stricter development constraints for a dynamic language could be raised. It may indeed take longer time to produce a program where all function parameters and return values have type annotations, variables with the same name are not declared multiple times, and public methods have docstrings. There is no point in such vigorous approach when prototyping, however, as soon as the code is integrated into some bigger unit, the expectations should get higher. </p>
+<p>Writing robust, easy to extend and maintain <em>large</em> software in Python isn’t going to be a whole lot faster than writing it in Java. I believe Python should be chosen to be the language of implementation for reasons other than speed of development (even though it may often be the case), but because of its expressiveness, extensive built-in library and public package repository, community and tooling. The lessons learned about the program design, modularization, and code health when building large scale commercial, enterprise, or open-source software in compiled languages should be explored by dynamic language developers. Having many successful products created in dynamic languages, it is for certain that writing large programs in dynamically typed languages is very much possible. In the end, typing system doesn’t define the success of a software product; it’s all about the development processes and people.</p>
+<div class="footnote">
+<hr/>
+<ol>
+<li id="fn:python-interpreted">
+<p>Python can also be said to be compiled given the program’s source code is first compiled into bytecode, but we can omit this detail to make the distinction clearer. <a class="footnote-backref" href="#fnref:python-interpreted" title="Jump back to footnote 1 in the text">↩</a></p>
+</li>
+<li id="fn:java-compiled">
+<p>Java can be said to be either interpreted or compiled, but we can omit this detail to make the distinction clearer. <a class="footnote-backref" href="#fnref:java-compiled" title="Jump back to footnote 2 in the text">↩</a></p>
+</li>
+<li id="fn:brooks">
+<p>Brooks, F.H. The Mythical Man-Month, Addison-Wesley, 1975. <a class="footnote-backref" href="#fnref:brooks" title="Jump back to footnote 3 in the text">↩</a></p>
+</li>
+<li id="fn:raymond-prototype">
+<p>Eric S. Raymond. The Art of Unix Programming, Addison-Wesley, 2003. <a class="footnote-backref" href="#fnref:raymond-prototype" title="Jump back to footnote 4 in the text">↩</a></p>
+</li>
+<li id="fn:practical-scripting">
+<p>Michael L. Scott. Programming Language Pragmatics, 4th edition, Elsevier, 2016. <a class="footnote-backref" href="#fnref:practical-scripting" title="Jump back to footnote 5 in the text">↩</a><a class="footnote-backref" href="#fnref2:practical-scripting" title="Jump back to footnote 5 in the text">↩</a></p>
+</li>
+<li id="fn:Ous98">
+<p>John K. Ousterhout. Scripting: Higher-level programming for the 21st century. IEEE Computer, 31(3):23-30, March 1998. <a class="footnote-backref" href="#fnref:Ous98" title="Jump back to footnote 6 in the text">↩</a></p>
+</li>
+<li id="fn:release-it">
+<p>Michael T. Nygard. Release It!, 2nd Edition, January 2018. <a class="footnote-backref" href="#fnref:release-it" title="Jump back to footnote 7 in the text">↩</a></p>
+</li>
+</ol>
+</div>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2021-07-25T00:00:00+01:00">Sun 25 July 2021</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#computer-science-ref">computer-science</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#computer-science-ref">computer-science
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="/tags.html#programming-ref">programming
+                    <span class="superscript">1</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

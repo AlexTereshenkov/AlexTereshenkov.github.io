@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Alexey Tereshenkov - Alexey Tereshenkov</title><link>/</link><description></description><lastBuildDate>Sat, 31 Jul 2021 00:00:00 +0100</lastBuildDate><item><title>Python basics - Functions</title><link>/python-basics-functions.html</link><description>
+&lt;p&gt;This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Sat, 31 Jul 2021 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2021-07-31:/python-basics-functions.html</guid><category>python-basics</category><category>python-basics</category><category>python</category></item><item><title>Thinking about programming languages with dynamic and static type system</title><link>/dynamic-static-typing-languages.html</link><description>
+&lt;p&gt;After writing programs for a while in several programming languages, both professionally and for learning, I started thinking about benefits and drawbacks of programming languages with dynamic and static type systems. As with many other aspects of the software engineering industry, there are developers advocating for using interpreted, dynamically typed …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Sun, 25 Jul 2021 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2021-07-25:/dynamic-static-typing-languages.html</guid><category>computer-science</category><category>computer-science</category><category>programming</category></item><item><title>Adding a dependency to your Python project: a practical guide</title><link>/adding-python-dependency.html</link><description>
+&lt;p&gt;After managing Python projects for quite a few years now, I’ve learned several things one should think about when bringing a 3rd party dependency to a project. In this post, I’ll cover some of the points that are worth considering when deciding to rely on code external to …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Sat, 19 Jun 2021 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2021-06-19:/adding-python-dependency.html</guid><category>python</category><category>python</category><category>build-systems</category></item><item><title>Introduction to higher order functions with Python</title><link>/python-higher-order-functions-intro.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Python is not considered to be a functional language, however it does support the functional
+paradigm.
+The Python documentation provides a gentle introduction to 
+&lt;a href="https://docs.python.org/3/howto/functional.html"&gt;functional programming&lt;/a&gt; with excellent narrative.
+As I continue to learn &lt;a href="https://en.wikipedia.org/wiki/ML_(programming_language)"&gt;ML&lt;/a&gt;, 
+I wanted to share a few interesting concepts around higher-order functions with a few …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Thu, 11 Mar 2021 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2021-03-11:/python-higher-order-functions-intro.html</guid><category>python</category><category>python</category><category>functional-programming</category></item><item><title>Introducton to recursion with Python</title><link>/python-recursion-intro.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Recursion can be one of the programming concepts that can be a bit of a challenge
+to understand.
+I believe this is because the recursive call to a function is not written in a
+procedural way so that one cannot see the actual sequence of operations that will
+be …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Sat, 06 Feb 2021 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2021-02-06:/python-recursion-intro.html</guid><category>python</category><category>python</category><category>recursion</category><category>functional-programming</category></item><item><title>Python raising SyntaxError when having too many nested for loops</title><link>/python-too-many-nested-loops.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When writing programs in any programming language,
+it is common to see some syntax or runtime errors.
+For instance, in Python, it is easy to &lt;a href="https://www.flake8rules.com/rules/E101.html"&gt;mess up the indentation&lt;/a&gt;
+in a file after merging files from different codebases.
+Likewise, one can make an &lt;a href="https://en.wikipedia.org/wiki/Off-by-one_error"&gt;off-by-one error&lt;/a&gt; 
+when accessing an array …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Sat, 16 Jan 2021 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2021-01-16:/python-too-many-nested-loops.html</guid><category>python</category><category>python</category></item><item><title>Some helpful Bash notes</title><link>/some-helpful-bash-notes.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;There are quite a few resources online on Bash scripting which are extremely useful.
+I particularly recommend &lt;a href="https://github.com/awesome-lists/awesome-bash"&gt;Awesome Bash&lt;/a&gt; and 
+&lt;a href="https://github.com/jlevy/the-art-of-command-line"&gt;The Art of Command Line&lt;/a&gt;.
+There is little point writing yet another Bash tutorial, however, I’d like to share
+a few helpful notes which others who just start …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Tue, 15 Dec 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-12-15:/some-helpful-bash-notes.html</guid><category>bash</category><category>bash</category><category>linux</category></item><item><title>Using python3-apt Debian package for system package management with Python</title><link>/use-apt-from-python.html</link><description>
+&lt;p&gt;For Debian-based systems such as Ubuntu, most package management happens via the &lt;code&gt;apt&lt;/code&gt;
+system package.
+It provides a friendly command line interface, however, there aren’t many robust ways to use
+it in some other way other than via a terminal.
+Fortunately, there is a Python package, &lt;code&gt;python3-apt&lt;/code&gt;, which provides …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-12-01:/use-apt-from-python.html</guid><category>python</category><category>python</category><category>docker</category><category>testing</category><category>linux</category><category>apt</category><category>debian</category></item><item><title>Patching with unittest.mock for Python testing: cheat sheet</title><link>/patching-mock-python-unit-testing.html</link><description>
+&lt;h3 id="overview-of-patching"&gt;Overview of patching&lt;a class="headerlink" href="#overview-of-patching" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Python built-in &lt;code&gt;unittest&lt;/code&gt; framework provides the 
+&lt;a href="https://docs.python.org/3/library/unittest.mock.html"&gt;&lt;code&gt;mock&lt;/code&gt;&lt;/a&gt; module 
+which gets very handy when writing unit tests.
+It also provides the &lt;a href="https://docs.python.org/3/library/unittest.mock.html#unittest.mock.patch"&gt;&lt;code&gt;patch&lt;/code&gt;&lt;/a&gt;
+entity which can be used as a function decorator, class decorator or a context manager.&lt;/p&gt;
+&lt;p&gt;The basic idea behind patching is that it lets you temporarily …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Fri, 20 Nov 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-11-20:/patching-mock-python-unit-testing.html</guid><category>python</category><category>python</category><category>mock</category><category>testing</category><category>patch</category></item><item><title>Working with stdout in Python scripts</title><link>/working-with-stdout-python.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When working with an existing Python script, particularly a legacy script, 
+or a script that was supposed to be used once and then thrown away but grew into a business
+critical application (yep, this happens), it can be common to see extensive 
+usage of &lt;code&gt;print&lt;/code&gt; or &lt;code&gt;logging&lt;/code&gt; statements.
+Those …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Mon, 16 Nov 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-11-16:/working-with-stdout-python.html</guid><category>python</category><category>python</category><category>logging</category></item><item><title>Building cli Python applications with Click</title><link>/building-cli-python-apps-with-click.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When writing cli tools using Python, if the complexity is low, using a plain &lt;code&gt;argparse&lt;/code&gt; may suffice.
+Despite being a built-in module, it’s still very capable and relatively flexible.
+In fact, a few large open-source projects have survived using &lt;code&gt;argparse&lt;/code&gt; without using any custom
+cli frameworks.
+For instance …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Sun, 15 Nov 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-11-15:/building-cli-python-apps-with-click.html</guid><category>python</category><category>python</category><category>click</category><category>cli</category></item><item><title>Brief overview of using Git LFS for managing binary files</title><link>/overview-using-git-lfs-binary-files.html</link><description>
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Normally a Git repository is used to manage source code which is stored most often as plain text.
+Tracking changes for text is very easy because only the changes between two commits would need to be
+saved, not the whole copies of the files.
+However, a project source code …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Fri, 13 Nov 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-11-13:/overview-using-git-lfs-binary-files.html</guid><category>git</category><category>git</category><category>lfs</category></item><item><title>Running Python tests with tox in a Docker container</title><link>/run-python-tests-with-tox-in-docker.html</link><description>
+&lt;h3 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When you are working on Python code that is supposed to be running on Python interpreters
+of multiple versions (and potentially with multiple versions of 3rd party packages),
+to be able to test that your code works and produces expected result you would need
+to create isolated virtual environments …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Tue, 03 Nov 2020 00:00:00 +0000</pubDate><guid isPermaLink="false">tag:None,2020-11-03:/run-python-tests-with-tox-in-docker.html</guid><category>python</category><category>python</category><category>docker</category><category>tox</category><category>testing</category></item><item><title>Using Docker for Python development: cheat sheet</title><link>/docker-for-python-cheat-sheet.html</link><description>
+&lt;p&gt;The Docker framework can be an extremely useful tool for any Python developer
+who wants to run their Python programs (either for development or testing purposes) 
+in a certain isolated environment with a pre-defined set of system and Python packages
+installed.
+Docker can also help with testing your Python code …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Mon, 07 Sep 2020 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2020-09-07:/docker-for-python-cheat-sheet.html</guid><category>python</category><category>python</category><category>docker</category><category>testing</category></item><item><title>Using pyfakefs for unit testing in Python</title><link>/intro-pyfakefs-python-testing.html</link><description>
+&lt;h3 id="overview-of-unit-testing"&gt;Overview of unit testing&lt;a class="headerlink" href="#overview-of-unit-testing" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When writing unit tests for programs, it is commonly considered to be a good practice 
+to avoid relying on any part of the system infrastructure such as:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;network connectivity (you can’t get data from a web service)&lt;/li&gt;
+&lt;li&gt;operating system functionality (you can’t call &lt;code&gt;grep …&lt;/code&gt;&lt;/li&gt;&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Tue, 01 Sep 2020 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2020-09-01:/intro-pyfakefs-python-testing.html</guid><category>python</category><category>python</category><category>pyfakefs</category><category>pytest</category><category>unittest</category><category>testing</category></item><item><title>Brief overview of the reproducible builds concept</title><link>/intro-reproducible-builds.html</link><description>
+&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When working with the source code in a project that has multiple build steps 
+(compiling, linking, patching, packaging) when a final “product” – a Debian package,
+an installable application, or an executable with shared libraries – is produced,
+there are many reasons why it can be useful to be able to …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Fri, 21 Aug 2020 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2020-08-21:/intro-reproducible-builds.html</guid><category>build-systems</category><category>build-systems</category><category>continuous-integration</category></item><item><title>Using quicktype.io service to create Python interfaces from JSON</title><link>/quicktype-json-class-generation.html</link><description>
+&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;For the last few years I had to write a few simple Python wrappers around a couple of external services.
+There are many advantages to having a nice Pythonic interface into libraries 
+and tools that are written in other programming languages.
+It often makes it easier to automate, more …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Wed, 12 Aug 2020 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2020-08-12:/quicktype-json-class-generation.html</guid><category>python</category><category>python</category><category>json</category><category>REST</category><category>Swagger</category></item><item><title>Building Python extension modules for C++ code with pybind11</title><link>/pybind11-python-bindings.html</link><description>
+&lt;h3 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;If you ever needed to provide interface to the C/C++ code from your Python modules,
+you may have used &lt;a href="https://docs.python.org/3/extending/extending.html"&gt;Python extension modules&lt;/a&gt;.
+They are typically created when there is an existing C++ project and it is required to make it
+accessible via Python bindings.
+Alternatively, when performance becomes …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Tue, 11 Aug 2020 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2020-08-11:/pybind11-python-bindings.html</guid><category>python</category><category>python</category><category>pybind11</category><category>c++</category></item><item><title>What I think a great tech support should look like</title><link>/my-version-of-a-great-tech-support.html</link><description>
+&lt;p&gt;Being a software engineer implies that you may be interacting with customers particularly if you 
+are working in a small company.
+If you are wearing multiple hats or if you are in professional services or tech support, 
+you will likely be contacted by your customers about issues they may experience …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Alexey Tereshenkov</dc:creator><pubDate>Wed, 05 Aug 2020 00:00:00 +0100</pubDate><guid isPermaLink="false">tag:None,2020-08-05:/my-version-of-a-great-tech-support.html</guid><category>tech-support</category><category>tech-support</category></item></channel></rss>

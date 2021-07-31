@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python, recursion, functional-programming, python, " />
+
+<meta property="og:title" content="Introducton to recursion with Python "/>
+<meta property="og:url" content="/python-recursion-intro.html" />
+<meta property="og:description" content="Overview¶ Recursion can be one of the programming concepts that can be a bit of a challenge to understand. I believe this is because the recursive call to a function is not written in a procedural way so that one cannot see the actual sequence of operations that will be …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2021-02-06T00:00:00+00:00" />
+<meta property="og:article:modified_time" content="2021-02-28T00:00:00+00:00" />
+<meta name="twitter:title" content="Introducton to recursion with Python ">
+<meta name="twitter:description" content="Overview¶ Recursion can be one of the programming concepts that can be a bit of a challenge to understand. I believe this is because the recursive call to a function is not written in a procedural way so that one cannot see the actual sequence of operations that will be …">
+
+        <title>Introducton to recursion with Python  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/python-recursion-intro.html">
+                Introducton to recursion with Python
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#declarative-iterations-or-recursions">Declarative iterations or recursions?</a></li>
+<li><a href="#examples-of-recursive-functions">Examples of recursive functions</a><ul>
+<li><a href="#sum-values-in-an-array-of-integers">Sum values in an array of integers</a></li>
+<li><a href="#produce-range-of-integers">Produce range of integers</a></li>
+<li><a href="#merge-two-arrays-of-items">Merge two arrays of items</a></li>
+<li><a href="#sum-integers-in-a-list-of-pairs">Sum integers in a list of pairs</a></li>
+<li><a href="#get-first-elements-of-sub-arrays-in-array">Get first elements of sub-arrays in array</a></li>
+<li><a href="#get-digits-of-a-number-in-a-given-base-up-to-base-of-10">Get digits of a number in a given base (up to base of 10)</a></li>
+<li><a href="#get-digits-of-a-number-in-a-given-base-up-to-base-of-16">Get digits of a number in a given base (up to base of 16)</a></li>
+</ul>
+</li>
+<li><a href="#tail-recursion-optimizations">Tail recursion optimizations</a><ul>
+<li><a href="#factorial-of-a-positive-integer">Factorial of a positive integer</a></li>
+<li><a href="#sum-values-in-an-array-tail-call">Sum values in an array (tail call)</a></li>
+<li><a href="#reverse-an-array-tail-call">Reverse an array (tail call)</a></li>
+<li><a href="#reduce-tail-call">Reduce (tail call)</a></li>
+</ul>
+</li>
+<li><a href="#mutual-recursion">Mutual recursion</a></li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>Recursion can be one of the programming concepts that can be a bit of a challenge
+to understand.
+I believe this is because the recursive call to a function is not written in a
+procedural way so that one cannot see the actual sequence of operations that will
+be taken.
+Running a program containing a recursive function call with a debugger to be able
+to step through each line can be very useful.</p>
+<p>I’ve spent a few weeks learning <a href="https://en.wikipedia.org/wiki/ML_(programming_language)">ML</a>
+and was fascinated by the recursion implementation in functional languages and ML in particular.
+It can be mind bending for anyone who has learned programming through non-functional
+programming languages that do not encourage use of recursion be it Python or Java.
+However, I had quite a few “aha!” moments when writing recursive functions in ML
+and I definitely understand recursion much better now.</p>
+<p>In this post, I wanted to share a few simple recursive functions that are 
+written in Python.
+I believe practicing writing recursive functions is fun and is a great 
+mind-expanding exercise.</p>
+<h2 id="declarative-iterations-or-recursions">Declarative iterations or recursions?<a class="headerlink" href="#declarative-iterations-or-recursions" title="Permanent link">¶</a></h2>
+<p>I believe the consensus about recursion is that it’s appropriate to use recursion
+in situations when a recursive solution would be better expressed in a recursive call.
+That is, there isn’t a problem that can’t be solved without using recursion or if there is one,
+it must be so rare you’ll probably never face it.</p>
+<p>However, it’s very useful to know what recursion is to be able to understand the code
+that others have written and the caveats associated with using recursion in 
+your programming language.</p>
+<p>Let’s take a look at a few simple cases.</p>
+<h2 id="examples-of-recursive-functions">Examples of recursive functions<a class="headerlink" href="#examples-of-recursive-functions" title="Permanent link">¶</a></h2>
+<p>If you run any of the of the programs below (each featuring a recursive function call) 
+in a debugger to be able to step through it, 
+you’ll see that for each recursive function call, a new 
+<a href="https://runestone.academy/runestone/books/published/pythonds/Recursion/StackFramesImplementingRecursion.html">frame is added on stack</a>.</p>
+<p>Python imposes a limit on the number of the recursive calls (
+see <a href="https://stackoverflow.com/questions/3323001/what-is-the-maximum-recursion-depth-in-python-and-how-to-increase-it">maximum recursion depth</a>) which guards against a stack overflow.
+This means that for most of the real life data, it won’t be safe to use the examples below.
+This is why it can be useful to recognize a recursive call and evaluate whether it’s safe to use or not.
+The <a href="https://www.viva64.com/en/w/v2565/">coding guidelines</a> for some industries may even explicitly ask 
+to avoid using recursion and replace it with a loop or an iterative algorithm.</p>
+<p>You can also attempt to solve these tasks as an exercise before looking at my solutions.
+Each function has a <a href="https://docs.python.org/3/library/doctest.html">doctest</a> 
+which you can use to check your understanding of the problem.
+The problems are sorted by difficulty in ascending order.</p>
+<h3 id="sum-values-in-an-array-of-integers">Sum values in an array of integers<a class="headerlink" href="#sum-values-in-an-array-of-integers" title="Permanent link">¶</a></h3>
+<p>Given an array of integers, find the sum of all its elements.</p>
+<p>This can be solved by simply using the built-in <code>sum()</code> which is what most
+Python developers would use:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">sum</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">])</span>
+</code></pre></div>
+<p>However, this task can also be solved using a simple <code>for</code> loop and a result variable:</p>
+<div class="highlight"><pre><span></span><code><span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]:</span>
+    <span class="n">total</span> <span class="o">+=</span> <span class="n">number</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">total</span><span class="p">)</span>
+<span class="c1"># 15</span>
+</code></pre></div>
+<p>And of course, a recursive solution can be written as well:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">sum_list</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+    <span class="sd">"""Sum values in an array of integers.</span>
+<span class="sd">    &gt;&gt;&gt; sum_list([])</span>
+<span class="sd">    0</span>
+<span class="sd">    &gt;&gt;&gt; sum_list([1])</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; sum_list([1,2,3,4])</span>
+<span class="sd">    10</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">sum_list</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</code></pre></div>
+<p>The way I used to reason about this function call is that I decompose the result of each recursive call
+which can be helpful to understand what is going on.
+The way I see the line <code>return values[0] + sum_list(values[1:])</code> for the initial array of <code>[1,2,3,4]</code> is</p>
+<div class="highlight"><pre><span></span><code>1 + sum_list([2,3,4]) =&gt;
+    1 + (2 + sum_list([3,4])) =&gt;
+        1 + 2 + (3 + sum_list([4])) =&gt;
+            1 + 2 + 3 + 4 =&gt; 10
+</code></pre></div>
+<h3 id="produce-range-of-integers">Produce range of integers<a class="headerlink" href="#produce-range-of-integers" title="Permanent link">¶</a></h3>
+<p>Given a positive integer, produce a list of integers from the given integer down to 0.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">countdown</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+    <span class="sd">"""Get a list of integers from the given </span>
+<span class="sd">    positive integer down to 0.</span>
+<span class="sd">    &gt;&gt;&gt; countdown(5)</span>
+<span class="sd">    [5, 4, 3, 2, 1, 0]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">num</span><span class="p">]</span> <span class="o">+</span> <span class="n">countdown</span><span class="p">(</span><span class="n">num</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="merge-two-arrays-of-items">Merge two arrays of items<a class="headerlink" href="#merge-two-arrays-of-items" title="Permanent link">¶</a></h3>
+<p>Given two arrays of items, merge them into a single array keeping the order of items.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">):</span>
+    <span class="sd">"""Merge two arrays of items.</span>
+<span class="sd">    &gt;&gt;&gt; merge([1,2,3], [4,5,6])</span>
+<span class="sd">    [1, 2, 3, 4, 5, 6]</span>
+<span class="sd">    &gt;&gt;&gt; merge([1,2,3], [])</span>
+<span class="sd">    [1, 2, 3]</span>
+<span class="sd">    &gt;&gt;&gt; merge([], [4,5,6])</span>
+<span class="sd">    [4, 5, 6]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">arr1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">arr2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">arr1</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">arr1</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">arr2</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="sum-integers-in-a-list-of-pairs">Sum integers in a list of pairs<a class="headerlink" href="#sum-integers-in-a-list-of-pairs" title="Permanent link">¶</a></h3>
+<p>Given an array of non-empty pairs (with each pair containing two integers), 
+find the sum of all numbers in the array.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">sum_list_of_pairs</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="sd">"""Sum integers in a list of pairs.</span>
+<span class="sd">    &gt;&gt;&gt; sum_list_of_pairs([])</span>
+<span class="sd">    0</span>
+<span class="sd">    &gt;&gt;&gt; sum_list_of_pairs([(1,2)])</span>
+<span class="sd">    3</span>
+<span class="sd">    &gt;&gt;&gt; sum_list_of_pairs([(10,20), (30,40), (50,60)])</span>
+<span class="sd">    210</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">arr</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">sum_list_of_pairs</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</code></pre></div>
+<h3 id="get-first-elements-of-sub-arrays-in-array">Get first elements of sub-arrays in array<a class="headerlink" href="#get-first-elements-of-sub-arrays-in-array" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">firsts</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="sd">"""Get first elements of all collections in a given array.</span>
+<span class="sd">    &gt;&gt;&gt; firsts([])</span>
+<span class="sd">    []</span>
+<span class="sd">    &gt;&gt;&gt; firsts([(1,2,3), (4,5,6)])</span>
+<span class="sd">    [1, 4]</span>
+<span class="sd">    &gt;&gt;&gt; firsts([(1,2), (3,4), (5,6)])</span>
+<span class="sd">    [1, 3, 5]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">arr</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">firsts</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</code></pre></div>
+<h3 id="get-digits-of-a-number-in-a-given-base-up-to-base-of-10">Get digits of a number in a given base (up to base of 10)<a class="headerlink" href="#get-digits-of-a-number-in-a-given-base-up-to-base-of-10" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_digits_in_base</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="p">):</span>
+    <span class="sd">"""Get digits of a number in a given base (up to base of 10).</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(192837, 10)</span>
+<span class="sd">    ['1', '9', '2', '8', '3', '7']</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(16, 2)</span>
+<span class="sd">    ['1', '0', '0', '0', '0']</span>
+<span class="sd">    &gt;&gt;&gt; get_digits(1000, 16)</span>
+<span class="sd">    ['3', 'E', '8']</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">quotient</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_digits_in_base</span><span class="p">(</span><span class="n">quotient</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">remainder</span><span class="p">)]</span>
+</code></pre></div>
+<h3 id="get-digits-of-a-number-in-a-given-base-up-to-base-of-16">Get digits of a number in a given base (up to base of 16)<a class="headerlink" href="#get-digits-of-a-number-in-a-given-base-up-to-base-of-16" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_digits</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="p">):</span>
+    <span class="sd">"""Get digits of a number in a given base (up to base of 16).</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(192837, 10)</span>
+<span class="sd">    ['1', '9', '2', '8', '3', '7']</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(16, 2)</span>
+<span class="sd">    ['1', '0', '0', '0', '0']</span>
+<span class="sd">    &gt;&gt;&gt; get_digits_in_base(256, 16)</span>
+<span class="sd">    ['1', '0', '0']</span>
+<span class="sd">    """</span>
+    <span class="n">lookup</span> <span class="o">=</span> <span class="s1">'0123456789ABCDEF'</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="n">base</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lookup</span><span class="p">[</span><span class="n">num</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">quotient</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_digits</span><span class="p">(</span><span class="n">quotient</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">lookup</span><span class="p">[</span><span class="n">remainder</span><span class="p">]]</span>
+</code></pre></div>
+<h2 id="tail-recursion-optimizations">Tail recursion optimizations<a class="headerlink" href="#tail-recursion-optimizations" title="Permanent link">¶</a></h2>
+<p>A special, perhaps more difficult concept to understand, is tail recursion.
+The recursive functions we have above have a pattern in the <code>return</code> statement.
+They return a value and the call to itself (such as <code>return array[0] + func(array[1:])</code>)).
+However, if a function would only call itself recursively and wouldn’t need to keep any intermediate data,
+it would be considered a tail recursive function.
+That is, since there is no intermediate data to maintain (which is why the stack frames are needed),
+we can essentially replace the current stack frame where the function is calling itself with the new stack frame
+since we don’t need to get back to it – we would only be interested in the final recursive call that would
+have the final value we need.</p>
+<h3 id="factorial-of-a-positive-integer">Factorial of a positive integer<a class="headerlink" href="#factorial-of-a-positive-integer" title="Permanent link">¶</a></h3>
+<p>This function is not tail-recursive because we need to maintain the value of <code>n</code> that we
+will multiply with the result of <code>factorial(n-1)</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">factorial</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="sd">"""Get factorial of n.</span>
+<span class="sd">    &gt;&gt;&gt; factorial(0)</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; factorial(5)</span>
+<span class="sd">    120</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span> <span class="o">*</span> <span class="n">factorial</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<p>The reason we would want to make our function tail-recursive is because some programming languages provide
+what is called a <a href="https://stackoverflow.com/questions/310974/what-is-tail-call-optimization">tail call optimization</a>.
+This is how a functional programming language such as 
+Scala supports hundreds of thousands recursive function calls, see <a href="https://alvinalexander.com/scala/fp-book/tail-recursive-algorithms/">here</a>.</p>
+<p>Python does not have tail call optimization 
+(<a href="https://stackoverflow.com/questions/13591970/does-python-optimize-tail-recursion">here’s why</a>), 
+but let’s rewrite the factorial function in a tail-recursive fashion anyway to practice.</p>
+<p>The idea around tail-call optimization is to use some kind of accumulator, 
+the <code>acc</code> parameter in the example below, that tracks the intermediate data 
+and is passed across the subsequent calls thus eliminating 
+the need to keep the previous stack frames.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">factorial_tail</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">acc</span><span class="p">):</span>
+    <span class="sd">"""Get factorial of n in a tail-recursion fashion.</span>
+<span class="sd">    &gt;&gt;&gt; factorial_tail(0, 1)</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; factorial_tail(5, 1)</span>
+<span class="sd">    120</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">acc</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">factorial_tail</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">acc</span><span class="o">*</span><span class="n">n</span><span class="p">)</span>
+</code></pre></div>
+<p>Let’s write a few more examples of functions with tail call.</p>
+<h3 id="sum-values-in-an-array-tail-call">Sum values in an array (tail call)<a class="headerlink" href="#sum-values-in-an-array-tail-call" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">sum_values_tail</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">acc</span><span class="p">):</span>
+    <span class="sd">"""Sum values in an array in a tail-recursion fashion.</span>
+<span class="sd">    &gt;&gt;&gt; sum_values_tail([1,2,3], 0)</span>
+<span class="sd">    6</span>
+<span class="sd">    &gt;&gt;&gt; sum_values_tail([], 0)</span>
+<span class="sd">    0</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">acc</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sum_values_tail</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">acc</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="reverse-an-array-tail-call">Reverse an array (tail call)<a class="headerlink" href="#reverse-an-array-tail-call" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">reverse_list_tail</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">final</span><span class="p">):</span>
+    <span class="sd">"""Reverse list in a tail-recursion fashion.</span>
+<span class="sd">    &gt;&gt;&gt; reverse_list_tail([], [])</span>
+<span class="sd">    []</span>
+<span class="sd">    &gt;&gt;&gt; reverse_list_tail([1], [])</span>
+<span class="sd">    [1]</span>
+<span class="sd">    &gt;&gt;&gt; reverse_list_tail([1,2,3], [])</span>
+<span class="sd">    [3, 2, 1]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">final</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">reverse_list_tail</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="p">[</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">final</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="reduce-tail-call">Reduce (tail call)<a class="headerlink" href="#reduce-tail-call" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">reduce_tail</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
+    <span class="sd">"""Reduce (fold) an array to a single value applying a function.</span>
+<span class="sd">    &gt;&gt;&gt; reduce_tail(lambda x,y: x * y, 1, [1,2,3,4])</span>
+<span class="sd">    24</span>
+<span class="sd">    &gt;&gt;&gt; reduce_tail(lambda x,y: x + y, 0, [1,2,3,4])</span>
+<span class="sd">    10</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">acc</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">reduce_tail</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">func</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</code></pre></div>
+<h2 id="mutual-recursion">Mutual recursion<a class="headerlink" href="#mutual-recursion" title="Permanent link">¶</a></h2>
+<p>Another more advanced concept is mutual recursion which is a type of recursion 
+when two functions are defined with referral to each other.</p>
+<p>In this example, given an array of integers, we want to check if it follows a certain
+pattern, <code>[1,2,1,2...1,2]</code> in this particular case.
+Once the function responsible to confirm that the first item of the array is <code>1</code> is done, 
+it calls another function that confirms that the first item of the array is <code>2</code>, 
+and then it calls the first function that confirms that the first item of the array is <code>1</code> and
+the cycle repeats.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">pattern_match_one_two</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="sd">"""Check if a sequence is a pattern 1,2 repeated</span>
+<span class="sd">    using a mutual recursion.</span>
+<span class="sd">    &gt;&gt;&gt; pattern_match_one_two([1,2,1,2,1,2])</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; pattern_match_one_two([1,2,1,2,3,1,2])</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; pattern_match_one_two([2,1,2,1,2])</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">needs_two</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">needs_two</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pattern_match_one_two</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+</code></pre></div>
+<hr/>
+<p>Hope this short introduction helped you understand recursion better 
+and you find the code examples illustrative and useful.</p>
+<p>Happy recursive coding!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2021-02-06T00:00:00+00:00">Sat 06 February 2021</time>
+<h4>Last Updated</h4>
+<time datetime="2021-02-28T00:00:00+00:00">Feb 28, 2021</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#python-ref">python</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#functional-programming-ref">functional-programming
+                    <span class="superscript">2</span>
+</a></li>
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">14</span>
+</a></li>
+                <li><a href="/tags.html#recursion-ref">recursion
+                    <span class="superscript">1</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

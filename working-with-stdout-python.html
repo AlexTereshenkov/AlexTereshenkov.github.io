@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python, logging, python, " />
+
+<meta property="og:title" content="Working with stdout in Python scripts "/>
+<meta property="og:url" content="/working-with-stdout-python.html" />
+<meta property="og:description" content="Overview¶ When working with an existing Python script, particularly a legacy script, or a script that was supposed to be used once and then thrown away but grew into a business critical application (yep, this happens), it can be common to see extensive usage of print or logging statements. Those …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2020-11-16T00:00:00+00:00" />
+<meta property="og:article:modified_time" content="2020-03-06T00:00:00+00:00" />
+<meta name="twitter:title" content="Working with stdout in Python scripts ">
+<meta name="twitter:description" content="Overview¶ When working with an existing Python script, particularly a legacy script, or a script that was supposed to be used once and then thrown away but grew into a business critical application (yep, this happens), it can be common to see extensive usage of print or logging statements. Those …">
+
+        <title>Working with stdout in Python scripts  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/working-with-stdout-python.html">
+                Working with stdout in Python scripts
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#redirecting-to-a-file">Redirecting to a file</a></li>
+<li><a href="#redirecting-to-stringio">Redirecting to StringIO</a></li>
+<li><a href="#overriding-the-sysstdoutwrite-method">Overriding the sys.stdout.write method</a></li>
+<li><a href="#buffering-and-flushing">Buffering and flushing</a></li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>When working with an existing Python script, particularly a legacy script, 
+or a script that was supposed to be used once and then thrown away but grew into a business
+critical application (yep, this happens), it can be common to see extensive 
+usage of <code>print</code> or <code>logging</code> statements.
+Those statements can be spread across the program code and often provide useful information
+regarding the status of the process while the script is being executed.</p>
+<p>However, if you have been writing a new script and have finished working on it,
+or if the script output is not of interest any longer, 
+you most likely wouldn’t want to clutter the Python console with <code>print</code>/<code>logging</code> outputs
+(particularly if the script is part of another larger pipeline).
+However, the information emitted can still be useful to get logged.</p>
+<h2 id="redirecting-to-a-file">Redirecting to a file<a class="headerlink" href="#redirecting-to-a-file" title="Permanent link">¶</a></h2>
+<p>Instead of removing each <code>print</code> statement (or switching to <code>logging.debug</code> from <code>logging.info</code>),
+it is possible to specify to what file the <code>sys.stdout</code> will redirect writing to.
+This will make the <code>print</code> and <code>logging</code> calls to write to a file on disk instead.</p>
+<figure class="code">
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c1"># keeping the original reference to the output destination</span>
+<span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Started script"</span><span class="p">)</span>
+
+<span class="c1"># redirecting the print statements to the file</span>
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'log.txt'</span><span class="p">,</span> <span class="s1">'a'</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span>
+
+<span class="c1"># main program execution, gets logged to a file</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Getting work done"</span><span class="p">)</span>
+
+<span class="c1"># setting it to the original output destination</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">stdout</span>
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Finished script"</span><span class="p">)</span>
+</code></pre></div>
+</figure>
+<p>Now, when running the program, the <code>print()</code> calls within the main program logic 
+are being redirected to a file on disk.</p>
+<div class="highlight"><pre><span></span><code>$ python3 program_print.py
+Started script
+Finished script
+$ cat log.txt 
+Getting work done
+</code></pre></div>
+<h2 id="redirecting-to-stringio">Redirecting to <code>StringIO</code><a class="headerlink" href="#redirecting-to-stringio" title="Permanent link">¶</a></h2>
+<p>It is also possible to use the <code>io.StringIO()</code> object to capture everything that will be
+written to the <code>stdout</code> for the whole script or only a portion of it.</p>
+<figure class="code">
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Started script"</span><span class="p">)</span>
+
+<span class="c1"># to capture anything that will be written to the stdout</span>
+<span class="n">buf</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+<span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">buf</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Getting work done'</span><span class="p">)</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">stdout</span>
+<span class="c1"># collecting what has been written into a variable</span>
+<span class="n">captured</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Finished script</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">captured</span><span class="p">)</span>
+</code></pre></div>
+</figure>
+<p>Now, when running the program, the <code>print()</code> calls within the main program logic 
+are being collected into a variable (which is printed here for examination, but can be used
+for any custom logging).</p>
+<div class="highlight"><pre><span></span><code>$ python3 program_stringio_var.py
+Started script
+Finished script
+
+Getting work done
+</code></pre></div>
+<h2 id="overriding-the-sysstdoutwrite-method">Overriding the <code>sys.stdout.write</code> method<a class="headerlink" href="#overriding-the-sysstdoutwrite-method" title="Permanent link">¶</a></h2>
+<p>In both of the examples above, the text that was sent to the original <code>stdout</code> wasn’t shown
+in the console (it’s either simply suppressed or captured into a variable).
+However, it can be sometimes useful to print the output both to the console <em>and</em> put the output
+into a variable.
+For this use case, we are essentially after what the <code>tee</code> command does in Linux (which can read <code>stdin</code> and
+then write it to both the <code>stdout</code> and to a file).
+In Python, this can be achieved by overriding the <code>sys.stdout.write</code> method.</p>
+<figure class="code">
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+
+
+<span class="k">class</span> <span class="nc">StdOutTee</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">authors</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">authors</span> <span class="o">=</span> <span class="n">authors</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">author</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">authors</span><span class="p">:</span>
+            <span class="n">author</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Started script"</span><span class="p">)</span>
+
+<span class="c1"># to capture anything that will be written to the stdout</span>
+<span class="n">buf</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+<span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">StdOutTee</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">stdout</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Getting work done 1'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Getting work done 2'</span><span class="p">)</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">stdout</span>
+<span class="c1"># collecting what has been written into a variable</span>
+<span class="n">captured</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Finished script</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">captured</span><span class="p">)</span>
+</code></pre></div>
+</figure>
+<p>Now, when running the program, the <code>print()</code> calls within the main program logic 
+are being collected into a variable (which is printed here for examination, but can be used
+for any custom logging).
+However, all the <code>print()</code> statements are printed as well.</p>
+<div class="highlight"><pre><span></span><code>$ python3 program_tee.py
+Started script
+Getting work done 1
+Getting work done 2
+Finished script
+
+Getting work done 1
+Getting work done 2
+</code></pre></div>
+<h2 id="buffering-and-flushing">Buffering and flushing<a class="headerlink" href="#buffering-and-flushing" title="Permanent link">¶</a></h2>
+<p>When you run a Python program, if the standard output (<code>stdout</code>) of its process is redirected 
+to some other target (different from your active terminal), then the output of this process will be
+buffered into a buffer.
+Therefore, output of Python programs that have any text sent to the <code>stdout</code> may be buffered and not shown 
+until the newline character (<code>\n</code>) is sent.</p>
+<p>This program won’t print anything in your Python console or terminal when being run:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">time</span> 
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">" "</span><span class="p">)</span> 
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p>In contrast, if there is a <code>print</code> call (which by default has the newline character as its 
+<a href="https://docs.python.org/3/library/functions.html#print"><code>end</code> parameter</a>), the output will be shown; 
+however, all the numbers will be printed at once (not one after another with 0.2 second interval) :</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">time</span> 
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">" "</span><span class="p">)</span> 
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">2</span><span class="p">)</span> 
+<span class="nb">print</span><span class="p">()</span>
+</code></pre></div>
+<p>To be able to see each number being printed instead of waiting for the loop 
+to complete and see them all at once,
+one can change the <code>stdout</code> buffering with the <a href="https://www.gnu.org/software/coreutils/manual/html_node/stdbuf-invocation.html"><code>stdbuf</code></a> utility.
+However, the <code>end</code> parameter has to be a newline character:</p>
+<div class="highlight"><pre><span></span><code>$ stdbuf -oL python3 program.py &gt; result.log
+</code></pre></div>
+<p>Alternatively, one can use the <code>flush</code> parameter of the <code>print</code> function:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">time</span> 
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> 
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p>and the call becomes (running <code>tail -F result.log</code> will let you see numbers printed in real time):</p>
+<div class="highlight"><pre><span></span><code>$ python3 std.py &gt; result.log
+</code></pre></div>
+<p>A solution that does not involve flushing is to set the 
+<a href="https://docs.python.org/3/using/cmdline.html#cmdoption-u"><code>PYTHONUNBUFFERED</code></a>
+environment variable.
+When this environment variable is set, the <code>stdout</code> of the Python process will be sent 
+to the active terminal in real time (which can be useful for tailing any application
+logs, particularly inside a Docker container).</p>
+<p>The same effect can also be achieved by passing the <code>-u</code> parameter:</p>
+<div class="highlight"><pre><span></span><code>$ python3 -u std.py &gt; result.log
+</code></pre></div>
+<p>Happy printing!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2020-11-16T00:00:00+00:00">Mon 16 November 2020</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#python-ref">python</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#logging-ref">logging
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">14</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

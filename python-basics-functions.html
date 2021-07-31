@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python-basics, python, python-basics, " />
+
+<meta property="og:title" content="Python basics - Functions "/>
+<meta property="og:url" content="/python-basics-functions.html" />
+<meta property="og:description" content="This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2021-07-31T00:00:00+01:00" />
+<meta property="og:article:modified_time" content="2021-07-31T00:00:00+01:00" />
+<meta name="twitter:title" content="Python basics - Functions ">
+<meta name="twitter:description" content="This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …">
+
+        <title>Python basics - Functions  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/python-basics-functions.html">
+                Python basics - Functions
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#defining-functions">Defining functions</a></li>
+<li><a href="#return-values-for-functions">Return values for functions</a></li>
+<li><a href="#making-functions-flexible">Making functions flexible</a></li>
+<li><a href="#working-with-function-arguments">Working with function arguments</a></li>
+<li><a href="#function-naming">Function naming</a></li>
+<li><a href="#importing-functions">Importing functions</a></li>
+<li><a href="#importing-functions-from-other-path">Importing functions from other path</a></li>
+<li><a href="#anonymous-lambda-functions">Anonymous (lambda) functions</a></li>
+<li><a href="#writing-convenience-functions">Writing convenience functions</a></li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<p>This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes about writing and working with functions in Python that beginners may find useful. </p>
+<h2 id="defining-functions">Defining functions<a class="headerlink" href="#defining-functions" title="Permanent link">¶</a></h2>
+<p>Functions are used to include a piece of code that may be called multiple times from various parts of your program or code base. If you have multiple Python modules and each of them needs to execute the same piece of code, it makes sense to move this common code snippet into a separate module where you would make this code available as a function. </p>
+<p>There are multiple advantages of using functions (instead of having duplicate code present across multiple modules). Most importantly, if you define functions, when the code needs to be changed, it is changed only in one place and there is less code to maintain and read. It also becomes easier to <a href="https://en.wikipedia.org/wiki/Debugging">debug</a> and to <a href="https://en.wikipedia.org/wiki/Code_refactoring">refactor</a> the code.</p>
+<p>Let’s create a new function that will sum values within a collection.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">calculate_sum</span><span class="p">(</span><span class="n">collection</span><span class="p">):</span>
+    <span class="sd">"""Return a sum of numbers within a collection."""</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">collection</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">+</span> <span class="n">i</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="n">calculate_sum</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>       
+<span class="c1"># 15</span>
+</code></pre></div>
+<p>Python functions are defined using the <code>def</code> keyword; a function can also have some input arguments specified. The arguments can have arbitrary names, but it’s helpful to name arguments based on what kind of values they will refer to.</p>
+<p>The string in the triple quotes <code>Return a sum of numbers within a collection</code> is called a <a href="https://www.python.org/dev/peps/pep-0257/">docstring</a> as this one provides documentation over what this function does. In order for this docstring to be accessible by Python internally and within your favorite IDE, it has to be on the first line after the <code>def</code> line.</p>
+<p>Thereafter, the code that should be executed is added. The input arguments can be used within the function body as one usually wants to do some work with the values that have been supplied. However, it’s not uncommon to use functions that do the same thing over and over again without really asking for any input data. Maybe you want to delete all files within a known location before proceeding any further and there is no need to specify the folder name when calling the function.</p>
+<p>The last statement <code>return</code>, is always the last row of function code that will be executed. One usually wants to collect the results of the function execution, and this is exactly what the <code>return</code> statement does. In other words, in the code below, the variable <code>result</code> will refer to the value that the function returns, in this case, the sum of the input numbers. </p>
+<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">calculate_sum</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">])</span>
+</code></pre></div>
+<p>Function doesn’t have to return anything, such as with the case of cleaning up the folder, but it may be helpful to provide the caller with some feedback on the execution status (perhaps, a list of files that have been deleted).</p>
+<h2 id="return-values-for-functions">Return values for functions<a class="headerlink" href="#return-values-for-functions" title="Permanent link">¶</a></h2>
+<p>Keep in mind that function can return not only scalar values such as numbers or strings, but essentially any kind of Python object including <code>None</code>, <code>False</code>/<code>True</code>, a class instance, a dictionary and so forth. What is even more interesting, is that even though a function can indeed return just a <em>single</em> object, this object can be a container of multiple objects. Let’s build a function that will return a tuple of multiple pieces of statistics:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">def</span> <span class="nf">get_collection_stats</span><span class="p">(</span><span class="n">collection</span><span class="p">):</span>
+    <span class="sd">"""Return a tuple of average, mode, max, and min values"""</span>   
+    <span class="n">avg_val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">collection</span><span class="p">))</span>
+    <span class="n">max_val</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
+    <span class="n">min_val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
+    <span class="n">mode_val</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">avg_val</span><span class="p">,</span> <span class="n">max_val</span><span class="p">,</span> <span class="n">min_val</span><span class="p">,</span> <span class="n">mode_val</span><span class="p">)</span>
+
+<span class="p">(</span><span class="n">avg_value</span><span class="p">,</span> <span class="n">max_value</span><span class="p">,</span> <span class="n">min_value</span><span class="p">,</span> <span class="n">mode_value</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_collection_stats</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">12</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"avg: "</span><span class="p">,</span> <span class="n">avg_value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"max: "</span><span class="p">,</span> <span class="n">max_value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"min: "</span><span class="p">,</span> <span class="n">min_value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"mode: "</span><span class="p">,</span> <span class="n">mode_value</span><span class="p">)</span>
+
+<span class="c1"># ('avg:', 10)</span>
+<span class="c1"># ('max:', 32)</span>
+<span class="c1"># ('min:', 3)</span>
+<span class="c1"># ('mode:', 4)</span>
+</code></pre></div>
+<p>This function could have also returned a dictionary with keys being the statistical values of interest and one would access them with <code>result["max_value"]</code> and <code>result["min_value"]</code>.</p>
+<h2 id="making-functions-flexible">Making functions flexible<a class="headerlink" href="#making-functions-flexible" title="Permanent link">¶</a></h2>
+<p>When creating new functions, it is often a good idea to make them environment agnostic, that is, independent of the current environment you are calling this function from. Let’s build a function that will return some data stored in a file somewhere on your machine:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">read_file</span><span class="p">():</span>
+    <span class="sd">"""Get contents of a file."""</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'/home/username/project/data/assets.csv'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">lines</span>
+</code></pre></div>
+<p>You may think that you will use this code just once and it will always run on your machine. However, as it turns out for many developers, the same code is later re-run on other machines and in other circumstances which makes it necessary to modify the code, such as update the machine or user name and adjust the file path. On one hand, it’s impossible to foresee all things that could potentially may differ, and, of course, <a href="https://en.wikipedia.org/wiki/You_aren%27t_gonna_need_it">YAGNI</a>. On the other hand, it is a good idea to try to avoid hard-coding anything that could be either obtained from user as an input argument or even better be retrieved on-the-fly by using Python built-in or external modules.</p>
+<p>There are dozens of other hardware, operating system, and Python related settings and parameters that can be obtained with the help of Python:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">socket</span>
+<span class="c1"># Getting machine name</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">())</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="c1"># Getting Windows version</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">getwindowsversion</span><span class="p">())</span>
+<span class="c1"># Getting Python version that is currently used and whether it is 32/64bit</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="c1"># Getting current logged in user name and home path; </span>
+<span class="c1"># os.environ gives access to the system environment variables</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">'HOME'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">'PATH'</span><span class="p">])</span>
+</code></pre></div>
+<p>You could have retrieved the machine name from user, making it an input argument. However, since you can always obtain this at the execution time, there is really no need to do that unless the function needs to read the file on a different computer.</p>
+<h2 id="working-with-function-arguments">Working with function arguments<a class="headerlink" href="#working-with-function-arguments" title="Permanent link">¶</a></h2>
+<p>Input arguments of a function may have a default value. This makes it possible for a user calling a function to define only those arguments that don’t have any default value. For these arguments, users will need to supply  values explicitly:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clean_collection</span><span class="p">(</span><span class="n">input_collection</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">keep_strings</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">"""Return a collection of values that are less than max_value</span>
+<span class="sd">    and, optionally, without strings."""</span>
+    <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">input_collection</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">keep_strings</span><span class="p">:</span>
+            <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">max_value</span> <span class="ow">or</span> <span class="n">item</span> <span class="o">&lt;=</span> <span class="n">max_value</span><span class="p">:</span>
+                <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output_list</span>
+
+<span class="n">clean_collection</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="s1">'text2'</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="s1">'text1'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="mi">70</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="c1"># [1, 52, 'text2', 10, 9, 'text1', 4, 7]</span>
+</code></pre></div>
+<p>The <code>keep_strings</code> boolean argument has a pre-defined default value which will force function to exclude the strings in the input list. If an item in the input list will be larger than <code>max_value</code> argument specified, it will be excluded.   </p>
+<p>As your functions are small and don’t have many arguments, specifying them in the same sequence as they were declared is relatively easy. However, some functions may take 10, 20, or more input arguments, such as <a href="https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html#pandas.read_csv"><code>pandas.read_csv</code></a> function. This makes it difficult to understand what argument has been provided when calling the function. Therefore, it might be a good idea to supply the argument value together with its name when calling the function. This is particularly true when calling functions with a long list of arguments.</p>
+<div class="highlight"><pre><span></span><code><span class="n">clean_list</span><span class="p">(</span><span class="n">input_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="s1">'text1'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>
+           <span class="n">max_value</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span>
+           <span class="n">keep_strings</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>Now, since the function has a default value for the <code>max_value</code> argument, you can omit this one when calling the function. However, it is not allowed to provide the non-keyword argument after the keyword argument:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># correct syntax</span>
+<span class="n">clean_list</span><span class="p">(</span><span class="n">input_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="s1">'text1'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>
+           <span class="n">keep_strings</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  
+<span class="c1"># incorrect syntax</span>
+<span class="n">clean_list</span><span class="p">(</span><span class="n">input_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="s1">'text1'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>
+           <span class="mi">50</span><span class="p">)</span>
+</code></pre></div>
+<p>Making the second function call results in a syntax error because Python interpreter is confused: for what argument have you supplied the <code>50</code> in the last call? To avoid this, always supply both value and the argument name - this is known as passing arguments by name. It is also worth mentioning that you can supply the arguments in an arbitrary order:</p>
+<div class="highlight"><pre><span></span><code><span class="n">clean_list</span><span class="p">(</span><span class="n">keep_strings</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+           <span class="n">input_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="s1">'text1'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>
+           <span class="n">max_value</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+
+<span class="n">clean_list</span><span class="p">(</span><span class="n">keep_strings</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+           <span class="n">input_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="s1">'text1'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">])</span>
+</code></pre></div>
+<h2 id="function-naming">Function naming<a class="headerlink" href="#function-naming" title="Permanent link">¶</a></h2>
+<p>You can think of a function as a means of doing something. Thus, verbs are usually used when naming them. <code>get_current_date</code> is a good name for a function returning a current date; <code>current_date</code> is a poor name as it makes readers think that it is a variable referring to the current date. Even though there are no strict rules on how functions should be named, it might be a good idea to follow the common conventions for using certain verbs in certain contexts (<code>get</code>, <code>set</code>, <code>save</code>, <code>read</code>, <code>write</code>, <code>dump</code>, and so forth).</p>
+<h2 id="importing-functions">Importing functions<a class="headerlink" href="#importing-functions" title="Permanent link">¶</a></h2>
+<p>When you saved your function in another module (Python file on disk), you can import this function by using the same <code>import</code> statement you use for importing standard library modules (which are also Python files stored in the Python installation directory). There are some best practices that are worth following. </p>
+<p>It is helpful to <a href="https://www.python.org/dev/peps/pep-0008/#imports">organize the imports in a particular order</a> and import from modules only those functions and objects you are planning to use. So, instead of <code>import pandas</code> you could do <code>from pandas import DataFrame</code>. Your code will run quicker as there are fewer objects to import and it also gets easier to see what kind of objects you intend to use in your code. Another thing is that you won’t need to type <code>pandas.DataFrame</code> as using the <code>DataFrame</code> will suffice (because we have imported the object from <code>pandas</code>, so it knows where it belongs). You could have also done <code>from pandas import DataFrame as df</code> using the alias for the imported module and then use <code>df</code> object in your code instead of typing the whole name. This is something you will often see with the <code>numpy</code> sample codes: <code>import numpy as np</code>.</p>
+<p>A potentially dangerous <code>from numpy import *</code> will result in importing all of the objects found in the <code>numpy</code> package. Not only is this slow as lots of objects have to be loaded, but can also lead to the <a href="https://docs.python.org/2/tutorial/modules.html#more-on-modules">name clashing</a> when you use the same name for your variables that have been used for the variables defined in the package you import. If you need to import multiple modules from the package, it is possible to do multiple imports in one line:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">ndarray</span> <span class="k">as</span> <span class="n">nd</span><span class="p">,</span> <span class="n">recarray</span> <span class="k">as</span> <span class="n">rec</span>
+</code></pre></div>
+<p>Now you don’t need to write <code>numpy.ndarray</code> as <code>nd</code> will suffice. However, make sure to stick to conventions; if <code>numpy</code> is often imported as <code>np</code> in the community of <code>numpy</code> developers, it’s best to stick to this standard so that your code is more readable by others.</p>
+<h2 id="importing-functions-from-other-path">Importing functions from other path<a class="headerlink" href="#importing-functions-from-other-path" title="Permanent link">¶</a></h2>
+<p>When you need to import a Python module stored somewhere else (not inside your project directory), there are multiple ways of doing this, but arguably the most straightforward one is to customize the <code>sys.path</code> property which contains all the folders where Python will look for the module names you supply. Imagine there is a Python module <code>/home/username/projectA/utils.py</code>. You are working in another directory, such as <code>/home/username/projectB</code>. If your Python module you are working with would be stored in the same directory as <code>utils.py</code>, you could just write <code>import utils</code>. However, as we are not in the same folder, we have to append <code>/home/username/projectA</code> to the path so Python could find the <code>utils</code> module.</p>
+<p>There are often better ways to work with multiple directories that doesn’t involve modifying the system path directly. Your projects could be installed in editable mode as packages into your development environment so that they’d become available on your system path. Many IDEs such as PyCharm and VSCode provide way to add project directories as sources directories (via settings) to let Python interpreter find the modules. Behind the scene, however, they are still extending the system path for Python, so it’s very useful to understand how this works.</p>
+<h2 id="anonymous-lambda-functions">Anonymous (lambda) functions<a class="headerlink" href="#anonymous-lambda-functions" title="Permanent link">¶</a></h2>
+<p>In Python, there are two ways of defining a function: using the <code>def</code> statement and <code>lambda</code> keyword. We have already created new functions using the <code>def</code> statement, so let’s create a new function using <code>lambda</code> that will take an input list of integers and return <code>True</code> if an item in the list is even.</p>
+<div class="highlight"><pre><span></span><code><span class="n">is_even</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">is_even</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+<span class="c1"># False</span>
+<span class="c1"># True</span>
+<span class="c1"># False</span>
+<span class="c1"># True</span>
+</code></pre></div>
+<p>The code above could be rewritten without using the <code>lambda</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">is_even</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">is_even</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+<span class="c1"># False</span>
+<span class="c1"># True</span>
+<span class="c1"># False</span>
+<span class="c1"># True</span>
+</code></pre></div>
+<p><code>lambda</code> has a slightly different syntax than a function and they have no <code>return</code> statement. But they could be handy for creating use once, throw away functions (that are unnamed). You might want use them when you need to do something with a data structure and you don’t want to create a function for that:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])))</span>
+<span class="c1"># [2, 4]</span>
+
+<span class="c1"># without lambda</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span>
+<span class="c1"># [2, 4]</span>
+</code></pre></div>
+<p>Lambda functions are also very helpful when providing the criteria for sorting a collection:</p>
+<div class="highlight"><pre><span></span><code><span class="n">data</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)]</span>
+
+<span class="c1"># sorting a collection of tuples based on the second elemen in each tuple</span>
+<span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="c1"># [(30, 'a'), (10, 'b'), (20, 'c')]</span>
+</code></pre></div>
+<p>You may see <code>lambda</code> used in other developers’ code so it’s helpful to understand how they work.</p>
+<h2 id="writing-convenience-functions">Writing convenience functions<a class="headerlink" href="#writing-convenience-functions" title="Permanent link">¶</a></h2>
+<p>As your Python scripts get larger, you may find that you have some tiny snippets of Python code that are being used in multiple places. At this point of time, you may consider wrapping those snippets into functions which you could call. As those functions don’t do anything except hiding verbose  calls to existing functions and methods (potentially with different arguments), they are sometimes called <a href="https://en.wikipedia.org/wiki/Convenience_function">convenience functions</a>.</p>
+<p>For instance, you often need to find out the parent’s directory name of a file. This can be done with the <code>Path("filepath").parent.name</code> from the <code>pathlib</code> module. However, as this line is fairly long, your code may get cluttered if it’s used everywhere. You could wrap this single line into a tiny convenience function:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">"""Get name of the parent directory of a filepath."""</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
+</code></pre></div>
+<p>Or it could be that a 3rd party package you use to work with the file system breaks when attempting to delete a file that doesn’t exist. To avoid cluttering your programs with repetitive checks for the file existence, you may like to wrap these calls into a tiny function to make your code less verbose:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">filesystem</span> <span class="c1"># some 3rd party package</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">"""Delete a file ignoring non-existing files."""</span>
+    <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">filesystem</span><span class="o">.</span><span class="n">deep_delete</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+</code></pre></div>
+<p>Be cautious creating such convenience, or <em>helper</em>, functions though, as it may be not worth it. Having multiple helper functions used all around your project may make it difficult to read for other developers who are not familiar with them (unless your team have agreed on certain conventions). If you do use them, make sure to document their use properly. Also, be careful choosing a valid and meaningful name to avoid name collision with functions and classes from other Python modules.</p>
+<p>Happy functioning!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2021-07-31T00:00:00+01:00">Sat 31 July 2021</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#python-basics-ref">python-basics</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">14</span>
+</a></li>
+                <li><a href="/tags.html#python-basics-ref">python-basics
+                    <span class="superscript">1</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>
