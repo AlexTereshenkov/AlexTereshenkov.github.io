@@ -16,7 +16,7 @@ MARKDOWN = {
         'markdown.extensions.meta': {},
         'markdown.extensions.smarty': {},
         'markdown.extensions.toc' :{'permalink' : 'true'},
-
+        'markdown.extensions.footnotes': {},
     },
     'output_format': 'html5',
 }
