@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python-basics, python, python-basics, " />
+
+<meta property="og:title" content="Python basics - Classes "/>
+<meta property="og:url" content="/python-basics-classes.html" />
+<meta property="og:description" content="This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2021-08-01T00:00:00+01:00" />
+<meta property="og:article:modified_time" content="2021-08-01T00:00:00+01:00" />
+<meta name="twitter:title" content="Python basics - Classes ">
+<meta name="twitter:description" content="This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …">
+
+        <title>Python basics - Classes  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/python-basics-classes.html">
+                Python basics - Classes
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#using-an-existing-class">Using an existing class</a></li>
+<li><a href="#creating-a-new-class">Creating a new class</a></li>
+<li><a href="#class-instance-methods">Class instance methods</a></li>
+<li><a href="#advanced-class-behavior">Advanced class behavior</a></li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<p>This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes about writing and working with classes in Python that beginners may find useful. </p>
+<h2 id="using-an-existing-class">Using an existing class<a class="headerlink" href="#using-an-existing-class" title="Permanent link">¶</a></h2>
+<p>Python class is just a template of an object that we are using to model a certain entity or real world object, its properties and its behavior. For instance, a Python class can represent a file on a computer file system; such a class will have certain properties (or <em>attributes</em>) and behaviors (or <em>methods</em>). This way, a file class may have properties such as name, owner, permissions, and edit time. Its methods would be actions this object could do: for instance, we could ask file class to be renamed or moved and it also could tell us who its parent is.</p>
+<p><code>pathlib.Path</code> is a class that you may have already used probably without reflecting too much about its properties. We will start exploring the class concept with a simple <code>Path</code> class.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'/home/username/data/assets.csv'</span><span class="p">)</span>
+</code></pre></div>
+<p>We can create a new <em>instance</em> of the class <code>Path</code> by assigning a variable to be equal to a class instance with certain default values supplied. A class constructor (the initialization method) has a number of default values it can take when you create an instance of this class. This far, we have created a <code>path</code> object which is a <code>Path</code> class instance that has many properties such as <code>name</code> and <code>suffix</code>. Because this instance is also a Python object, we can access its properties using the dot notation.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">panh</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
+</code></pre></div>
+<p>Let’s create an instance of another <code>Path</code> class. Note that it is possible to use object’s methods on multiple class instances. For instance, it is possible to construct a <code>Path</code> object from two existing <code>Path</code> objects:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">user_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'/home/user'</span><span class="p">)</span>
+<span class="n">assets_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'data/assets.csv'</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="n">assets_file</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="c1"># /home/user/data/assets.csv</span>
+</code></pre></div>
+<p>The <code>pathlib.Path</code> object also has <em>methods</em>. In other words, we can perform a certain operation on this object (you can think of methods as functions that are run on this specific object) and get some result back, just like we do when we run a function.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># read file</span>
+<span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+<span class="c1"># remove file</span>
+<span class="n">path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'/home/user/data/assets.csv'</span><span class="p">)</span>
+<span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="s1">'/home/user'</span><span class="p">)</span>
+<span class="c1"># PosixPath('data/assets.csv')</span>
+</code></pre></div>
+<p>We have used the <code>relative_to</code> method of the <code>pathlib.Path</code> object and this method returned another object, <code>PosixPath</code> that has again own properties and methods. </p>
+<h2 id="creating-a-new-class">Creating a new class<a class="headerlink" href="#creating-a-new-class" title="Permanent link">¶</a></h2>
+<p>This far, we have only used existing classes that are present in <code>pathlib</code> module, but in fact you have already used many Python classes without ever thinking of that. For instance, variables you create in Python, such as lists and strings, are instances of the classes <code>list</code> and <code>str</code>, respectively. </p>
+<p>To create a class in Python, you use a special keyword <code>class</code>. Let’s model an entity that is not present in <code>pathlib</code> to learn about classes and how they work. We will create a class that will represent an existing directory on the file system. Class definitions we write (just like we do with the function definitions using the <code>def</code> statements) must be executed before they can be used further in the code. </p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Directory</span><span class="p">:</span>
+    <span class="sd">"""A file system directory."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+
+
+<span class="n">directory</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="s1">'/home/username/data'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+<span class="c1"># &lt;__main__.Directory object at 0x00000284D5E6B7F0&gt;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">directory</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+<span class="c1"># /home/username/data</span>
+</code></pre></div>
+<p>The only thing you need to specify is the special function <code>__init__</code> (constructor) that will run every time you will create an instance of this class. Because we will work with an existing directory, we have to supply a path to that directory. Passing the file system path as the input argument to the <code>__init__</code> function will let user specify the path to the directory when creating a class instance. The <code>directory</code> variable will represent the <code>Directory</code> class object.</p>
+<p>A special word <code>self</code> that we used as the first argument is just a convention to refer to the object itself and you shouldn’t worry about it for now. What is good to know though is that you can add your own properties to the class that will provide some useful information to the user. Let’s add a property that will tell us the name of that directory:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Directory</span><span class="p">:</span>
+    <span class="sd">"""A file system directory."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+
+<span class="n">directory</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="s1">'/home/username/data'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">directory</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="c1"># data</span>
+</code></pre></div>
+<p>However, when we printed the <code>directory</code> variable out earlier, it didn’t give us any useful information about the directory, only it’s internal object representation which was rather cryptic. Thankfully, in Python you can override how the objects will be represented when they are printed out as well as when you access the object inside the interactive console (REPL).</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Directory</span><span class="p">:</span>
+    <span class="sd">"""A file system directory."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'Directory("</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s1">")'</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+
+<span class="n">directory</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="s1">'/home/username/data'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+<span class="c1"># /home/username/data </span>
+
+<span class="c1"># inside REPL</span>
+<span class="n">directory</span>
+<span class="c1"># Directory("/home/username/data")</span>
+</code></pre></div>
+<p>As you will see, it is possible not only to get some basic information about the object, but actually call other functions and do a lot more. An object property can be a result of some calculation or data look-up. Let’s add another useful property that will report names of the files inside the directory:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Directory</span><span class="p">:</span>
+    <span class="sd">"""A file system directory."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_files</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">is_file</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'Directory("</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s1">")'</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+
+<span class="n">directory</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="s1">'/home/username/data'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">directory</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="class-instance-methods">Class instance methods<a class="headerlink" href="#class-instance-methods" title="Permanent link">¶</a></h2>
+<p>As you see, it can be very convenient for a developer to have a class defined in another module and then just import the module, create a class instance and start using this object. You may wonder why couldn’t we just write a function with the help of <code>Path</code>? We definitely could, but the true power of classes lies in how class instance objects can interact with each other. What can be implemented with the help of multiple functions can be often done with a more concise and elegant code of a class definition. </p>
+<p>To see that in action, let’s define a new class - <code>CsvFile</code> that will represent a <code>.csv</code> file on disk.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CsvFile</span><span class="p">:</span>
+    <span class="sd">"""A csv file."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+</code></pre></div>
+<p>This is no different from what we have already did with the <code>Directory</code> class. Let’s add another property that will represent the data schema, that is, all the <code>.csv</code> file columns. The <code>columns</code> attribute will return the fields in the order they are stored in the <code>.csv</code> file (assuming the <code>.csv</code> file is comma-separated).</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CsvFile</span><span class="p">:</span>
+    <span class="sd">"""A csv file."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_columns</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span>
+
+
+<span class="n">csv_file</span> <span class="o">=</span> <span class="n">CsvFile</span><span class="p">(</span><span class="s2">"/home/username/data/assets.csv"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">csv_file</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+</code></pre></div>
+<p>Now, what if we would like to check if two <code>.csv</code> files have the same schema? </p>
+<div class="highlight"><pre><span></span><code><span class="n">assets2019</span> <span class="o">=</span> <span class="n">CsvFile</span><span class="p">(</span><span class="s2">"/home/username/data/assets2019.csv"</span><span class="p">)</span>
+<span class="n">assets2020</span> <span class="o">=</span> <span class="n">CsvFile</span><span class="p">(</span><span class="s2">"/home/username/data/assets2020.csv"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">assets2019</span><span class="o">.</span><span class="n">columns</span> <span class="o">==</span> <span class="n">assets2020</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+</code></pre></div>
+<p>But what if we want to let users of our <code>CsvFile</code> class to compare the schema of two <code>.csv</code> files without taking into account the order of columns? Thinking of a database table, the concept of a column order doesn’t make sense. Let’s create a <em>method</em> that would compare the columns of two <code>.csv</code> files:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CsvFile</span><span class="p">:</span>
+    <span class="sd">"""A csv file."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_columns</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">schema_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">"""Compare the columns of two csv files."""</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+
+<span class="n">assets2019</span> <span class="o">=</span> <span class="n">CsvFile</span><span class="p">(</span><span class="s2">"/home/username/data/assets2019.csv"</span><span class="p">)</span>
+<span class="n">assets2020</span> <span class="o">=</span> <span class="n">CsvFile</span><span class="p">(</span><span class="s2">"/home/username/data/assets2020.csv"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">assets2019</span><span class="o">.</span><span class="n">schema_match</span><span class="p">(</span><span class="n">assets2020</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">assets2019</span><span class="o">.</span><span class="n">columns</span> <span class="o">==</span> <span class="n">assets2020</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+</code></pre></div>
+<p>The method <code>schema_match()</code> we wrote above takes as arguments <code>self</code> (the class instance itself) and <code>other</code> (another class instance object). It accesses the <code>columns</code> property for each of the objects and then compares the sets to make a decision whether the schema of the files matches. If two <code>.csv</code> files from the example above would have the same columns stored in different orders, the <code>assets2019.columns == assets2020.columns</code> would return <code>False</code>, but since their schema is identical, <code>assets2019.schema_match(assets2020)</code> would return <code>True</code>. We could also extend our method to provide more fine-grained control over the comparison protocol. Is comparison case sensitive? Are duplicate fields ignored? The method could even take an comparison configuration object where we could have defined all the comparison settings. </p>
+<h2 id="advanced-class-behavior">Advanced class behavior<a class="headerlink" href="#advanced-class-behavior" title="Permanent link">¶</a></h2>
+<p>When modeling a class behavior, it may be helpful to provide the logic of how the object should behave in various situations. For instance, it is possible to compare two <code>Path</code> objects:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Path</span><span class="p">(</span><span class="s1">'/data/path'</span><span class="p">)</span> <span class="o">==</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'/data/path'</span><span class="p">)</span>
+<span class="c1"># True</span>
+<span class="n">Path</span><span class="p">(</span><span class="s1">'/data/path'</span><span class="p">)</span> <span class="o">==</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'/data/file'</span><span class="p">)</span>
+<span class="c1"># False</span>
+</code></pre></div>
+<p>For the <code>.csv</code> files, at least in our business domain specification, we could say that two files are identical if they have the same name and the same schema. To do this, we have to tell Python to use a special method when deciding whether two objects are the same with the <code>__eq__</code> method:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="k">class</span> <span class="nc">CsvFile</span><span class="p">:</span>
+    <span class="sd">"""A csv file."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_columns</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">schema_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">"""Compare the columns of two csv files."""</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_match</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="n">CsvFile</span><span class="p">(</span><span class="s2">"/home/username/data/assets2019.csv"</span><span class="p">)</span> <span class="o">==</span> <span class="n">CsvFile</span><span class="p">(</span><span class="s2">"/home/username/data/assets2020.csv"</span><span class="p">))</span>
+</code></pre></div>
+<p>It can also be useful to use an object in a <code>for</code> loop. For instance, we can let users of the <code>Directory</code> class iterate through the class instance and access every file stored within it. In order to do this, one has to use a special <code>__iter__</code> method.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="k">class</span> <span class="nc">Directory</span><span class="p">:</span>
+    <span class="sd">"""A file system directory."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_files</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">is_file</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">f</span>
+
+
+<span class="n">directory</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="s2">"/home/username/data"</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">directory</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+<span class="c1"># would return files one by one</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+<span class="nb">next</span><span class="p">(</span><span class="n">scanner</span><span class="p">)</span>
+</code></pre></div>
+<p>All you need to define essentially is what kind of iteration you want to provide your users with. The <code>__iter__()</code>, called <a href="http://stackoverflow.com/questions/47789/generator-expressions-vs-list-comprehension">generator function</a>, works so that each time you use a <code>yield</code> statement, it will give you back the next item and then move to the next item in the list ready to be served. It may be helpful to learn a bit more about the generator expression as this technique may be necessary to use when dealing with large sequences or when the memory resources available are scarce. </p>
+<p>Keep in mind that the <code>scanner</code> generator from the example above is different from the <code>directory</code> (being iterable) because you can only iterate over the <code>scanner</code> once. This is because generators do not store all the iterable values in the computer memory, but generate them on-demand. You could construct a list of files while iterating the generator either in a standard <code>for</code> loop or with the help of list comprehension:</p>
+<div class="highlight"><pre><span></span><code><span class="n">scanner</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+<span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">scanner</span><span class="p">]</span>
+</code></pre></div>
+<p>Keep in mind that when using the list comprehension, the entire list of items is created in memory. In contrast, while accessing the items in <code>.files</code> one by one, the generator accesses the items on-demand. This makes it possible to work with extremely large sequences without running out of memory.</p>
+<p>Happy classing!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2021-08-01T00:00:00+01:00">Sun 01 August 2021</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#python-basics-ref">python-basics</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">15</span>
+</a></li>
+                <li><a href="/tags.html#python-basics-ref">python-basics
+                    <span class="superscript">2</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>
