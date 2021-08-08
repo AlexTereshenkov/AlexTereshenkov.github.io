@@ -16,7 +16,6 @@ Python class is just a template of an object that we are using to model a certai
 
 `pathlib.Path` is a class that you may have already used probably without reflecting too much about its properties. We will start exploring the class concept with a simple `Path` class.
 
-
 ```python
 from pathlib import Path
 
