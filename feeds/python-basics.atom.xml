@@ -1,5 +1,713 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov - python-basics</title><link href="/" rel="alternate"></link><link href="/feeds/python-basics.atom.xml" rel="self"></link><id>/</id><updated>2021-08-08T00:00:00+01:00</updated><entry><title>Python basics - Collections</title><link href="/python-basics-collections.html" rel="alternate"></link><published>2021-08-08T00:00:00+01:00</published><updated>2021-08-08T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2021-08-08:/python-basics-collections.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov - python-basics</title><link href="/" rel="alternate"></link><link href="/feeds/python-basics.atom.xml" rel="self"></link><id>/</id><updated>2021-08-14T00:00:00+01:00</updated><entry><title>Python basics - Pandas</title><link href="/python-basics-pandas.html" rel="alternate"></link><published>2021-08-14T00:00:00+01:00</published><updated>2021-08-14T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2021-08-14:/python-basics-pandas.html</id><summary type="html">
+&lt;p&gt;This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …&lt;/p&gt;</summary><content type="html">
+&lt;p&gt;This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes about working with a popular data science and data analysis library - &lt;code&gt;pandas&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;I have simplified this &lt;a href="https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv"&gt;dataset&lt;/a&gt; that is part of the Census from this this &lt;a href="https://www.census.gov/data/datasets/time-series/demo/popest/2010s-counties-total.html"&gt;portal&lt;/a&gt; to illustrate how &lt;code&gt;pandas&lt;/code&gt; work.&lt;/p&gt;
+&lt;h2 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;a href="http://pandas.pydata.org/"&gt;&lt;code&gt;pandas&lt;/code&gt;&lt;/a&gt; is one of the most popular data analysis and data munging library implemented as a Python package. &lt;code&gt;pandas&lt;/code&gt; provides an easy-to-use interface for exploring all kinds of datasets. It has hundreds of useful functions and operations, so it is impossible to go through all of them. We will start exploring the basics of &lt;code&gt;pandas&lt;/code&gt; first by loading a &lt;code&gt;.csv&lt;/code&gt; file into a &lt;code&gt;pandas&lt;/code&gt; data frame.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;pd&lt;/span&gt;
+&lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'display.max_rows'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;df&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'~/data/counties.csv'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;style scoped=""&gt;
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+&lt;/style&gt;
+&lt;table border="1" class="dataframe"&gt;
+&lt;thead&gt;
+&lt;tr style="text-align: right;"&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;STATE&lt;/th&gt;
+&lt;th&gt;COUNTY&lt;/th&gt;
+&lt;th&gt;POP2010&lt;/th&gt;
+&lt;th&gt;EST2010&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;th&gt;0&lt;/th&gt;
+&lt;td&gt;Alabama&lt;/td&gt;
+&lt;td&gt;Autauga County&lt;/td&gt;
+&lt;td&gt;54571.0&lt;/td&gt;
+&lt;td&gt;54597&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;td&gt;Alabama&lt;/td&gt;
+&lt;td&gt;Baldwin County&lt;/td&gt;
+&lt;td&gt;182265.0&lt;/td&gt;
+&lt;td&gt;182265&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;td&gt;Alabama&lt;/td&gt;
+&lt;td&gt;Barbour County&lt;/td&gt;
+&lt;td&gt;27457.0&lt;/td&gt;
+&lt;td&gt;27455&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;...&lt;/th&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;3139&lt;/th&gt;
+&lt;td&gt;Wyoming&lt;/td&gt;
+&lt;td&gt;Uinta County&lt;/td&gt;
+&lt;td&gt;21118.0&lt;/td&gt;
+&lt;td&gt;21121&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;3140&lt;/th&gt;
+&lt;td&gt;Wyoming&lt;/td&gt;
+&lt;td&gt;Washakie County&lt;/td&gt;
+&lt;td&gt;8533.0&lt;/td&gt;
+&lt;td&gt;8528&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;3141&lt;/th&gt;
+&lt;td&gt;Wyoming&lt;/td&gt;
+&lt;td&gt;Weston County&lt;/td&gt;
+&lt;td&gt;7208.0&lt;/td&gt;
+&lt;td&gt;7208&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;3142 rows × 4 columns&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;Now we would like to create a new &lt;code&gt;.csv&lt;/code&gt; file with only counties in the Oregon state.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;df&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'~/data/counties.csv'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;oregon_counties&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;STATE&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;'Oregon'&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+&lt;span class="n"&gt;oregon_counties&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'~/data/oregon.csv'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'~/data/oregon.csv'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;style scoped=""&gt;
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+&lt;/style&gt;
+&lt;table border="1" class="dataframe"&gt;
+&lt;thead&gt;
+&lt;tr style="text-align: right;"&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;STATE&lt;/th&gt;
+&lt;th&gt;COUNTY&lt;/th&gt;
+&lt;th&gt;POP2010&lt;/th&gt;
+&lt;th&gt;EST2010&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;th&gt;0&lt;/th&gt;
+&lt;td&gt;Oregon&lt;/td&gt;
+&lt;td&gt;Baker County&lt;/td&gt;
+&lt;td&gt;16134.0&lt;/td&gt;
+&lt;td&gt;16131&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;td&gt;Oregon&lt;/td&gt;
+&lt;td&gt;Benton County&lt;/td&gt;
+&lt;td&gt;85579.0&lt;/td&gt;
+&lt;td&gt;85581&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;td&gt;Oregon&lt;/td&gt;
+&lt;td&gt;Clackamas County&lt;/td&gt;
+&lt;td&gt;375992.0&lt;/td&gt;
+&lt;td&gt;375996&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;...&lt;/th&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;33&lt;/th&gt;
+&lt;td&gt;Oregon&lt;/td&gt;
+&lt;td&gt;Washington County&lt;/td&gt;
+&lt;td&gt;529710.0&lt;/td&gt;
+&lt;td&gt;529862&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;34&lt;/th&gt;
+&lt;td&gt;Oregon&lt;/td&gt;
+&lt;td&gt;Wheeler County&lt;/td&gt;
+&lt;td&gt;1441.0&lt;/td&gt;
+&lt;td&gt;1439&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;35&lt;/th&gt;
+&lt;td&gt;Oregon&lt;/td&gt;
+&lt;td&gt;Yamhill County&lt;/td&gt;
+&lt;td&gt;99193.0&lt;/td&gt;
+&lt;td&gt;99216&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;36 rows × 4 columns&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;This kind of operations and many others that you will learn now can be done using any RDBMS such SQL Server, MySQL, or PostgreSQL or an office program such as Excel. However, not all of your data will originate or be stored in a RDBMS. We could load &lt;code&gt;.csv&lt;/code&gt; files into a RDBMS to do this kind of work, but if there is no need to manage the data over time in the database, we may use the wrong tool for the job.&lt;/p&gt;
+&lt;h2 id="basic-operations"&gt;Basic operations&lt;a class="headerlink" href="#basic-operations" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;As you see, it is very easy to load external data into something that is called a &lt;code&gt;DataFrame&lt;/code&gt;. You can think of this as a relational table that consists of rows and columns. This is what you would expect to have after importing a &lt;code&gt;.csv&lt;/code&gt; file into an Excel sheet. Let’s explore some of the basic operations that are available for a &lt;code&gt;DataFrame&lt;/code&gt; object:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# getting only the first 5 rows, equivalent to df[0:5]&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;style scoped=""&gt;
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+&lt;/style&gt;
+&lt;table border="1" class="dataframe"&gt;
+&lt;thead&gt;
+&lt;tr style="text-align: right;"&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;STATE&lt;/th&gt;
+&lt;th&gt;COUNTY&lt;/th&gt;
+&lt;th&gt;POP2010&lt;/th&gt;
+&lt;th&gt;EST2010&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;th&gt;0&lt;/th&gt;
+&lt;td&gt;Alabama&lt;/td&gt;
+&lt;td&gt;Autauga County&lt;/td&gt;
+&lt;td&gt;54571.0&lt;/td&gt;
+&lt;td&gt;54597&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;td&gt;Alabama&lt;/td&gt;
+&lt;td&gt;Baldwin County&lt;/td&gt;
+&lt;td&gt;182265.0&lt;/td&gt;
+&lt;td&gt;182265&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;td&gt;Alabama&lt;/td&gt;
+&lt;td&gt;Barbour County&lt;/td&gt;
+&lt;td&gt;27457.0&lt;/td&gt;
+&lt;td&gt;27455&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;td&gt;Alabama&lt;/td&gt;
+&lt;td&gt;Bibb County&lt;/td&gt;
+&lt;td&gt;22915.0&lt;/td&gt;
+&lt;td&gt;22915&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;4&lt;/th&gt;
+&lt;td&gt;Alabama&lt;/td&gt;
+&lt;td&gt;Blount County&lt;/td&gt;
+&lt;td&gt;57322.0&lt;/td&gt;
+&lt;td&gt;57322&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# sort in-place to get most populated counties&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sort_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'POP2010'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ascending&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;inplace&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;style scoped=""&gt;
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+&lt;/style&gt;
+&lt;table border="1" class="dataframe"&gt;
+&lt;thead&gt;
+&lt;tr style="text-align: right;"&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;STATE&lt;/th&gt;
+&lt;th&gt;COUNTY&lt;/th&gt;
+&lt;th&gt;POP2010&lt;/th&gt;
+&lt;th&gt;EST2010&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;th&gt;204&lt;/th&gt;
+&lt;td&gt;California&lt;/td&gt;
+&lt;td&gt;Los Angeles County&lt;/td&gt;
+&lt;td&gt;9818605.0&lt;/td&gt;
+&lt;td&gt;9819968&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;610&lt;/th&gt;
+&lt;td&gt;Illinois&lt;/td&gt;
+&lt;td&gt;Cook County&lt;/td&gt;
+&lt;td&gt;5194675.0&lt;/td&gt;
+&lt;td&gt;5195026&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;2623&lt;/th&gt;
+&lt;td&gt;Texas&lt;/td&gt;
+&lt;td&gt;Harris County&lt;/td&gt;
+&lt;td&gt;4092459.0&lt;/td&gt;
+&lt;td&gt;4093176&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;103&lt;/th&gt;
+&lt;td&gt;Arizona&lt;/td&gt;
+&lt;td&gt;Maricopa County&lt;/td&gt;
+&lt;td&gt;3817117.0&lt;/td&gt;
+&lt;td&gt;3817365&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;222&lt;/th&gt;
+&lt;td&gt;California&lt;/td&gt;
+&lt;td&gt;San Diego County&lt;/td&gt;
+&lt;td&gt;3095313.0&lt;/td&gt;
+&lt;td&gt;3095349&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# filter by condition, show only counties in California state&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;STATE&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;'California'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;style scoped=""&gt;
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+&lt;/style&gt;
+&lt;table border="1" class="dataframe"&gt;
+&lt;thead&gt;
+&lt;tr style="text-align: right;"&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;STATE&lt;/th&gt;
+&lt;th&gt;COUNTY&lt;/th&gt;
+&lt;th&gt;POP2010&lt;/th&gt;
+&lt;th&gt;EST2010&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;th&gt;204&lt;/th&gt;
+&lt;td&gt;California&lt;/td&gt;
+&lt;td&gt;Los Angeles County&lt;/td&gt;
+&lt;td&gt;9818605.0&lt;/td&gt;
+&lt;td&gt;9819968&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;222&lt;/th&gt;
+&lt;td&gt;California&lt;/td&gt;
+&lt;td&gt;San Diego County&lt;/td&gt;
+&lt;td&gt;3095313.0&lt;/td&gt;
+&lt;td&gt;3095349&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;215&lt;/th&gt;
+&lt;td&gt;California&lt;/td&gt;
+&lt;td&gt;Orange County&lt;/td&gt;
+&lt;td&gt;3010232.0&lt;/td&gt;
+&lt;td&gt;3008989&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;...&lt;/th&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;210&lt;/th&gt;
+&lt;td&gt;California&lt;/td&gt;
+&lt;td&gt;Modoc County&lt;/td&gt;
+&lt;td&gt;9686.0&lt;/td&gt;
+&lt;td&gt;9682&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;231&lt;/th&gt;
+&lt;td&gt;California&lt;/td&gt;
+&lt;td&gt;Sierra County&lt;/td&gt;
+&lt;td&gt;3240.0&lt;/td&gt;
+&lt;td&gt;3239&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;187&lt;/th&gt;
+&lt;td&gt;California&lt;/td&gt;
+&lt;td&gt;Alpine County&lt;/td&gt;
+&lt;td&gt;1175.0&lt;/td&gt;
+&lt;td&gt;1175&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;58 rows × 4 columns&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# show rows with missing values for POP2010 column&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;POP2010&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;isnull&lt;/span&gt;&lt;span class="p"&gt;()]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;style scoped=""&gt;
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+&lt;/style&gt;
+&lt;table border="1" class="dataframe"&gt;
+&lt;thead&gt;
+&lt;tr style="text-align: right;"&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;STATE&lt;/th&gt;
+&lt;th&gt;COUNTY&lt;/th&gt;
+&lt;th&gt;POP2010&lt;/th&gt;
+&lt;th&gt;EST2010&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;th&gt;9&lt;/th&gt;
+&lt;td&gt;Alabama&lt;/td&gt;
+&lt;td&gt;Cherokee County&lt;/td&gt;
+&lt;td&gt;NaN&lt;/td&gt;
+&lt;td&gt;25979&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# show only counties within the two states and sort by state and then by population&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;STATE&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;isin&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s1"&gt;'Delaware'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'Texas'&lt;/span&gt;&lt;span class="p"&gt;])]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sort_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'STATE'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'POP2010'&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;ascending&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;])[:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;style scoped=""&gt;
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+&lt;/style&gt;
+&lt;table border="1" class="dataframe"&gt;
+&lt;thead&gt;
+&lt;tr style="text-align: right;"&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;STATE&lt;/th&gt;
+&lt;th&gt;COUNTY&lt;/th&gt;
+&lt;th&gt;POP2010&lt;/th&gt;
+&lt;th&gt;EST2010&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;th&gt;317&lt;/th&gt;
+&lt;td&gt;Delaware&lt;/td&gt;
+&lt;td&gt;New Castle County&lt;/td&gt;
+&lt;td&gt;538479.0&lt;/td&gt;
+&lt;td&gt;538484&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;318&lt;/th&gt;
+&lt;td&gt;Delaware&lt;/td&gt;
+&lt;td&gt;Sussex County&lt;/td&gt;
+&lt;td&gt;197145.0&lt;/td&gt;
+&lt;td&gt;197103&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;316&lt;/th&gt;
+&lt;td&gt;Delaware&lt;/td&gt;
+&lt;td&gt;Kent County&lt;/td&gt;
+&lt;td&gt;162310.0&lt;/td&gt;
+&lt;td&gt;162350&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;...&lt;/th&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;2749&lt;/th&gt;
+&lt;td&gt;Texas&lt;/td&gt;
+&lt;td&gt;Travis County&lt;/td&gt;
+&lt;td&gt;1024266.0&lt;/td&gt;
+&lt;td&gt;1024444&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;2593&lt;/th&gt;
+&lt;td&gt;Texas&lt;/td&gt;
+&lt;td&gt;El Paso County&lt;/td&gt;
+&lt;td&gt;800647.0&lt;/td&gt;
+&lt;td&gt;800633&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;2565&lt;/th&gt;
+&lt;td&gt;Texas&lt;/td&gt;
+&lt;td&gt;Collin County&lt;/td&gt;
+&lt;td&gt;782341.0&lt;/td&gt;
+&lt;td&gt;781419&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;10 rows × 4 columns&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# getting total population for all counties in a state&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;POP2010&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;STATE&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;'Texas'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;25145561.0&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# get number of counties within each state&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;STATE&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;value_counts&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;Texas                   254&lt;/span&gt;
+&lt;span class="err"&gt;Georgia                 159&lt;/span&gt;
+&lt;span class="err"&gt;Virginia                133&lt;/span&gt;
+&lt;span class="err"&gt;                       ... &lt;/span&gt;
+&lt;span class="err"&gt;Hawaii                    5&lt;/span&gt;
+&lt;span class="err"&gt;Delaware                  3&lt;/span&gt;
+&lt;span class="err"&gt;District of Columbia      1&lt;/span&gt;
+&lt;span class="c"&gt;Name: STATE, Length: 51, dtype: int64&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# sum population of counties within a state; &lt;/span&gt;
+&lt;span class="c1"&gt;# list sorted by population (omitting all other columns for brevity)&lt;/span&gt;
+&lt;span class="n"&gt;res&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[[&lt;/span&gt;&lt;span class="s1"&gt;'STATE'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'POP2010'&lt;/span&gt;&lt;span class="p"&gt;]]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;groupby&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'STATE'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;res&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sort_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'POP2010'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ascending&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;style scoped=""&gt;
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+&lt;/style&gt;
+&lt;table border="1" class="dataframe"&gt;
+&lt;thead&gt;
+&lt;tr style="text-align: right;"&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;POP2010&lt;/th&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;STATE&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;th&gt;California&lt;/th&gt;
+&lt;td&gt;37253956.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;Texas&lt;/th&gt;
+&lt;td&gt;25145561.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;New York&lt;/th&gt;
+&lt;td&gt;19378102.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;...&lt;/th&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;Vermont&lt;/th&gt;
+&lt;td&gt;625741.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;District of Columbia&lt;/th&gt;
+&lt;td&gt;601723.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;Wyoming&lt;/th&gt;
+&lt;td&gt;563626.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;51 rows × 1 columns&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;pandas&lt;/code&gt; has a concept of &lt;a href="http://pandas.pydata.org/pandas-docs/stable/indexing.html#boolean-indexing"&gt;boolean indexing&lt;/a&gt; which provides powerful techniques for selecting rows using functions and various criteria. In the example below, each item in the &lt;code&gt;bool_index&lt;/code&gt; list variable is either &lt;code&gt;True&lt;/code&gt; or &lt;code&gt;False&lt;/code&gt; depending on whether an item in the column &lt;code&gt;STATE&lt;/code&gt; when passed into the &lt;code&gt;startswith()&lt;/code&gt; function returned &lt;code&gt;True&lt;/code&gt; or &lt;code&gt;False&lt;/code&gt;. This list is used then to select rows in &lt;code&gt;df&lt;/code&gt; - those rows for which there is &lt;code&gt;True&lt;/code&gt; in the &lt;code&gt;bool_index&lt;/code&gt; will be returned.&lt;/p&gt;
+&lt;p&gt;Here we return those counties with population larger than a certain value which are in a state with the name of the state starting with &lt;code&gt;W&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;bool_index&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;startswith&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'W'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'STATE'&lt;/span&gt;&lt;span class="p"&gt;]]&lt;/span&gt; 
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'POP2010'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;6000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;bool_index&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;style scoped=""&gt;
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+&lt;/style&gt;
+&lt;table border="1" class="dataframe"&gt;
+&lt;thead&gt;
+&lt;tr style="text-align: right;"&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;STATE&lt;/th&gt;
+&lt;th&gt;COUNTY&lt;/th&gt;
+&lt;th&gt;POP2010&lt;/th&gt;
+&lt;th&gt;EST2010&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;th&gt;3072&lt;/th&gt;
+&lt;td&gt;Wisconsin&lt;/td&gt;
+&lt;td&gt;Iron County&lt;/td&gt;
+&lt;td&gt;5916.0&lt;/td&gt;
+&lt;td&gt;5916&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;3044&lt;/th&gt;
+&lt;td&gt;West Virginia&lt;/td&gt;
+&lt;td&gt;Wirt County&lt;/td&gt;
+&lt;td&gt;5717.0&lt;/td&gt;
+&lt;td&gt;5714&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;3127&lt;/th&gt;
+&lt;td&gt;Wyoming&lt;/td&gt;
+&lt;td&gt;Hot Springs County&lt;/td&gt;
+&lt;td&gt;4812.0&lt;/td&gt;
+&lt;td&gt;4812&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;...&lt;/th&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;2987&lt;/th&gt;
+&lt;td&gt;Washington&lt;/td&gt;
+&lt;td&gt;Wahkiakum County&lt;/td&gt;
+&lt;td&gt;3978.0&lt;/td&gt;
+&lt;td&gt;3979&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;3132&lt;/th&gt;
+&lt;td&gt;Wyoming&lt;/td&gt;
+&lt;td&gt;Niobrara County&lt;/td&gt;
+&lt;td&gt;2484.0&lt;/td&gt;
+&lt;td&gt;2484&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;th&gt;2964&lt;/th&gt;
+&lt;td&gt;Washington&lt;/td&gt;
+&lt;td&gt;Garfield County&lt;/td&gt;
+&lt;td&gt;2266.0&lt;/td&gt;
+&lt;td&gt;2266&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;9 rows × 4 columns&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;As you have seen, with &lt;code&gt;pandas&lt;/code&gt; it is very easy to get useful insights about the data and do some data filtering, sorting, and SQL like selections. What would require many lines of code in plain Python (using &lt;code&gt;collections.Counter&lt;/code&gt;, creating intermediate data structures, and copies of data) could be done in just one line in &lt;code&gt;pandas&lt;/code&gt;. Using this package can make you a more productive developer or an analyst. It can also simply be very handy to be able to clean the data as needed when using a graphical user interface isn’t very convenient.&lt;/p&gt;
+&lt;h2 id="plotting"&gt;Plotting&lt;a class="headerlink" href="#plotting" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;pandas&lt;/code&gt; is able to load data from all kinds of sources such as &lt;code&gt;csv&lt;/code&gt;, &lt;code&gt;Excel&lt;/code&gt;, &lt;code&gt;HTML&lt;/code&gt;, and &lt;code&gt;SQL&lt;/code&gt; databases.
+However, it is also possible to construct a &lt;code&gt;DataFrame&lt;/code&gt; from all kinds of Python data structures such as dictionaries, lists, and tuples as well as from &lt;code&gt;numpy&lt;/code&gt; arrays. This means that if any existing program already creates such a data structure, it’s very likely that you’ll be able to construct a &lt;code&gt;DataFrame&lt;/code&gt; from it.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;pandas&lt;/code&gt; also has built-in &lt;a href="http://pandas.pydata.org/pandas-docs/stable/visualization.html#visualization"&gt;plotting functions&lt;/a&gt; which use &lt;a href="http://matplotlib.org/"&gt;&lt;code&gt;matplotlib&lt;/code&gt;&lt;/a&gt; features - one of the popular Python plotting libraries.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;matplotlib&lt;/span&gt; &lt;span class="n"&gt;inline&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;plt&lt;/span&gt;
+&lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;use&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'ggplot'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;df&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'~/data/states.csv'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sort_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'POP2010'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ascending&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;inplace&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;fig&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[[&lt;/span&gt;&lt;span class="s1"&gt;'STATE'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'POP2010'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'EST2019'&lt;/span&gt;&lt;span class="p"&gt;]]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;kind&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'bar'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'STATE'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;alpha&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mf"&gt;0.8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;legend&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;figsize&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;15&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"Population change trend"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;legend&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s1"&gt;'Population 2010 (census)'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'Population 2019 (estimate)'&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xlabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_ylabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Population (millions)'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;Text(0, 0.5, 'Population (millions)')&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;img alt="png" src="images/pandas-1.png"/&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'POPDIFF'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'EST2019'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'POP2010'&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'EST2019'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sort_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'POPDIFF'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ascending&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;inplace&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;fig&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[[&lt;/span&gt;&lt;span class="s1"&gt;'STATE'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'POPDIFF'&lt;/span&gt;&lt;span class="p"&gt;]]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tail&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;15&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;kind&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'bar'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'STATE'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;figsize&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;15&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;legend&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;None&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'Population change estimate from 2010 to 2019'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xlabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_ylabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Population change (millions)'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;axhline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;linewidth&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;color&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'g'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;img alt="png" src="images/pandas-2.png"/&gt;&lt;/p&gt;
+&lt;p&gt;As you can see it is relatively easy to plot images with &lt;code&gt;pandas&lt;/code&gt; and &lt;code&gt;matplotlib&lt;/code&gt;. There are so many other options and graph types to choose from; you may explore more of those on the &lt;a href="http://matplotlib.org/gallery.html"&gt;&lt;code&gt;matplotlib&lt;/code&gt; home page&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Happy analyzing!&lt;/p&gt;</content><category term="python-basics"></category><category term="python-basics"></category><category term="python"></category><category term="pandas"></category></entry><entry><title>Python basics - Collections</title><link href="/python-basics-collections.html" rel="alternate"></link><published>2021-08-08T00:00:00+01:00</published><updated>2021-08-08T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2021-08-08:/python-basics-collections.html</id><summary type="html">
 &lt;p&gt;This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …&lt;/p&gt;</summary><content type="html">
 &lt;p&gt;This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes about working with useful containers from the &lt;code&gt;collections&lt;/code&gt; module and various data structures that beginners may find useful. &lt;/p&gt;
 &lt;h2 id="collectionsdefaultdict"&gt;&lt;code&gt;collections.defaultdict&lt;/code&gt;&lt;a class="headerlink" href="#collectionsdefaultdict" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;

@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python-basics, python, pandas, python-basics, " />
+
+<meta property="og:title" content="Python basics - Pandas "/>
+<meta property="og:url" content="/python-basics-pandas.html" />
+<meta property="og:description" content="This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2021-08-14T00:00:00+01:00" />
+<meta property="og:article:modified_time" content="2021-08-14T00:00:00+01:00" />
+<meta name="twitter:title" content="Python basics - Pandas ">
+<meta name="twitter:description" content="This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …">
+
+        <title>Python basics - Pandas  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/python-basics-pandas.html">
+                Python basics - Pandas
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#basic-operations">Basic operations</a></li>
+<li><a href="#plotting">Plotting</a></li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<p>This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes about working with a popular data science and data analysis library - <code>pandas</code>.</p>
+<p>I have simplified this <a href="https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv">dataset</a> that is part of the Census from this this <a href="https://www.census.gov/data/datasets/time-series/demo/popest/2010s-counties-total.html">portal</a> to illustrate how <code>pandas</code> work.</p>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">¶</a></h2>
+<p><a href="http://pandas.pydata.org/"><code>pandas</code></a> is one of the most popular data analysis and data munging library implemented as a Python package. <code>pandas</code> provides an easy-to-use interface for exploring all kinds of datasets. It has hundreds of useful functions and operations, so it is impossible to go through all of them. We will start exploring the basics of <code>pandas</code> first by loading a <code>.csv</code> file into a <code>pandas</code> data frame.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">'display.max_rows'</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'~/data/counties.csv'</span><span class="p">)</span>
+<span class="n">df</span>
+</code></pre></div>
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>STATE</th>
+<th>COUNTY</th>
+<th>POP2010</th>
+<th>EST2010</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>0</th>
+<td>Alabama</td>
+<td>Autauga County</td>
+<td>54571.0</td>
+<td>54597</td>
+</tr>
+<tr>
+<th>1</th>
+<td>Alabama</td>
+<td>Baldwin County</td>
+<td>182265.0</td>
+<td>182265</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Alabama</td>
+<td>Barbour County</td>
+<td>27457.0</td>
+<td>27455</td>
+</tr>
+<tr>
+<th>...</th>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr>
+<th>3139</th>
+<td>Wyoming</td>
+<td>Uinta County</td>
+<td>21118.0</td>
+<td>21121</td>
+</tr>
+<tr>
+<th>3140</th>
+<td>Wyoming</td>
+<td>Washakie County</td>
+<td>8533.0</td>
+<td>8528</td>
+</tr>
+<tr>
+<th>3141</th>
+<td>Wyoming</td>
+<td>Weston County</td>
+<td>7208.0</td>
+<td>7208</td>
+</tr>
+</tbody>
+</table>
+<p>3142 rows × 4 columns</p>
+</div>
+<p>Now we would like to create a new <code>.csv</code> file with only counties in the Oregon state.</p>
+<div class="highlight"><pre><span></span><code><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'~/data/counties.csv'</span><span class="p">)</span>
+<span class="n">oregon_counties</span> <span class="o">=</span> <span class="n">df</span><span class="p">[(</span><span class="n">df</span><span class="o">.</span><span class="n">STATE</span> <span class="o">==</span> <span class="s1">'Oregon'</span><span class="p">)]</span>
+<span class="n">oregon_counties</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">'~/data/oregon.csv'</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'~/data/oregon.csv'</span><span class="p">)</span>
+</code></pre></div>
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>STATE</th>
+<th>COUNTY</th>
+<th>POP2010</th>
+<th>EST2010</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>0</th>
+<td>Oregon</td>
+<td>Baker County</td>
+<td>16134.0</td>
+<td>16131</td>
+</tr>
+<tr>
+<th>1</th>
+<td>Oregon</td>
+<td>Benton County</td>
+<td>85579.0</td>
+<td>85581</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Oregon</td>
+<td>Clackamas County</td>
+<td>375992.0</td>
+<td>375996</td>
+</tr>
+<tr>
+<th>...</th>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr>
+<th>33</th>
+<td>Oregon</td>
+<td>Washington County</td>
+<td>529710.0</td>
+<td>529862</td>
+</tr>
+<tr>
+<th>34</th>
+<td>Oregon</td>
+<td>Wheeler County</td>
+<td>1441.0</td>
+<td>1439</td>
+</tr>
+<tr>
+<th>35</th>
+<td>Oregon</td>
+<td>Yamhill County</td>
+<td>99193.0</td>
+<td>99216</td>
+</tr>
+</tbody>
+</table>
+<p>36 rows × 4 columns</p>
+</div>
+<p>This kind of operations and many others that you will learn now can be done using any RDBMS such SQL Server, MySQL, or PostgreSQL or an office program such as Excel. However, not all of your data will originate or be stored in a RDBMS. We could load <code>.csv</code> files into a RDBMS to do this kind of work, but if there is no need to manage the data over time in the database, we may use the wrong tool for the job.</p>
+<h2 id="basic-operations">Basic operations<a class="headerlink" href="#basic-operations" title="Permanent link">¶</a></h2>
+<p>As you see, it is very easy to load external data into something that is called a <code>DataFrame</code>. You can think of this as a relational table that consists of rows and columns. This is what you would expect to have after importing a <code>.csv</code> file into an Excel sheet. Let’s explore some of the basic operations that are available for a <code>DataFrame</code> object:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># getting only the first 5 rows, equivalent to df[0:5]</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>STATE</th>
+<th>COUNTY</th>
+<th>POP2010</th>
+<th>EST2010</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>0</th>
+<td>Alabama</td>
+<td>Autauga County</td>
+<td>54571.0</td>
+<td>54597</td>
+</tr>
+<tr>
+<th>1</th>
+<td>Alabama</td>
+<td>Baldwin County</td>
+<td>182265.0</td>
+<td>182265</td>
+</tr>
+<tr>
+<th>2</th>
+<td>Alabama</td>
+<td>Barbour County</td>
+<td>27457.0</td>
+<td>27455</td>
+</tr>
+<tr>
+<th>3</th>
+<td>Alabama</td>
+<td>Bibb County</td>
+<td>22915.0</td>
+<td>22915</td>
+</tr>
+<tr>
+<th>4</th>
+<td>Alabama</td>
+<td>Blount County</td>
+<td>57322.0</td>
+<td>57322</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c1"># sort in-place to get most populated counties</span>
+<span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'POP2010'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>STATE</th>
+<th>COUNTY</th>
+<th>POP2010</th>
+<th>EST2010</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>204</th>
+<td>California</td>
+<td>Los Angeles County</td>
+<td>9818605.0</td>
+<td>9819968</td>
+</tr>
+<tr>
+<th>610</th>
+<td>Illinois</td>
+<td>Cook County</td>
+<td>5194675.0</td>
+<td>5195026</td>
+</tr>
+<tr>
+<th>2623</th>
+<td>Texas</td>
+<td>Harris County</td>
+<td>4092459.0</td>
+<td>4093176</td>
+</tr>
+<tr>
+<th>103</th>
+<td>Arizona</td>
+<td>Maricopa County</td>
+<td>3817117.0</td>
+<td>3817365</td>
+</tr>
+<tr>
+<th>222</th>
+<td>California</td>
+<td>San Diego County</td>
+<td>3095313.0</td>
+<td>3095349</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c1"># filter by condition, show only counties in California state</span>
+<span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">STATE</span> <span class="o">==</span> <span class="s1">'California'</span><span class="p">]</span>
+</code></pre></div>
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>STATE</th>
+<th>COUNTY</th>
+<th>POP2010</th>
+<th>EST2010</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>204</th>
+<td>California</td>
+<td>Los Angeles County</td>
+<td>9818605.0</td>
+<td>9819968</td>
+</tr>
+<tr>
+<th>222</th>
+<td>California</td>
+<td>San Diego County</td>
+<td>3095313.0</td>
+<td>3095349</td>
+</tr>
+<tr>
+<th>215</th>
+<td>California</td>
+<td>Orange County</td>
+<td>3010232.0</td>
+<td>3008989</td>
+</tr>
+<tr>
+<th>...</th>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr>
+<th>210</th>
+<td>California</td>
+<td>Modoc County</td>
+<td>9686.0</td>
+<td>9682</td>
+</tr>
+<tr>
+<th>231</th>
+<td>California</td>
+<td>Sierra County</td>
+<td>3240.0</td>
+<td>3239</td>
+</tr>
+<tr>
+<th>187</th>
+<td>California</td>
+<td>Alpine County</td>
+<td>1175.0</td>
+<td>1175</td>
+</tr>
+</tbody>
+</table>
+<p>58 rows × 4 columns</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c1"># show rows with missing values for POP2010 column</span>
+<span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">POP2010</span><span class="o">.</span><span class="n">isnull</span><span class="p">()]</span>
+</code></pre></div>
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>STATE</th>
+<th>COUNTY</th>
+<th>POP2010</th>
+<th>EST2010</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>9</th>
+<td>Alabama</td>
+<td>Cherokee County</td>
+<td>NaN</td>
+<td>25979</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c1"># show only counties within the two states and sort by state and then by population</span>
+<span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s1">'Delaware'</span><span class="p">,</span> <span class="s1">'Texas'</span><span class="p">])]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+    <span class="p">[</span><span class="s1">'STATE'</span><span class="p">,</span> <span class="s1">'POP2010'</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])[:</span><span class="mi">10</span><span class="p">]</span>
+</code></pre></div>
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>STATE</th>
+<th>COUNTY</th>
+<th>POP2010</th>
+<th>EST2010</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>317</th>
+<td>Delaware</td>
+<td>New Castle County</td>
+<td>538479.0</td>
+<td>538484</td>
+</tr>
+<tr>
+<th>318</th>
+<td>Delaware</td>
+<td>Sussex County</td>
+<td>197145.0</td>
+<td>197103</td>
+</tr>
+<tr>
+<th>316</th>
+<td>Delaware</td>
+<td>Kent County</td>
+<td>162310.0</td>
+<td>162350</td>
+</tr>
+<tr>
+<th>...</th>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr>
+<th>2749</th>
+<td>Texas</td>
+<td>Travis County</td>
+<td>1024266.0</td>
+<td>1024444</td>
+</tr>
+<tr>
+<th>2593</th>
+<td>Texas</td>
+<td>El Paso County</td>
+<td>800647.0</td>
+<td>800633</td>
+</tr>
+<tr>
+<th>2565</th>
+<td>Texas</td>
+<td>Collin County</td>
+<td>782341.0</td>
+<td>781419</td>
+</tr>
+</tbody>
+</table>
+<p>10 rows × 4 columns</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c1"># getting total population for all counties in a state</span>
+<span class="n">df</span><span class="o">.</span><span class="n">POP2010</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">STATE</span> <span class="o">==</span> <span class="s1">'Texas'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">25145561.0</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># get number of counties within each state</span>
+<span class="n">df</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">Texas                   254</span>
+<span class="err">Georgia                 159</span>
+<span class="err">Virginia                133</span>
+<span class="err">                       ... </span>
+<span class="err">Hawaii                    5</span>
+<span class="err">Delaware                  3</span>
+<span class="err">District of Columbia      1</span>
+<span class="c">Name: STATE, Length: 51, dtype: int64</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># sum population of counties within a state; </span>
+<span class="c1"># list sorted by population (omitting all other columns for brevity)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">'STATE'</span><span class="p">,</span> <span class="s1">'POP2010'</span><span class="p">]]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'STATE'</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="n">res</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'POP2010'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>POP2010</th>
+</tr>
+<tr>
+<th>STATE</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>California</th>
+<td>37253956.0</td>
+</tr>
+<tr>
+<th>Texas</th>
+<td>25145561.0</td>
+</tr>
+<tr>
+<th>New York</th>
+<td>19378102.0</td>
+</tr>
+<tr>
+<th>...</th>
+<td>...</td>
+</tr>
+<tr>
+<th>Vermont</th>
+<td>625741.0</td>
+</tr>
+<tr>
+<th>District of Columbia</th>
+<td>601723.0</td>
+</tr>
+<tr>
+<th>Wyoming</th>
+<td>563626.0</td>
+</tr>
+</tbody>
+</table>
+<p>51 rows × 1 columns</p>
+</div>
+<p><code>pandas</code> has a concept of <a href="http://pandas.pydata.org/pandas-docs/stable/indexing.html#boolean-indexing">boolean indexing</a> which provides powerful techniques for selecting rows using functions and various criteria. In the example below, each item in the <code>bool_index</code> list variable is either <code>True</code> or <code>False</code> depending on whether an item in the column <code>STATE</code> when passed into the <code>startswith()</code> function returned <code>True</code> or <code>False</code>. This list is used then to select rows in <code>df</code> - those rows for which there is <code>True</code> in the <code>bool_index</code> will be returned.</p>
+<p>Here we return those counties with population larger than a certain value which are in a state with the name of the state starting with <code>W</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">bool_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'W'</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s1">'STATE'</span><span class="p">]]</span> 
+<span class="n">df</span><span class="p">[(</span><span class="n">df</span><span class="p">[</span><span class="s1">'POP2010'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">6000</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">bool_index</span><span class="p">]</span>
+</code></pre></div>
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>STATE</th>
+<th>COUNTY</th>
+<th>POP2010</th>
+<th>EST2010</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>3072</th>
+<td>Wisconsin</td>
+<td>Iron County</td>
+<td>5916.0</td>
+<td>5916</td>
+</tr>
+<tr>
+<th>3044</th>
+<td>West Virginia</td>
+<td>Wirt County</td>
+<td>5717.0</td>
+<td>5714</td>
+</tr>
+<tr>
+<th>3127</th>
+<td>Wyoming</td>
+<td>Hot Springs County</td>
+<td>4812.0</td>
+<td>4812</td>
+</tr>
+<tr>
+<th>...</th>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr>
+<th>2987</th>
+<td>Washington</td>
+<td>Wahkiakum County</td>
+<td>3978.0</td>
+<td>3979</td>
+</tr>
+<tr>
+<th>3132</th>
+<td>Wyoming</td>
+<td>Niobrara County</td>
+<td>2484.0</td>
+<td>2484</td>
+</tr>
+<tr>
+<th>2964</th>
+<td>Washington</td>
+<td>Garfield County</td>
+<td>2266.0</td>
+<td>2266</td>
+</tr>
+</tbody>
+</table>
+<p>9 rows × 4 columns</p>
+</div>
+<p>As you have seen, with <code>pandas</code> it is very easy to get useful insights about the data and do some data filtering, sorting, and SQL like selections. What would require many lines of code in plain Python (using <code>collections.Counter</code>, creating intermediate data structures, and copies of data) could be done in just one line in <code>pandas</code>. Using this package can make you a more productive developer or an analyst. It can also simply be very handy to be able to clean the data as needed when using a graphical user interface isn’t very convenient.</p>
+<h2 id="plotting">Plotting<a class="headerlink" href="#plotting" title="Permanent link">¶</a></h2>
+<p><code>pandas</code> is able to load data from all kinds of sources such as <code>csv</code>, <code>Excel</code>, <code>HTML</code>, and <code>SQL</code> databases.
+However, it is also possible to construct a <code>DataFrame</code> from all kinds of Python data structures such as dictionaries, lists, and tuples as well as from <code>numpy</code> arrays. This means that if any existing program already creates such a data structure, it’s very likely that you’ll be able to construct a <code>DataFrame</code> from it.</p>
+<p><code>pandas</code> also has built-in <a href="http://pandas.pydata.org/pandas-docs/stable/visualization.html#visualization">plotting functions</a> which use <a href="http://matplotlib.org/"><code>matplotlib</code></a> features - one of the popular Python plotting libraries.</p>
+<div class="highlight"><pre><span></span><code><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">'ggplot'</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'~/data/states.csv'</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'POP2010'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">'STATE'</span><span class="p">,</span> <span class="s1">'POP2010'</span><span class="p">,</span> <span class="s1">'EST2019'</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">kind</span><span class="o">=</span><span class="s1">'bar'</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s1">'STATE'</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Population change trend"</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s1">'Population 2010 (census)'</span><span class="p">,</span> <span class="s1">'Population 2019 (estimate)'</span><span class="p">])</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">''</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Population (millions)'</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">Text(0, 0.5, 'Population (millions)')</span>
+</code></pre></div>
+<p><img alt="png" src="images/pandas-1.png"/></p>
+<div class="highlight"><pre><span></span><code><span class="n">df</span><span class="p">[</span><span class="s1">'POPDIFF'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'EST2019'</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s1">'POP2010'</span><span class="p">])</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s1">'EST2019'</span><span class="p">]</span>
+<span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'POPDIFF'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">'STATE'</span><span class="p">,</span> <span class="s1">'POPDIFF'</span><span class="p">]]</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">kind</span><span class="o">=</span><span class="s1">'bar'</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s1">'STATE'</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">'Population change estimate from 2010 to 2019'</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">''</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Population change (millions)'</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'g'</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="png" src="images/pandas-2.png"/></p>
+<p>As you can see it is relatively easy to plot images with <code>pandas</code> and <code>matplotlib</code>. There are so many other options and graph types to choose from; you may explore more of those on the <a href="http://matplotlib.org/gallery.html"><code>matplotlib</code> home page</a>.</p>
+<p>Happy analyzing!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2021-08-14T00:00:00+01:00">Sat 14 August 2021</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#python-basics-ref">python-basics</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#pandas-ref">pandas
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">17</span>
+</a></li>
+                <li><a href="/tags.html#python-basics-ref">python-basics
+                    <span class="superscript">4</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>
