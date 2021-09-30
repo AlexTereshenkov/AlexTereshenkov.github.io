@@ -1,6 +1,6 @@
 title: Patching with unittest.mock for Python testing: cheat sheet
 date: 2020-11-20
-modified: 2021-01-19
+modified: 2021-09-29
 author: Alexey Tereshenkov
 tags: python,mock,testing,patch
 slug: patching-mock-python-unit-testing
@@ -151,6 +151,47 @@ Test:
         with patch('static_class.Address.to_string', lambda value: "Address formatted"):
             address = Address(*("1", "New Road", "99999", "City"))
             assert address.print() == "Address formatted"
+
+## Patching a class instance attribute
+
+Use case:
+
+You have a class that when instantiated has an attribute.
+You are interested in patching this attribute to be set to some value.
+
+Code:
+
+    :::python    
+    # country:capital mapping
+    countries_capitals = {"France": "Paris"}
+
+
+    class City:
+        def __init__(self, name: str):
+            self.name = name
+
+
+    def get_capital(country: str):
+        city = get_city(countries_capitals.get(country))
+        return city.name
+
+
+    def get_city(name: str):
+        return City(name)
+
+Test:
+
+We want to patch the `get_city()` function when testing the `get_capital()` method.
+
+    :::python
+    from unittest.mock import patch
+    from class_instance_fields import get_capital
+
+
+    def test_get_capital():
+        with patch('class_instance_fields.get_city') as mock:
+            mock.return_value.name = "Capital"
+            assert get_capital("Country") == "Capital"
 
 ## Patching a nested class instance attribute
 
