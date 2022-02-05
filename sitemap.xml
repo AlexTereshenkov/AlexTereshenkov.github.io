@@ -5,42 +5,42 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/</loc>
-<lastmod>2021-09-30T20:47:17-00:00</lastmod>
+<lastmod>2022-02-05T16:59:30-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/tags.html</loc>
-<lastmod>2021-09-30T20:47:17-00:00</lastmod>
+<lastmod>2022-02-05T16:59:30-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/categories.html</loc>
-<lastmod>2021-09-30T20:47:17-00:00</lastmod>
+<lastmod>2022-02-05T16:59:30-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/archives.html</loc>
-<lastmod>2021-09-30T20:47:17-00:00</lastmod>
+<lastmod>2022-02-05T16:59:30-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/search.html</loc>
-<lastmod>2021-09-30T20:47:17-00:00</lastmod>
+<lastmod>2022-02-05T16:59:30-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/404.html</loc>
-<lastmod>2021-09-30T20:47:17-00:00</lastmod>
+<lastmod>2022-02-05T16:59:30-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -200,6 +200,27 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
+<loc>/finding-python-security-issues-with-ql.html</loc>
+<lastmod>2022-02-05T00:00:00+00:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>/finding-python-compatibility-issues-with-ql.html</loc>
+<lastmod>2022-02-05T00:00:00+00:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>/introduction-to-ql-with-python.html</loc>
+<lastmod>2022-02-05T00:00:00+00:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
 <loc>/category/bash.html</loc>
 <lastmod>2020-12-15T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
@@ -242,6 +263,13 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
+<loc>/category/ql.html</loc>
+<lastmod>2022-02-05T00:00:00-00:01</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
 <loc>/category/tech-support.html</loc>
 <lastmod>2020-11-13T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
@@ -257,7 +285,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/tag/python.html</loc>
-<lastmod>2021-09-29T00:00:00-00:01</lastmod>
+<lastmod>2022-02-05T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -473,8 +501,15 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
+<loc>/tag/ql.html</loc>
+<lastmod>2022-02-05T00:00:00-00:01</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
 <loc>/author/alexey-tereshenkov.html</loc>
-<lastmod>2021-09-29T00:00:00-00:01</lastmod>
+<lastmod>2022-02-05T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>

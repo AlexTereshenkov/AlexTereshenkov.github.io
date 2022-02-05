@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python, QL, QL, " />
+
+<meta property="og:title" content="Introduction to QL with Python "/>
+<meta property="og:url" content="/introduction-to-ql-with-python.html" />
+<meta property="og:description" content="This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2019-07-09T00:00:00+01:00" />
+<meta property="og:article:modified_time" content="2022-02-05T00:00:00+00:00" />
+<meta name="twitter:title" content="Introduction to QL with Python ">
+<meta name="twitter:description" content="This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for …">
+
+        <title>Introduction to QL with Python  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/introduction-to-ql-with-python.html">
+                Introduction to QL with Python
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#ql-query-components">QL query components</a></li>
+<li><a href="#finding-test-modules">Finding test modules</a></li>
+<li><a href="#refactoring-ql-queries">Refactoring QL queries</a></li>
+<li><a href="#count-number-of-tests-per-file">Count number of tests per file</a></li>
+<li><a href="#find-python-modules-without-a-corresponding-test-module">Find Python modules without a corresponding test module</a></li>
+<li><a href="#creating-a-ql-library">Creating a QL library</a></li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<blockquote>
+<p>This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for anyone who would want to learn more about QL. See <a href="https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/">CodeQL for Python</a> to learn more.</p>
+</blockquote>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>In this tutorial, you’ll learn how to use QL to query a Python codebase and learn how to gain knowledge about tests present in your Python project.</p>
+<p>We’ll be using QL to analyze the source code of the popular cli tool <a href="https://github.com/pallets/click">click</a>
+by writing <a href="https://help.semmle.com/QL/learn-ql/ql/writing-queries/introduction-to-queries.html">metric queries</a>
+to compute some useful statistics about the code.
+The queries posted in this tutorial can be executed using the <a href="https://lgtm.com/query/projects:116307598/lang:python/">LGTM.com query console</a>, 
+however, it’s also possible to run the queries locally using Eclipse.
+Visit <a href="https://lgtm.com/help/lgtm/running-queries-ide">Running queries in your IDE</a> to learn more.</p>
+<h2 id="ql-query-components">QL query components<a class="headerlink" href="#ql-query-components" title="Permanent link">¶</a></h2>
+<p>If you read the <a href="https://help.semmle.com/QL/learn-ql/ql/introduction-to-ql.html">Semmle Introduction to QL</a>,
+you will see how QL queries consist of 3 main clauses:</p>
+<ul>
+<li><code>from</code></li>
+<li><code>where</code></li>
+<li><code>select</code></li>
+</ul>
+<p>In the <code>from</code> clause, you define the objects you would like to run queries against.
+For example, here’s a query to find all functions in a project:</p>
+<div class="highlight"><pre><span></span><code><span class="err">from Function f</span>
+<span class="err">select f</span>
+</code></pre></div>
+<p>Behind these objects, there are actually database tables that are <a href="https://lgtm.com/help/lgtm/generate-database">generated in QL’s extraction process</a>. 
+The database consists of dozens of tables, each of which represents a certain object type such as modules or functions.</p>
+<blockquote>
+<p>Dive in: to see what objects you can add to a <code>from</code> clause,
+check out
+<a href="https://help.semmle.com/QL/learn-ql/ql/python/introduce-libraries-python.html#summary">the most commonly used standard QL library classes</a>.</p>
+</blockquote>
+<p>The <code>where</code> clause is optional,
+and in here you define restrictions on the values that the variables declared in the <code>from</code> clause can hold.
+For instance, you would need to use the <code>where</code> clause if you want to list all Python modules in the repository you analyze that have names starting with <code>_</code> 
+or find all functions with more than 10 parameters.</p>
+<p>For instance, while</p>
+<div class="highlight"><pre><span></span><code><span class="err">from Function f</span>
+<span class="err">select f</span>
+</code></pre></div>
+<p>selects all functions in the project,</p>
+<div class="highlight"><pre><span></span><code><span class="err">from Function f</span>
+<span class="err">where count(f.getAnArg()) &gt; 10</span>
+<span class="err">select f</span>
+</code></pre></div>
+<p>selects only those functions that take more than ten arguments.</p>
+<p>The <code>select</code> clause lets you define what you would like to get back as the result of a QL query execution.
+The results are returned as a table where each row represents a single result.
+So for example, instead of just printing the names of all the functions 
+that take more than 10 parameters, 
+you could print the number of parameters as well:</p>
+<div class="highlight"><pre><span></span><code><span class="err">from Function f</span>
+<span class="err">where count(f.getAnArg()) &gt; 10</span>
+<span class="err">select f, count(f.getAnArg())</span>
+</code></pre></div>
+<p>As another example, here’s a query 
+that gets a list of all Python modules available in the source code repository.
+We select a module object and a constant string. </p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span>
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="s2">"A module"</span>
+</code></pre></div>
+<p>In the next QL query, we are getting a list of Python modules 
+that have names starting with a single underscore 
+(excluding dunder modules such as <code>__init__.py</code> which start with a double underscore).</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">7269195673257399800</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span>
+<span class="n">where</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span><span class="o">.</span><span class="n">regexpMatch</span><span class="p">(</span><span class="s2">"_[^_].*"</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="s2">"A private module"</span>
+</code></pre></div>
+<p>You may have noticed that variable <code>m</code> 
+(which is of the type <code>Module</code>) 
+has the <code>getFile</code> method associated with it.
+We can then call the <code>getBaseName</code> method,
+which returns a string.
+Strings have their own built-in methods such as <code>regexpMatch</code>,
+which can match a string using a regular expression.</p>
+<blockquote>
+<p>Dive in: For a full list of methods available on strings,
+see <a href="https://help.semmle.com/QL/ql-spec/language.html#built-ins-for-string">Built-ins for string</a>.</p>
+</blockquote>
+<p>You can see what methods and properties each of the built-in types have in the <a href="https://help.semmle.com/QL/ql-spec/language.html#built-ins">QL Specification document</a>.
+Having these methods on the <code>Module</code> object makes it possible to interrogate database tables using concepts that are more abstract and intuitive to programmers.
+This means you can avoid directly dealing with the raw underlying tables of the database.</p>
+<h2 id="finding-test-modules">Finding test modules<a class="headerlink" href="#finding-test-modules" title="Permanent link">¶</a></h2>
+<p>We are interested in learning more about the tests in a Python project,
+so let’s first find out how many test modules are present in the repo.
+The standard Python naming convention is for test modules to begin with <code>test_</code>.
+We can find these modules by using the <code>matches()</code> string method 
+which matches strings in the same way as the <code>LIKE</code> operator in SQL.</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">8969473391628017193</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span>
+<span class="n">where</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"test</span><span class="se">\\</span><span class="s2">_%"</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="s2">"A test module"</span>
+</code></pre></div>
+<p>Another requirement we have to meet 
+is that all test modules in the project are located within a single directory named <code>tests</code>. 
+This is because there can potentially be regular Python modules stored in some directory 
+that just happen to have a name starting with <code>test_</code>, e.g., <code>test_db_connection.py</code> 
+(presumably providing means to verify that the connection to a database could be established). 
+This module may be used as a part of the application business logic,
+and is not a test module, as it won’t contain any tests.
+In this case, refining the current query doesn’t change the query results
+but it’s good practice anyway 
+because it makes the query results more stable, 
+if for example, a <code>test_db_connection.py</code> file were to be added to the project later.</p>
+<p>In this QL query, we are selecting Python modules 
+that are located within the <code>tests</code> folder 
+and have a name starting with <code>test_</code>. 
+To access the folder in which a Python module is located, 
+we need to get access to the <code>File</code> object (because a Python module is just a plain file on disk), 
+which in turn is located in some directory (which is a <code>Folder</code> object), 
+which in turn has a name.</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">8736700387179400714</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span>
+<span class="n">where</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span> <span class="o">=</span> <span class="s2">"tests"</span>
+    <span class="ow">and</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"test</span><span class="se">\\</span><span class="s2">_%"</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="s2">"A test module"</span>
+</code></pre></div>
+<blockquote>
+<p>Dive in: the <code>click</code> repository does not have any nested folders within the <code>tests</code> folder. 
+However, getting all test files stored in the <code>tests</code> recursively is possible using <a href="https://help.semmle.com/QL/ql-handbook/recursion.html#transitive-closures">Transitive closures</a>.
+To apply the <code>.getParent()</code> method recursively, we would need to write <code>m.getFile().getParent+().getBaseName() = "tests"</code>.</p>
+</blockquote>
+<p>It’s possible to combine multiple condition expressions using the <code>and</code> operator.
+If, instead your project’s test modules were either modules that
+had names starting with <code>test_</code> <strong>or</strong> were stored within the <code>tests</code> folder,
+you could use the <code>or</code> operator:</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">4860024469296565410</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span>
+<span class="n">where</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span> <span class="o">=</span> <span class="s2">"tests"</span>
+    <span class="ow">or</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"test</span><span class="se">\\</span><span class="s2">_%"</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="s2">"A test module"</span>
+</code></pre></div>
+<h2 id="refactoring-ql-queries">Refactoring QL queries<a class="headerlink" href="#refactoring-ql-queries" title="Permanent link">¶</a></h2>
+<p>At this point, as we have identified the test modules in our project, 
+we can start learning more about the actual tests. 
+However, as our query gets bigger, 
+it makes sense to refactor some of its parts into separate entities
+which could be reused by multiple queries.
+This often has the added benefit of making the query easier to read.</p>
+<p>In QL, a <a href="https://help.semmle.com/QL/ql-handbook/predicates.html">predicate</a> can be used for this. 
+In this QL query, we’ll be using a <a href="https://help.semmle.com/QL/ql-handbook/predicates.html#predicates-without-result">predicate without result</a>. 
+You can think of these types of predicates as boolean functions.
+In the following predicate, we pass in an argument <code>m</code> that has the type <code>Module</code>.
+The predicate’s body has an expression 
+that is evaluated and keeps only the modules for which the condition holds. </p>
+<p>This QL predicate would keep only those Python modules that are located within the <code>tests</code> folder. </p>
+<div class="highlight"><pre><span></span><code><span class="err">predicate isInsideTestsFolder(Module m) {</span>
+<span class="err">    m.getFile().getParent().getBaseName() = "tests"</span>
+<span class="err">}</span>
+</code></pre></div>
+<p>To use a predicate within a QL query, 
+you would put a predicate call in the <code>where</code> clause:</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">2694103716087854413</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">predicate</span> <span class="n">isInsideTestsFolder</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span> <span class="o">=</span> <span class="s2">"tests"</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span>
+<span class="n">where</span> <span class="n">isInsideTestsFolder</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="s2">"A module inside tests folder"</span>
+</code></pre></div>
+<p>A predicate, just like any function, can have multiple parameters. 
+For instance, if we want to have a more generic predicate 
+that would keep modules located within any given folder, 
+we would need to add a second parameter. 
+This makes a predicate more flexible,
+as we can reuse this predicate in other queries passing in the name of directories with test modules 
+when analyzing other Python repositories.</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">7407075760043821247</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">predicate</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">,</span> <span class="n">string</span> <span class="n">folderName</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span> <span class="o">=</span> <span class="n">folderName</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span>
+<span class="n">where</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s2">"tests"</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="s2">"A module inside the tests folder"</span>
+</code></pre></div>
+<blockquote>
+<p>Dive in: The <code>folderName</code> object is of <code>string</code> type. QL supports multiple primitive types: <code>boolean</code>, <code>date</code>, <code>float</code>, <code>int</code>, and <code>string</code>. 
+To learn more about these types, visit <a href="https://help.semmle.com/QL/ql-spec/language.html#kinds-of-types">Kinds of types</a>.</p>
+</blockquote>
+<p>A QL query can contain many predicates. 
+In this QL query, we have extracted the functionality of matching a test module by name into the predicate <code>nameMatchesTestPattern</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">6256521983311323313</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">predicate</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">,</span> <span class="n">string</span> <span class="n">folderName</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span> <span class="o">=</span> <span class="n">folderName</span>
+<span class="p">}</span>
+
+<span class="n">predicate</span> <span class="n">nameMatchesTestPattern</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>    
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"test</span><span class="se">\\</span><span class="s2">_%"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span>
+<span class="n">where</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s2">"tests"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nameMatchesTestPattern</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="s2">"A test module"</span>
+</code></pre></div>
+<h2 id="count-number-of-tests-per-file">Count number of tests per file<a class="headerlink" href="#count-number-of-tests-per-file" title="Permanent link">¶</a></h2>
+<p>Now that we have found all the test modules, and have modularized our code a bit,
+we are ready to collect some metrics about this project’s test code. 
+It can be helpful to know how many tests are defined in each test module; 
+having too many tests in a single module can indicate 
+that it’s testing too many pieces of the application 
+and that there’s potential for refactoring. 
+If a module has just one or two tests, perhaps more tests could be added.</p>
+<p>The project we are exploring uses <code>pytest</code> for its test framework, meaning 
+that each test that will be run is defined as a Python function named <code>test_%name%</code>,
+where <code>%name%</code> describes what this particular test does. 
+This means we have to count the number of functions 
+that have names starting with <code>test_</code> defined in each test module.</p>
+<p>In order to interact with functions, you have to use the <code>Function</code> object.
+In the following QL predicate, 
+we count the number of test functions in the module 
+that is passed in as an input parameter. </p>
+<p>We can also write predicates that compute values derived from their parameters. 
+Such predicates are called <a href="https://help.semmle.com/QL/ql-handbook/predicates.html#predicates-with-result">predicates with results</a>.
+For a QL predicate to return a value, it needs to be given a return type
+(in this instance <code>int</code>),
+and the special variable <code>result</code> needs to be bound to something of that same type,
+(in this case, we bind it to the result of a call to <code>count</code>).</p>
+<div class="highlight"><pre><span></span><code><span class="err">int getTestsCount(Module m) {</span>
+<span class="err">    result = count(Function f |</span>
+<span class="err">        f.getEnclosingModule() = m and f.getName().matches("test\\_%")</span>
+<span class="err">        | f)</span>
+<span class="err">}</span>
+</code></pre></div>
+<p>Using the <code>count</code> aggregate requires having a special syntax:</p>
+<ol>
+<li>We define the variables we would like to use; in this case, we are using a single variable of type <code>Function</code> named <code>f</code>.</li>
+<li>We define what condition should hold using an expression; 
+only functions that are defined in the scope of a given module would be kept (<code>f.getEnclosingModule()</code> method does the work) 
+and function names should start with <code>test_</code> (<code>f.getName().matches()</code> method does the work).</li>
+<li>We define what the <code>count</code> aggregate exactly counts;
+since we are interested in the number of functions that meet our condition, we simply count <code>f</code>.</li>
+</ol>
+<blockquote>
+<p>Dive in: Visit <a href="https://help.semmle.com/QL/ql-spec/language.html#aggregations">Aggregates</a> to learn more about <code>count</code> and other QL aggregates such as <code>max</code> and <code>sum</code>.</p>
+</blockquote>
+<p>We can now use this predicate within the QL query:</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">8228699770073082994</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">predicate</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">,</span> <span class="n">string</span> <span class="n">folderName</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span> <span class="o">=</span> <span class="n">folderName</span>
+<span class="p">}</span>
+
+<span class="n">predicate</span> <span class="n">nameMatchesTestPattern</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"test</span><span class="se">\\</span><span class="s2">_%"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nb">int</span> <span class="n">getTestsCount</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">count</span><span class="p">(</span><span class="n">Function</span> <span class="n">f</span> <span class="o">|</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">getEnclosingModule</span><span class="p">()</span> <span class="o">=</span> <span class="n">m</span>
+        <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"test</span><span class="se">\\</span><span class="s2">_%"</span><span class="p">)</span>
+        <span class="o">|</span> <span class="n">f</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span><span class="p">,</span> <span class="n">Folder</span> <span class="n">f</span>
+<span class="n">where</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s2">"tests"</span><span class="p">)</span>
+    <span class="ow">and</span> <span class="n">nameMatchesTestPattern</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">(),</span> <span class="n">getTestsCount</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">as</span> <span class="n">TestCount</span>
+<span class="n">order</span> <span class="n">by</span> <span class="n">TestCount</span>
+</code></pre></div>
+<p>To include the number of tests in the output results, 
+we have extended the <code>select</code> statement with another column aliased <code>TestCount</code> ,
+that represents the result of the <code>getTestsCount(m)</code> predicate call. 
+It would be helpful to see the test modules with the fewest tests in them 
+which is why we use the <code>order by</code> command 
+that sorts the results in ascending order by <code>TestCount</code>.</p>
+<h2 id="find-python-modules-without-a-corresponding-test-module">Find Python modules without a corresponding test module<a class="headerlink" href="#find-python-modules-without-a-corresponding-test-module" title="Permanent link">¶</a></h2>
+<p>Being able to detect modules 
+that do not have corresponding test modules can be helpful, for example
+when there is a policy within the development team 
+which dictates that each Python module should have an associated test module.</p>
+<p>Since we already know how to find test modules, 
+we need only find the
+modules that don’t have a corresponding test module. 
+In other words, if for the <code>read_file.py</code> module there is no <code>tests/test_read_file.py</code> module, 
+we can conclude that this module does not have any tests (or that it has been named without following the Python convention).</p>
+<p>To find out whether a program module has a corresponding test module, 
+we need to create a new predicate 
+that finds only those program modules 
+which don’t have a paired test module.</p>
+<div class="highlight"><pre><span></span><code><span class="err">predicate moduleWithoutTests(Module m, Folder f) {</span>
+<span class="err">    not exists(</span>
+<span class="err">        f.getFile("test_" + m.getFile().getBaseName())</span>
+<span class="err">    )</span>
+<span class="err">    and</span>
+<span class="err">    not exists(</span>
+<span class="err">        f.getFile("test" + m.getFile().getBaseName())</span>
+<span class="err">    )</span>
+<span class="err">}</span>
+</code></pre></div>
+<p>As you can see, a predicate can have one or more input parameters. 
+The reason we pass a <code>Folder</code> is because we want to specify 
+where the test modules are stored. 
+The logic that is being evaluated in this predicate is rather simple;
+having a passed module as a parameter, say <code>%name%.py</code>,
+it checks whether there is a file named <code>test_%name%.py</code>. 
+This can be done using a special <code>exists</code> aggregate 
+which would hold if there is a test module in the given folder.
+We also have to look for modules that start with <code>test</code> to support private modules
+that, by convention, start with a single underscore (<code>_</code>).</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">4650679191588923532</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">predicate</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">,</span> <span class="n">string</span> <span class="n">folderName</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span> <span class="o">=</span> <span class="n">folderName</span>
+<span class="p">}</span>
+
+<span class="n">predicate</span> <span class="n">nameMatchesTestPattern</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"test</span><span class="se">\\</span><span class="s2">_%"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">predicate</span> <span class="n">moduleWithoutTests</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">,</span> <span class="n">Folder</span> <span class="n">f</span><span class="p">)</span> <span class="p">{</span>
+    <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">getFile</span><span class="p">(</span><span class="s2">"test_"</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">())</span>
+    <span class="p">)</span>
+    <span class="ow">and</span>
+    <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">getFile</span><span class="p">(</span><span class="s2">"test"</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">())</span>
+    <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">Module</span> <span class="nn">m</span><span class="p">,</span> <span class="n">Folder</span> <span class="n">f</span>
+<span class="n">where</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s2">"click"</span><span class="p">)</span>
+    <span class="ow">and</span> <span class="n">moduleWithoutTests</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">getFolder</span><span class="p">(</span><span class="s2">"tests"</span><span class="p">))</span>
+
+<span class="n">select</span> <span class="n">m</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span>
+</code></pre></div>
+<p>In this query, we have analyzed modules from the <code>click</code> folder only. 
+It’s common to restrict such queries to the main code of a project, since a Python project can have utility modules 
+used for documentation generation or raw data storage,
+for which presence of tests may not be necessary.</p>
+<h2 id="creating-a-ql-library">Creating a QL library<a class="headerlink" href="#creating-a-ql-library" title="Permanent link">¶</a></h2>
+<p>As you may have noticed, we have defined quite a few useful predicates. 
+They all have something in common—they are applicable to test modules. 
+Our query has gotten fairly big, but the actual <code>select</code> statement is rather small.</p>
+<p>To keep the query tidy and to improve modularization, 
+we can create a <code>TestModule</code> class 
+that will be a subclass of the standard QL class <code>Module</code>. 
+This class could be stored in a separate QL library file (<code>.qll</code>),
+which could then be imported in any other query that deals with test modules.</p>
+<blockquote>
+<p>Dive in: learn more about <a href="https://help.semmle.com/QL/ql-handbook/types.html#defining-a-class">defining a class</a>.</p>
+</blockquote>
+<p>If you want to run the queries locally in Eclipse, 
+you can put this code into a new QL library file <code>Testing.qll</code> 
+so it can be used in query files (<code>.ql</code> files).</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">string</span> <span class="n">getTestPrefix</span><span class="p">()</span> <span class="p">{</span> <span class="n">result</span> <span class="o">=</span> <span class="s2">"test</span><span class="se">\\</span><span class="s2">_%"</span> <span class="p">}</span>
+<span class="n">string</span> <span class="n">getTestsFolder</span><span class="p">()</span> <span class="p">{</span> <span class="n">result</span> <span class="o">=</span> <span class="s2">"tests"</span> <span class="p">}</span>
+
+<span class="o">/**</span> <span class="n">Keeps</span> <span class="n">modules</span> <span class="n">located</span> <span class="n">within</span> <span class="n">the</span> <span class="n">given</span> <span class="n">folder</span><span class="o">.</span> <span class="o">*/</span>
+<span class="n">private</span> <span class="n">predicate</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span> <span class="o">=</span> <span class="n">getTestsFolder</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="o">/**</span> <span class="n">Keeps</span> <span class="n">modules</span> <span class="n">that</span> <span class="n">have</span> <span class="n">names</span> <span class="n">starting</span> <span class="k">with</span> <span class="n">the</span> <span class="n">defined</span> <span class="n">prefix</span><span class="o">.</span> <span class="o">*/</span>
+<span class="n">private</span> <span class="n">predicate</span> <span class="n">nameMatchesTestPattern</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>    
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">getTestPrefix</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">TestModule</span> <span class="n">extends</span> <span class="n">Module</span> <span class="p">{</span>    
+    <span class="n">TestModule</span><span class="p">()</span> <span class="p">{</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">this</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nameMatchesTestPattern</span><span class="p">(</span><span class="n">this</span><span class="p">)</span> <span class="p">}</span>
+
+    <span class="o">/**</span> <span class="n">Gets</span> <span class="n">count</span> <span class="n">of</span> <span class="n">functions</span> <span class="n">within</span> <span class="n">the</span> <span class="n">module</span> <span class="n">which</span> 
+    <span class="n">name</span> <span class="n">starts</span> <span class="k">with</span> <span class="n">the</span> <span class="n">defined</span> <span class="n">prefix</span><span class="o">.</span> <span class="o">*/</span>
+    <span class="nb">int</span> <span class="n">getTestsCount</span><span class="p">()</span> <span class="p">{</span>       
+        <span class="n">result</span> <span class="o">=</span> <span class="n">count</span><span class="p">(</span><span class="n">Function</span> <span class="n">f</span> <span class="o">|</span> 
+            <span class="n">f</span><span class="o">.</span><span class="n">getEnclosingModule</span><span class="p">()</span> <span class="o">=</span> <span class="n">this</span>
+            <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">getTestPrefix</span><span class="p">())</span>
+            <span class="o">|</span> <span class="n">f</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Alternatively, if you are using LGTM.com, 
+then you can define the class along with the actual query:</p>
+<div class="highlight"><pre><span></span><code><span class="o">---</span>
+<span class="n">queryConsole</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">lgtm</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">query</span><span class="o">/</span><span class="mi">4740785288826699608</span><span class="o">/</span>
+<span class="o">---</span>
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">string</span> <span class="n">getTestPrefix</span><span class="p">()</span> <span class="p">{</span> <span class="n">result</span> <span class="o">=</span> <span class="s2">"test</span><span class="se">\\</span><span class="s2">_%"</span> <span class="p">}</span>
+<span class="n">string</span> <span class="n">getTestsFolder</span><span class="p">()</span> <span class="p">{</span> <span class="n">result</span> <span class="o">=</span> <span class="s2">"tests"</span> <span class="p">}</span>
+
+<span class="o">/**</span> <span class="n">Keeps</span> <span class="n">modules</span> <span class="n">located</span> <span class="n">within</span> <span class="n">the</span> <span class="n">given</span> <span class="n">folder</span><span class="o">.</span> <span class="o">*/</span>
+<span class="n">private</span> <span class="n">predicate</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span> <span class="o">=</span> <span class="n">getTestsFolder</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="o">/**</span> <span class="n">Keeps</span> <span class="n">modules</span> <span class="n">that</span> <span class="n">have</span> <span class="n">names</span> <span class="n">starting</span> <span class="k">with</span> <span class="n">the</span> <span class="n">defined</span> <span class="n">prefix</span><span class="o">.</span> <span class="o">*/</span>
+<span class="n">private</span> <span class="n">predicate</span> <span class="n">nameMatchesTestPattern</span><span class="p">(</span><span class="n">Module</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>    
+    <span class="n">m</span><span class="o">.</span><span class="n">getFile</span><span class="p">()</span><span class="o">.</span><span class="n">getBaseName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">getTestPrefix</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">TestModule</span> <span class="n">extends</span> <span class="n">Module</span> <span class="p">{</span>    
+    <span class="n">TestModule</span><span class="p">()</span> <span class="p">{</span> <span class="n">isInsideFolder</span><span class="p">(</span><span class="n">this</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nameMatchesTestPattern</span><span class="p">(</span><span class="n">this</span><span class="p">)</span> <span class="p">}</span>
+
+    <span class="o">/**</span> <span class="n">Gets</span> <span class="n">count</span> <span class="n">of</span> <span class="n">functions</span> <span class="n">within</span> <span class="n">the</span> <span class="n">module</span> 
+    <span class="n">which</span> <span class="n">name</span> <span class="n">starts</span> <span class="k">with</span> <span class="n">the</span> <span class="n">defined</span> <span class="n">prefix</span><span class="o">.</span> <span class="o">*/</span>
+    <span class="nb">int</span> <span class="n">getTestsCount</span><span class="p">()</span> <span class="p">{</span>       
+        <span class="n">result</span> <span class="o">=</span> <span class="n">count</span><span class="p">(</span><span class="n">Function</span> <span class="n">f</span> <span class="o">|</span> 
+            <span class="n">f</span><span class="o">.</span><span class="n">getEnclosingModule</span><span class="p">()</span> <span class="o">=</span> <span class="n">this</span>
+            <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">getTestPrefix</span><span class="p">())</span>
+            <span class="o">|</span> <span class="n">f</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">TestModule</span> <span class="nn">tm</span>
+<span class="n">select</span> <span class="n">tm</span><span class="p">,</span> <span class="n">tm</span><span class="o">.</span><span class="n">getTestsCount</span><span class="p">()</span> <span class="k">as</span> <span class="n">TestCount</span>
+<span class="n">order</span> <span class="n">by</span> <span class="n">TestCount</span> <span class="n">desc</span>
+</code></pre></div>
+<p>As we have used string <code>"test\\_%"</code> in a few places, 
+it can be useful to pull it into a variable. 
+Using <a href="https://help.semmle.com/QL/ql-handbook/types.html#fields">fields in classes</a> is an advanced topic, 
+so instead, for now we’ve simply used a predicate with result
+that just gives us back this string.
+This means we would need to define the test prefix only within this predicate 
+and not within multiple predicates.</p>
+<p>To keep this class in a separate file, 
+you would need to use the QL for Eclipse plugin to run queries locally on your machine.
+We would need then to import the library 
+and then use the <code>TestModule</code> class instead of the built-in <code>Module</code> class we have used before.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+<span class="kn">import</span> <span class="nn">Testing</span>
+
+<span class="kn">from</span> <span class="nn">TestModule</span> <span class="nn">tm</span>
+<span class="n">select</span> <span class="n">tm</span><span class="p">,</span> <span class="n">tm</span><span class="o">.</span><span class="n">getTestsCount</span><span class="p">()</span> <span class="k">as</span> <span class="n">TestCount</span>
+<span class="n">order</span> <span class="n">by</span> <span class="n">TestCount</span> <span class="n">desc</span>
+</code></pre></div>
+<p>This is the end of this tutorial.
+I hope you enjoy trying out QL on your own projects!
+If you have any questions,
+don’t hesitate to ask on <a href="https://discuss.lgtm.com/">the community forum</a>.</p>
+<p>Happy Querying!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2019-07-09T00:00:00+01:00">Tue 09 July 2019</time>
+<h4>Last Updated</h4>
+<time datetime="2022-02-05T00:00:00+00:00">Feb 5, 2022</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#ql-ref">QL</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">20</span>
+</a></li>
+                <li><a href="/tags.html#ql-ref">QL
+                    <span class="superscript">3</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

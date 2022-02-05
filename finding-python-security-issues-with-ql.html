@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python, QL, QL, " />
+
+<meta property="og:title" content="Find and fix Python security issues with QL "/>
+<meta property="og:url" content="/finding-python-security-issues-with-ql.html" />
+<meta property="og:description" content="This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2019-09-09T00:00:00+01:00" />
+<meta property="og:article:modified_time" content="2022-02-05T00:00:00+00:00" />
+<meta name="twitter:title" content="Find and fix Python security issues with QL ">
+<meta name="twitter:description" content="This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for …">
+
+        <title>Find and fix Python security issues with QL  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/finding-python-security-issues-with-ql.html">
+                Find and fix Python security issues with QL
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#issues-in-cpython-source-code">Issues in CPython source code</a></li>
+<li><a href="#issues-in-your-own-python-programs">Issues in your own Python programs</a><ul>
+<li><a href="#inadequate-dsa-and-rsa-key-length">Inadequate DSA and RSA key length</a></li>
+<li><a href="#using-the-deprecated-pycrypto-package">Using the deprecated ‘pyCrypto’ package</a></li>
+<li><a href="#binding-to-all-ip-addresses-with-the-socket-module">Binding to all IP addresses with the ‘socket’ module</a></li>
+<li><a href="#using-insecure-ssl-versions">Using insecure SSL versions</a></li>
+<li><a href="#not-validating-certificates-in-https-connections">Not validating certificates in HTTPS connections</a></li>
+<li><a href="#compromising-privacy-in-universally-unique-identifiers">Compromising privacy in universally unique identifiers</a></li>
+<li><a href="#use-of-assert-statements-to-control-program-flow">Use of ‘assert’ statements to control program flow</a></li>
+<li><a href="#parsing-external-files-content-into-python-objects">Parsing external files content into Python objects</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<blockquote>
+<p>This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for anyone who would want to learn more about QL. See <a href="https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/">CodeQL for Python</a> to learn more.</p>
+</blockquote>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>In this blog post, we’ll take a look at some security concerns
+that are particularly relevant to Python developers.
+There are already queries for some of these issues,
+and we’ll write new custom queries for the others.
+You can execute any query in this post against your own Python project.</p>
+<p>When you’re writing code, it is very easy to accidentally introduce errors or vulnerabilities.
+On top of that, you need to be aware of any existing bugs
+in the implementation of the language you’re working in,
+which adds an additional burden.
+For instance, CPython developers may need to review <a href="https://python-security.readthedocs.io/vulnerabilities.html">security vulnerabilities</a>
+present in the Python version they use.</p>
+<p>Running static analysis on the source code can help you find
+code that would produce an incorrect result,
+open up hardware or software resources for malicious use,
+or cause a program to unexpectedly fail.
+Fixing those issues will make the program more secure.
+To learn about the Python security model, bytecode safety,
+and some typical security concerns, visit the <a href="https://python-security.readthedocs.io/security.html#python-security">Python Security</a> resource
+which has an excellent set of reference resources and further readings.</p>
+<p>Unfortunately, for anyone who is maintaining a legacy Python 2 codebase,
+and pre-2.7 versions in particular,
+quite a few bugs and some security issues have been addressed only in Python 3.
+So upgrading the code to the latest version of Python 3 is very often the only option
+if you want to keep your code secure.
+Although Python 3 is more secure than Python 2,
+you still can’t fully relax because it also suffers from security vulnerabilities,
+even the most recent versions, such as Python 3.6, 3.7, and 3.8.
+You can review the current security-related issues using the <a href="https://bugs.python.org/">Python bug tracker</a>.
+On this website, you will find many bugs
+which have a <a href="https://cve.mitre.org/">CVE</a> number assigned such as CVE-2018-1000030 listed as <a href="https://bugs.python.org/issue31530">CVE-2018-1000030: Python 2.7 readahead feature of file objects is not thread safe</a> or CVE-2013-4238 listed as <a href="https://bugs.python.org/issue18709">CVE-2013-4238: SSL module fails to handle NULL bytes inside subjectAltNames general names</a> to mention just a few.</p>
+<p>Here we categorize Python security concerns into two groups:</p>
+<ul>
+<li>Issues in the Python interpreter or standard library
+written by Python core developers and contributors</li>
+<li>Issues in Python user code written by developers writing Python programs.</li>
+</ul>
+<h2 id="issues-in-cpython-source-code">Issues in CPython source code<a class="headerlink" href="#issues-in-cpython-source-code" title="Permanent link">¶</a></h2>
+<p>If you are a developer writing your programs in Python,
+you have very little control over the source code of CPython.
+You could, of course, make the necessary changes to the source code
+and compile your own Python interpreter,
+however, this is something that only a few developers would find practical.</p>
+<p>As an example, <a href="https://bugs.python.org/issue30500">the <code>urllib</code> module didn’t parse passwords containing the <code>#</code> character correctly</a>.
+This bug was fixed in the most recent version of Python 3
+and also backported to previous versions.
+However, there are a few bugs that were fixed only in certain versions of Python
+and were not backported.
+For example, the <a href="https://bugs.python.org/issue14621">Hash function is not randomized properly</a> bug
+was fixed only in Python 3.4.0.
+This means that previous versions, such as Python 3.3 and Python 2.7, are still vulnerable.
+This puts some developers into a difficult situation
+if they cannot upgrade to the latest Python interpreter to take advantage
+of the latest security related fixes.</p>
+<p>Semmle’s continuous security analysis service, <a href="https://lgtm.com/">LGTM.com</a>,
+includes the CPython project, analyzing both the C and Python source code.
+If you develop security-sensitive applications,
+you should review the security-related alerts that are highlighted in the latest code.
+For example, the following alerts were found by queries that focus on potential vulnerabilities: <a href="https://lgtm.com/projects/g/python/cpython/alerts/?mode=tree&amp;tag=external%2Fcwe%2Fcwe-190%2Cexternal%2Fcwe%2Fcwe-192%2Cexternal%2Fcwe%2Fcwe-197%2Cexternal%2Fcwe%2Fcwe-377%2Cexternal%2Fcwe%2Fcwe-396%2Cexternal%2Fcwe%2Fcwe-546%2Cexternal%2Fcwe%2Fcwe-561%2Cexternal%2Fcwe%2Fcwe-563%2Cexternal%2Fcwe%2Fcwe-570%2Cexternal%2Fcwe%2Fcwe-571%2Cexternal%2Fcwe%2Fcwe-581%2Cexternal%2Fcwe%2Fcwe-628%2Cexternal%2Fcwe%2Fcwe-681%2Cexternal%2Fcwe%2Fcwe-685%2Cexternal%2Fcwe%2Fcwe-687%2Cexternal%2Fcwe%2Fcwe-825%2Csecurity">CPython’s alert page</a> on LGTM.com.</p>
+<h2 id="issues-in-your-own-python-programs">Issues in your own Python programs<a class="headerlink" href="#issues-in-your-own-python-programs" title="Permanent link">¶</a></h2>
+<p>In contrast, when you write your own Python programs,
+often it’s the choices that you make as you implement features
+that determine the security of your program.
+In the rest of this post, we look at some of the issues
+that can make your programs less secure,
+and provide guidelines on how avoid these common pitfalls.
+We will also share built-in queries and custom queries
+that you can use to find security-related issues in your code.</p>
+<h3 id="inadequate-dsa-and-rsa-key-length">Inadequate DSA and RSA key length<a class="headerlink" href="#inadequate-dsa-and-rsa-key-length" title="Permanent link">¶</a></h3>
+<p>The paper <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf">Transitioning the Use of Cryptographic Algorithms and Key Lengths</a>
+published by the <a href="https://csrc.nist.gov/">NIST Computer Security Resource Center</a>,
+suggests using a key of size 2048 or larger for <a href="https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29">RSA</a>
+and <a href="https://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a> algorithms.
+The Python <a href="https://github.com/pyca/cryptography">cryptography</a> package provides tools
+for working with private keys and has a user <code>key_size</code> parameter.
+See the Python code snippet in the <a href="https://cryptography.io/en/latest/hazmat/primitives/asymmetric/dsa/?highlight=generate_private_key#signing">docs</a> for details.
+From the <a href="https://cryptography.io/en/latest/hazmat/primitives/asymmetric/dsa/?highlight=key_size">docs page</a>:</p>
+<blockquote>
+<p><code>key_size (int)</code> – The length of the modulus in bits.
+It should be either 1024, 2048 or 3072.
+For keys generated in 2015 this should be at least 2048.
+Note that some applications (such as SSH)
+have not yet gained support for larger key sizes specified in FIPS 186-3
+and are still restricted to only the 1024-bit keys specified in FIPS 186-2.</p>
+</blockquote>
+<p>There is a built-in query, <a href="https://lgtm.com/rules/1506737457159/">Use of weak cryptographic key</a>,
+that highlights when values smaller than 2048 are passed to the <code>key_size</code> parameter.</p>
+<p>For example, the query would report an alert for this Python code:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives.asymmetric</span> <span class="kn">import</span> <span class="n">dsa</span>
+<span class="kn">from</span> <span class="nn">cryptography.hazmat.backends</span> <span class="kn">import</span> <span class="n">default_backend</span>
+<span class="n">private_key</span> <span class="o">=</span> <span class="n">dsa</span><span class="o">.</span><span class="n">generate_private_key</span><span class="p">(</span>
+    <span class="n">key_size</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="n">default_backend</span><span class="p">()</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The query also identifies inadequate key lengths in code
+that uses the <code>Crypto</code> and <code>Cryptodome</code> Python packages.
+You can set a different minimum key length by <a href="https://lgtm.com/query/rule:1506737457159/lang:python/">editing the query</a>
+and changing the <code>result</code> of the <code>minimumSecureKeySize</code> predicate,
+which is currently set to <code>2048</code> for both the DSA and RSA algorithms:</p>
+<div class="highlight"><pre><span></span><code><span class="err">int minimumSecureKeySize(string algo) {</span>
+<span class="err">    algo = "DSA" and result = 2048</span>
+<span class="err">    or</span>
+<span class="err">    algo = "RSA" and result = 2048</span>
+<span class="err">    or</span>
+<span class="err">    algo = "ECC" and result = 224</span>
+<span class="err">}</span>
+</code></pre></div>
+<h3 id="using-the-deprecated-pycrypto-package">Using the deprecated ‘pyCrypto’ package<a class="headerlink" href="#using-the-deprecated-pycrypto-package" title="Permanent link">¶</a></h3>
+<p><a href="https://github.com/dlitz/pycrypto">PyCrypto</a> is a mature Python cryptography toolkit
+that has gained popularity over the years.
+However, the package has quite a few issues, some of them affecting security,
+and the project was last updated over five years ago.
+One of those issues, <a href="https://github.com/dlitz/pycrypto/issues/176">AES.new with invalid parameter crashes python</a>,
+is actually an exploitable vulnerability, <a href="https://security-tracker.debian.org/tracker/CVE-2013-7459">CVE-2013-7459</a>.</p>
+<p>The current recommendation is to use some other Python package.
+For instance, <code>cryptography</code>, is a popular choice for many Python developers:
+* <a href="https://github.com/paramiko/paramiko"><code>paramiko</code></a>, one of the popular native Python SSHv2 protocol libraries,
+has switched to <code>cryptography</code> from <code>pyCrypto</code>;
+see <a href="https://github.com/paramiko/paramiko/pull/394">this pull request</a> for details.</p>
+<ul>
+<li><a href="https://twistedmatrix.com/trac/"><code>twisted</code></a>, a popular event-driven networking engine,
+has switched to <code>cryptography</code> from <code>pyCrypto</code> as well;
+see <a href="https://twistedmatrix.com/trac/ticket/7413">this pull request</a> for details.</li>
+</ul>
+<p>To check if there are any places where the <code>pyCrypto</code> package is imported
+and used, as in this Python code snippet:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">Crypto.Hash</span> <span class="kn">import</span> <span class="n">SHA256</span>
+<span class="n">val</span> <span class="o">=</span> <span class="n">SHA256</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">'abc'</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">'utf-8'</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</code></pre></div>
+<p>we could write the following custom query:</p>
+<div class="highlight"><pre><span></span><code><span class="o">/**</span>
+ <span class="o">*</span> <span class="nd">@name</span> <span class="n">Using</span> <span class="n">a</span> <span class="n">deprecated</span> <span class="n">pyCrypto</span> <span class="n">package</span>
+ <span class="o">*</span> <span class="nd">@description</span> <span class="n">Using</span> <span class="n">an</span> <span class="n">unmaintained</span> <span class="n">tool</span> <span class="n">kit</span> <span class="k">with</span> <span class="n">multiple</span> <span class="n">security</span>
+   <span class="n">issues</span> <span class="n">makes</span> <span class="n">your</span> <span class="n">code</span> <span class="n">vulnerable</span> <span class="n">to</span> <span class="n">attack</span><span class="o">.</span>
+ <span class="o">*</span> <span class="nd">@kind</span> <span class="n">problem</span>
+ <span class="o">*</span> <span class="nd">@tags</span> <span class="n">security</span>
+ <span class="o">*</span> <span class="nd">@problem.severity</span> <span class="n">error</span>
+ <span class="o">*</span> <span class="nd">@id</span> <span class="n">py</span><span class="o">/</span><span class="n">using</span><span class="o">-</span><span class="n">insecure</span><span class="o">-</span><span class="n">pycrypto</span><span class="o">-</span><span class="n">package</span>
+ <span class="o">*/</span>
+
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">ImportExpr</span> <span class="nn">imp</span><span class="p">,</span> <span class="n">Stmt</span> <span class="n">s</span><span class="p">,</span> <span class="n">Expr</span> <span class="n">e</span><span class="p">,</span> <span class="n">string</span> <span class="n">moduleName</span>
+<span class="n">where</span>
+  <span class="n">moduleName</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span> <span class="ow">and</span>
+  <span class="n">s</span><span class="o">.</span><span class="n">getASubExpression</span><span class="p">()</span> <span class="o">=</span> <span class="n">e</span> <span class="ow">and</span>
+  <span class="p">(</span><span class="n">e</span> <span class="o">=</span> <span class="n">imp</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">imp</span><span class="p">))</span> <span class="ow">and</span>
+  <span class="p">(</span><span class="n">moduleName</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"Crypto"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">moduleName</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"Crypto.%"</span><span class="p">))</span>
+<span class="n">select</span> <span class="n">imp</span><span class="p">,</span> <span class="s2">"pyCrypto package has multiple security issues"</span>
+</code></pre></div>
+<p>If your project is on LGTM.com, you can set up <a href="https://lgtm.com/help/lgtm/managing-automated-code-review">automated code review</a>
+and <a href="https://lgtm.com/help/lgtm/writing-custom-queries">add this query to your repository</a> to ensure
+that you never accidentally introduce uses of the <code>pyCrypto</code> package.</p>
+<h3 id="binding-to-all-ip-addresses-with-the-socket-module">Binding to all IP addresses with the ‘socket’ module<a class="headerlink" href="#binding-to-all-ip-addresses-with-the-socket-module" title="Permanent link">¶</a></h3>
+<p>When you’re using the built-in <code>socket</code> module (for instance, to build a message sender service),
+it’s possible to bind to all available IPv4 addresses by specifying <code>0.0.0.0</code> as the IP address.
+When you do this, you essentially allow the service to accept connections from any IPv4 address
+provided that it is capable of reaching it through routing.
+Note that an empty string <code>''</code> has the same effect as <code>0.0.0.0</code>.
+Opening up your end point to all network interfaces is considered to be insecure.</p>
+<p>For example:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">socket</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s1">'0.0.0.0'</span><span class="p">,</span> <span class="mi">6080</span><span class="p">))</span>
+<span class="n">s</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s1">'192.168.0.1'</span><span class="p">,</span> <span class="mi">4040</span><span class="p">))</span>
+<span class="n">s</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s1">''</span><span class="p">,</span> <span class="mi">8888</span><span class="p">))</span>
+</code></pre></div>
+<p>From the Python <a href="https://docs.python.org/3/library/socket.html#socket-families">socket documentation</a>:</p>
+<blockquote>
+<p>A pair <code>(host, port)</code> is used for the <code>AF_INET</code> address family,
+where <em>host</em> is a string representing either a hostname
+in Internet domain notation like ‘daring.cwi.nl’ or an IPv4 address like ‘100.50.200.5’,
+and <em>port</em> is an integer.</p>
+</blockquote>
+<p>The following custom query would find these insecure bindings:</p>
+<div class="highlight"><pre><span></span><code><span class="o">/**</span>
+ <span class="o">*</span> <span class="nd">@name</span> <span class="n">Binding</span> <span class="n">a</span> <span class="n">socket</span> <span class="n">to</span> <span class="nb">all</span> <span class="n">network</span> <span class="n">interfaces</span>
+ <span class="o">*</span> <span class="nd">@description</span> <span class="n">Binding</span> <span class="n">a</span> <span class="n">socket</span> <span class="n">to</span> <span class="nb">all</span> <span class="n">interfaces</span> <span class="n">would</span>
+   <span class="nb">open</span> <span class="n">up</span> <span class="n">traffic</span> <span class="kn">from</span> <span class="nn">any</span> <span class="nn">IPv4</span> <span class="nn">address</span>
+ <span class="o">*</span> <span class="ow">and</span> <span class="ow">is</span> <span class="n">therefore</span> <span class="n">associated</span> <span class="k">with</span> <span class="n">security</span> <span class="n">risks</span><span class="o">.</span>
+ <span class="o">*</span> <span class="nd">@kind</span> <span class="n">problem</span>
+ <span class="o">*</span> <span class="nd">@tags</span> <span class="n">security</span>
+ <span class="o">*</span> <span class="nd">@problem.severity</span> <span class="n">error</span>
+ <span class="o">*</span> <span class="nd">@id</span> <span class="n">py</span><span class="o">/</span><span class="n">bind</span><span class="o">-</span><span class="n">socket</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">network</span><span class="o">-</span><span class="n">interfaces</span>
+ <span class="o">*/</span>
+
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">Value</span> <span class="n">aSocket</span><span class="p">()</span> <span class="p">{</span> <span class="n">result</span><span class="o">.</span><span class="n">getClass</span><span class="p">()</span> <span class="o">=</span> <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="s2">"socket.socket"</span><span class="p">)</span> <span class="p">}</span>
+
+<span class="n">CallNode</span> <span class="n">socketBindCall</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">aSocket</span><span class="p">()</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s2">"bind"</span><span class="p">)</span><span class="o">.</span><span class="p">(</span><span class="n">CallableValue</span><span class="p">)</span><span class="o">.</span><span class="n">getACall</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="n">string</span> <span class="n">allInterfaces</span><span class="p">()</span> <span class="p">{</span> <span class="n">result</span> <span class="o">=</span> <span class="s2">"0.0.0.0"</span> <span class="ow">or</span> <span class="n">result</span> <span class="o">=</span> <span class="s2">""</span> <span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">CallNode</span> <span class="nn">call</span><span class="p">,</span> <span class="n">string</span> <span class="n">address</span>
+<span class="n">where</span>
+  <span class="n">call</span> <span class="o">=</span> <span class="n">socketBindCall</span><span class="p">()</span> <span class="ow">and</span>
+  <span class="n">address</span> <span class="o">=</span> <span class="n">call</span><span class="o">.</span><span class="n">getArg</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">getNode</span><span class="p">()</span><span class="o">.</span><span class="p">(</span><span class="n">Tuple</span><span class="p">)</span><span class="o">.</span><span class="n">getElt</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="p">(</span><span class="n">StrConst</span><span class="p">)</span><span class="o">.</span><span class="n">getText</span><span class="p">()</span> <span class="ow">and</span>
+  <span class="n">address</span> <span class="o">=</span> <span class="n">allInterfaces</span><span class="p">()</span>
+<span class="n">select</span> <span class="n">call</span><span class="o">.</span><span class="n">getNode</span><span class="p">(),</span> <span class="s2">"'"</span> <span class="o">+</span> <span class="n">address</span> <span class="o">+</span> <span class="s2">"' binds a socket to all interfaces."</span>
+</code></pre></div>
+<h3 id="using-insecure-ssl-versions">Using insecure SSL versions<a class="headerlink" href="#using-insecure-ssl-versions" title="Permanent link">¶</a></h3>
+<p>There have been quite a few security changes in Python 3’s built-in <code>ssl</code> module.
+This is particularly true for versions 3.6 and 3.7.
+Visit <a href="https://python-security.readthedocs.io/ssl.html">Python SSL and TLS security</a>
+to learn about evolution of the <code>ssl</code> module.
+SSL versions 2 are 3 are now considered to be insecure
+and official Python documentation discourages their use.
+Since Python 3.6, many protocol versions
+such as <code>ssl.PROTOCOL_SSLv23</code> and <code>ssl.PROTOCOL_SSLv2</code>, are deprecated
+and OpenSSL has removed support for <code>SSLv2</code>.</p>
+<p>From Python 3.6 onward, it is best to use the <code>ssl.PROTOCOL_TLS</code> protocol.
+From the <a href="https://docs.python.org/3/library/ssl.html#ssl.PROTOCOL_TLS">docs page</a>:</p>
+<blockquote>
+<p><code>ssl.PROTOCOL_TLS</code>: Selects the highest protocol version that both the client and server support.</p>
+</blockquote>
+<p>Although you can specify the SSL version in an <code>ssl.wrap_socket</code> call,
+this was deprecated in version 3.7.
+Instead, the use of a more secure alternative is suggested by the <a href="https://docs.python.org/3/library/ssl.html#ssl.wrap_socket">Python docs</a>:</p>
+<blockquote>
+<p>Since Python 3.2 and 2.7.9,
+it is recommended to use the <code>SSLContext.wrap_socket()</code> instead of <code>wrap_socket()</code>.
+The top-level function is limited
+and creates an insecure client socket without server name indication or hostname matching.</p>
+</blockquote>
+<p>There is a built-in query, <a href="https://lgtm.com/rules/1507225275976/">Default version of SSL/TLS may be insecure</a>,
+which finds uses of <code>SSLContext.wrap_socket()</code>.
+For earlier versions of Python, you want to make sure
+that you’re not using insecure versions of SSL
+such as <code>ssl.PROTOCOL_SSLv2</code> or <code>ssl.PROTOCOL_SSLv3</code>.
+For this, there is another built-in query, <a href="https://lgtm.com/rules/1507248366243/">Use of insecure SSL/TLS version</a>,
+which finds insecure SSL/TLS versions both for <code>pyOpenSSL.SSL</code>
+(a Python wrapper around the <code>OpenSSL</code> library)
+and for the built-in <code>ssl</code> module.</p>
+<h3 id="not-validating-certificates-in-https-connections">Not validating certificates in HTTPS connections<a class="headerlink" href="#not-validating-certificates-in-https-connections" title="Permanent link">¶</a></h3>
+<p>During an HTTPS request, it is important to verify SSL certificates,
+which is exactly what any modern web browser does nowadays.
+Up to versions Python 2.7.9 (for Python 2) and Python 3.4.3 (for Python 3),
+CPython modules that dealt with HTTP interaction (such as <code>httplib</code> and <code>urllib</code>)
+did not verify the web site certificate against a trust store.
+This issue was registered as <a href="https://nvd.nist.gov/vuln/detail/CVE-2014-9365">CVE-2014-9365</a>
+and is an example of <a href="http://cwe.mitre.org/data/definitions/295.html">CWE-295: Improper Certificate Validation</a>
+which can potentially lead to a <a href="https://en.wikipedia.org/wiki/Man-in-the-middle_attack">man-in-the-middle (MITM) attack</a>.</p>
+<p>A de-facto standard library used by the Python community for communicating over HTTP is <code>requests</code>.
+By default, it has <a href="https://2.python-requests.org/en/master/user/advanced/#ssl-cert-verification">SSL verification enabled</a>,
+and a custom exception will be thrown if certificate verification fails.
+However, it is possible to disable the verification that TLS provides:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">requests</span>
+<span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'https://example.com'</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<p>To find HTTP requests that fail to verify the certificate, you can run the built-in query, <a href="https://lgtm.com/rules/1506755127042/">Request without certificate validation</a>.</p>
+<h3 id="compromising-privacy-in-universally-unique-identifiers">Compromising privacy in universally unique identifiers<a class="headerlink" href="#compromising-privacy-in-universally-unique-identifiers" title="Permanent link">¶</a></h3>
+<p><a href="https://en.wikipedia.org/wiki/Universally_unique_identifier">Universally unique identifiers (UUID)</a>
+can be generated using the <a href="https://docs.python.org/3.6/library/uuid.html"><code>uuid</code></a> module.
+The general recommendation is to use <code>uuid1()</code> or <code>uuid4()</code> to generate a unique identifier.
+However, <code>uuid1()</code> may compromise privacy
+because the UUID will include the computer’s network address.</p>
+<p><code>uuid4()</code>, in contrast, creates a random UUID
+and is simply a convenience function.
+From the <a href="https://github.com/python/cpython/blob/master/Lib/uuid.py#L778">CPython source code</a>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">uuid4</span><span class="p">():</span>
+    <span class="sd">"""Generate a random UUID."""</span>
+    <span class="k">return</span> <span class="n">UUID</span><span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span> <span class="n">version</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</code></pre></div>
+<p>Furthermore, there are some concerns about the “safety” of UUIDs.
+From the <a href="https://docs.python.org/3.7/library/uuid.html">Python docs</a>:</p>
+<blockquote>
+<p>Depending on support from the underlying platform,
+<code>uuid1()</code> may or may not return a “safe” UUID.
+A safe UUID is one which is generated using synchronization methods
+that ensure no two processes can obtain the same UUID.</p>
+</blockquote>
+<p>To find version 1 UUIDs generated by <code>uuid.UUID(bytes=values, version=1)</code>
+or <code>uuid.uuid1()</code>, as in the code snippet below,</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="n">id1</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">()</span>
+<span class="n">id2</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">id3</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="sa">b</span><span class="s1">'1234567891234567'</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<p>we can run the following custom query:</p>
+<div class="highlight"><pre><span></span><code><span class="o">/**</span>
+ <span class="o">*</span> <span class="nd">@name</span> <span class="n">Using</span> <span class="n">a</span> <span class="n">uuid1</span> <span class="k">for</span> <span class="n">generating</span> <span class="n">UUID</span>
+ <span class="o">*</span> <span class="nd">@description</span> <span class="n">uuid1</span> <span class="n">will</span> <span class="n">use</span> <span class="n">machine</span><span class="s1">'s network address</span>
+   <span class="k">for</span> <span class="n">generating</span> <span class="n">UUID</span> <span class="ow">and</span> <span class="n">may</span> <span class="n">compromise</span> <span class="n">privacy</span><span class="o">.</span>
+ <span class="o">*</span> <span class="nd">@kind</span> <span class="n">problem</span>
+ <span class="o">*</span> <span class="nd">@tags</span> <span class="n">security</span>
+ <span class="o">*</span> <span class="nd">@problem.severity</span> <span class="n">error</span>
+ <span class="o">*</span> <span class="nd">@id</span> <span class="n">py</span><span class="o">/</span><span class="n">using</span><span class="o">-</span><span class="n">uuid1</span><span class="o">-</span><span class="k">for</span><span class="o">-</span><span class="n">UUID</span>
+ <span class="o">*/</span>
+
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">CallNode</span> <span class="nn">call</span>
+<span class="n">where</span>
+  <span class="n">call</span> <span class="o">=</span> <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="s2">"uuid.uuid1"</span><span class="p">)</span><span class="o">.</span><span class="n">getACall</span><span class="p">()</span>
+  <span class="ow">or</span>
+  <span class="n">call</span> <span class="o">=</span> <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="s2">"uuid.UUID"</span><span class="p">)</span><span class="o">.</span><span class="n">getACall</span><span class="p">()</span> <span class="ow">and</span>
+  <span class="p">(</span>
+    <span class="n">call</span><span class="o">.</span><span class="n">getArgByName</span><span class="p">(</span><span class="s2">"version"</span><span class="p">)</span><span class="o">.</span><span class="n">getNode</span><span class="p">()</span><span class="o">.</span><span class="p">(</span><span class="n">IntegerLiteral</span><span class="p">)</span><span class="o">.</span><span class="n">getValue</span><span class="p">()</span> <span class="o">=</span> <span class="mi">1</span> <span class="ow">or</span>
+    <span class="n">call</span><span class="o">.</span><span class="n">getArg</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">getNode</span><span class="p">()</span><span class="o">.</span><span class="p">(</span><span class="n">IntegerLiteral</span><span class="p">)</span><span class="o">.</span><span class="n">getValue</span><span class="p">()</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="p">)</span>
+<span class="n">select</span> <span class="n">call</span><span class="p">,</span> <span class="s2">"uuid1 will use machine's network address and may compromise privacy."</span>
+</code></pre></div>
+<h3 id="use-of-assert-statements-to-control-program-flow">Use of ‘assert’ statements to control program flow<a class="headerlink" href="#use-of-assert-statements-to-control-program-flow" title="Permanent link">¶</a></h3>
+<p>The <code>assert</code> statement can be used in Python to indicate
+when executing the code would result in program failure
+or the retrieval of incorrect results.
+It is very common to use <code>assert</code> in unit and integration tests.
+However, <code>assert</code> statements are disabled
+when <a href="https://docs.python.org/3/using/cmdline.html#envvar-PYTHONOPTIMIZE">you run a Python program with optimization enabled</a>.
+Running <code>python -O program.py</code> means that <code>assert</code> statements are ignored
+which may give a certain performance boost
+(either significant or negligible
+depending on how time-consuming the <code>assert</code> statements are).</p>
+<p>This means that it can be unwise to rely on <code>assert</code> statements
+to define the logic of a program execution flow,
+if you plan to run your Python programs with optimization enabled
+or the code may be run outside of your control.
+Moreover, use of <code>assert</code> statements can be associated with security risks.
+Consider this Python code snippet:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_customers</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="sd">"""Get list of customers."""</span>
+    <span class="k">assert</span> <span class="n">is_superuser</span><span class="p">(</span><span class="n">user</span><span class="p">),</span> <span class="s2">"User is not a member of superuser group"</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="s1">'customers'</span><span class="p">)</span>
+</code></pre></div>
+<p>When this program is run in optimized mode,
+the <code>assert</code> statement will be ignored
+and any user would be able to get a list of customers,
+regardless of whether they are a member of the <code>superuser</code> group or not.</p>
+<p>This code can be rewritten more securely, without <code>assert</code> statements, as:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_customers</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="sd">"""Get list of customers."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_superuser</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span><span class="s2">"User is not a member of superuser group"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="s1">'customers'</span><span class="p">)</span>
+</code></pre></div>
+<p>Writing a custom query that catches all <code>assert</code> statements is trivial,
+however, all legitimate uses of <code>assert</code> would also be caught
+so you would need to look through each result manually.
+Optionally, you could search for <code>assert</code> statements used outside of tests.
+This query searches for all <code>is_superuser</code> function calls within the <code>assert</code> statements.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">AstNode</span> <span class="nn">ast</span><span class="p">,</span> <span class="n">Assert</span> <span class="k">assert</span>
+<span class="n">where</span>
+  <span class="k">assert</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">ast</span><span class="p">)</span> <span class="ow">and</span>
+  <span class="n">ast</span><span class="o">.</span><span class="p">(</span><span class="n">Call</span><span class="p">)</span><span class="o">.</span><span class="n">getFunc</span><span class="p">()</span><span class="o">.</span><span class="p">(</span><span class="n">Name</span><span class="p">)</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span> <span class="o">=</span> <span class="s2">"is_superuser"</span>
+<span class="n">select</span> <span class="n">ast</span>
+</code></pre></div>
+<h3 id="parsing-external-files-content-into-python-objects">Parsing external files content into Python objects<a class="headerlink" href="#parsing-external-files-content-into-python-objects" title="Permanent link">¶</a></h3>
+<p>Python provides multiple ways to read external files
+and load their content into Python objects.
+There are <code>exec</code> and <code>eval</code> built-in functions
+along with <code>pickle</code> (or <code>cPickle</code> in Python 2).
+External packages such as <a href="https://pyyaml.org/wiki/PyYAMLDocumentation"><code>PyYAML</code></a>
+can also be used to parse YAML file contents.</p>
+<p>Because data from external sources may not be secure,
+the general security guidelines are that you should never unpickle
+or load by parsing any data received from an untrusted source.</p>
+<p>There is a built-in query, <a href="https://lgtm.com/rules/1506218107765/">Deserializing untrusted input</a>,
+that highlights code that may be a security concern
+when unpickling and other deserialization happens.
+The general recommendation is to avoid constructing arbitrary Python objects via <code>pickle</code>
+or via a <code>pyYAML</code> package if the data comes from an untrusted source (the internet in particular).
+<code>PyYAML</code>, however, has the <code>safe_load</code> function
+which limits what can be loaded to simple Python objects.</p>
+<p>In this Python code snippet, a class instance is created based on the YAML file contents
+(posted here as a string in <code>yaml.load</code> for brevity):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="k">class</span> <span class="nc">PasswordReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fh</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"PasswordReader: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="n">obj</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">!!python/object:__main__.PasswordReader</span>
+<span class="s2">path: /etc/passwd</span>
+<span class="s2">"""</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</code></pre></div>
+<p>Using <code>yaml.safe_load</code> would block construction of the class instance object
+unless it has been marked as safe.
+To be considered safe, it should inherit from <code>yaml.YAMLObject</code>
+and have a property <code>yaml_loader</code> set to <code>yaml.SafeLoader</code>.</p>
+<p>This custom query was written to find unsafe <code>yaml.load</code> calls in your codebase:</p>
+<div class="highlight"><pre><span></span><code><span class="o">/**</span>
+ <span class="o">*</span> <span class="nd">@name</span> <span class="n">Using</span> <span class="n">insecure</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span> <span class="n">function</span>
+ <span class="o">*</span> <span class="nd">@description</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span> <span class="n">function</span> <span class="n">may</span> <span class="n">be</span> <span class="n">unsafe</span>
+   <span class="n">when</span> <span class="n">loading</span> <span class="n">data</span> <span class="kn">from</span> <span class="nn">untrusted</span> <span class="nn">sources</span>
+ <span class="o">*</span> <span class="nd">@kind</span> <span class="n">problem</span>
+ <span class="o">*</span> <span class="nd">@tags</span> <span class="n">security</span>
+ <span class="o">*</span> <span class="nd">@problem.severity</span> <span class="n">error</span>
+ <span class="o">*</span> <span class="nd">@id</span> <span class="n">py</span><span class="o">/</span><span class="n">using</span><span class="o">-</span><span class="n">yaml</span><span class="o">-</span><span class="n">load</span>
+ <span class="o">*/</span>
+
+<span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">CallNode</span> <span class="nn">call</span>
+<span class="n">where</span> <span class="n">call</span> <span class="o">=</span> <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="s2">"yaml.load"</span><span class="p">)</span><span class="o">.</span><span class="n">getACall</span><span class="p">()</span>
+<span class="n">select</span> <span class="n">call</span><span class="o">.</span><span class="n">getNode</span><span class="p">(),</span> <span class="s2">"yaml.load function may be unsafe when</span>
+<span class="n">loading</span> <span class="n">data</span> <span class="kn">from</span> <span class="nn">untrusted</span> <span class="nn">sources.</span> <span class="nn">Use</span> <span class="nn">yaml.safe_load</span> <span class="nn">instead.</span><span class="s2">"</span>
+</code></pre></div>
+<p>This type of custom query, where you search for a specific function call, is fairly common.
+This approach can be used for any language feature that was considered safe a few years ago
+but the current recommendation is to use a newer version or an alternative, more robust one.</p>
+<p>For examples of how you can write your own queries to find the use of a certain function
+or import of a module, review the following built-in queries:</p>
+<ul>
+<li><a href="https://lgtm.com/rules/9980084/">Deprecated slice method</a></li>
+<li><a href="https://lgtm.com/rules/4860084/">Import of deprecated module</a></li>
+<li><a href="https://lgtm.com/rules/3960095/">Use of exit() or quit()</a></li>
+</ul>
+<p>In most cases, you want to make sure
+that the older or less secure function could not be used in the new code being written.
+The power of writing your own custom queries, however, lies in
+the ability to go beyond built-in queries
+and to look for the functions or class methods that you decide to blacklist.
+You can write a new query to trigger an alert
+if a blacklisted function is found.
+<a href="https://lgtm.com/">LGTM.com</a> provides <a href="[https://lgtm.com/help/lgtm/managing-automated-code-review]">automatic code review functionality</a>
+to prevent bugs from ever making it to your project.
+If you add custom queries to your repository, then you’ll also get alerts if a pull request contains functions or class methods that you’ve blacklisted.  </p>
+<h3 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h3>
+<p>Here are some references to Python security resources you may find useful.</p>
+<ul>
+<li><a href="https://nvd.nist.gov/">National Vulnerability Database</a></li>
+<li><a href="https://cwe.mitre.org/">MITRE CWE database</a></li>
+<li><a href="https://bugs.python.org">Python bug tracker</a></li>
+<li><a href="https://www.cvedetails.com/vendor/10210/Python.html">Python vulnerability statistics</a></li>
+<li><a href="https://security.openstack.org/#secure-development-guidelines">OpenStack Secure Development Guidelines</a></li>
+<li><a href="https://help.semmle.com/wiki/label/python/security">Security related built-in Python queries</a></li>
+<li><a href="https://bandit.readthedocs.io/en/latest/">Bandit - Python security tool</a></li>
+<li><a href="https://python-security.readthedocs.io/security.html">Python security overview</a></li>
+<li><a href="https://python-security.readthedocs.io/vulnerabilities.html">Python security vulnerabilities</a></li>
+</ul>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2019-09-09T00:00:00+01:00">Mon 09 September 2019</time>
+<h4>Last Updated</h4>
+<time datetime="2022-02-05T00:00:00+00:00">Feb 5, 2022</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#ql-ref">QL</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">20</span>
+</a></li>
+                <li><a href="/tags.html#ql-ref">QL
+                    <span class="superscript">3</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

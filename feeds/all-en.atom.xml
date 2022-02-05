@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all-en.atom.xml" rel="self"></link><id>/</id><updated>2021-09-29T00:00:00+01:00</updated><entry><title>Python basics - Pandas</title><link href="/python-basics-pandas.html" rel="alternate"></link><published>2021-08-14T00:00:00+01:00</published><updated>2021-08-14T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2021-08-14:/python-basics-pandas.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all-en.atom.xml" rel="self"></link><id>/</id><updated>2022-02-05T00:00:00+00:00</updated><entry><title>Python basics - Pandas</title><link href="/python-basics-pandas.html" rel="alternate"></link><published>2021-08-14T00:00:00+01:00</published><updated>2021-08-14T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2021-08-14:/python-basics-pandas.html</id><summary type="html">
 &lt;p&gt;This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …&lt;/p&gt;</summary><content type="html">
 &lt;p&gt;This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes about working with a popular data science and data analysis library - &lt;code&gt;pandas&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;I have simplified this &lt;a href="https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv"&gt;dataset&lt;/a&gt; that is part of the Census from this this &lt;a href="https://www.census.gov/data/datasets/time-series/demo/popest/2010s-counties-total.html"&gt;portal&lt;/a&gt; to illustrate how &lt;code&gt;pandas&lt;/code&gt; work.&lt;/p&gt;
@@ -3999,4 +3999,1468 @@ it easy to record as making changes in the GUIs are generally known to be very h
 &lt;p&gt;A problem that can be solved purely by customers themselves (invalidating the web browser cache or
 to change some setting within the user interface of the business system itself) is a great candidate
 to be added into the user documentation.&lt;/p&gt;
-&lt;p&gt;Happy supporting!&lt;/p&gt;</content><category term="tech-support"></category><category term="tech-support"></category></entry></feed>
+&lt;p&gt;Happy supporting!&lt;/p&gt;</content><category term="tech-support"></category><category term="tech-support"></category></entry><entry><title>Find and fix Python security issues with QL</title><link href="/finding-python-security-issues-with-ql.html" rel="alternate"></link><published>2019-09-09T00:00:00+01:00</published><updated>2022-02-05T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2019-09-09:/finding-python-security-issues-with-ql.html</id><summary type="html">
+&lt;blockquote&gt;
+&lt;p&gt;This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">
+&lt;blockquote&gt;
+&lt;p&gt;This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for anyone who would want to learn more about QL. See &lt;a href="https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/"&gt;CodeQL for Python&lt;/a&gt; to learn more.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;In this blog post, we’ll take a look at some security concerns
+that are particularly relevant to Python developers.
+There are already queries for some of these issues,
+and we’ll write new custom queries for the others.
+You can execute any query in this post against your own Python project.&lt;/p&gt;
+&lt;p&gt;When you’re writing code, it is very easy to accidentally introduce errors or vulnerabilities.
+On top of that, you need to be aware of any existing bugs
+in the implementation of the language you’re working in,
+which adds an additional burden.
+For instance, CPython developers may need to review &lt;a href="https://python-security.readthedocs.io/vulnerabilities.html"&gt;security vulnerabilities&lt;/a&gt;
+present in the Python version they use.&lt;/p&gt;
+&lt;p&gt;Running static analysis on the source code can help you find
+code that would produce an incorrect result,
+open up hardware or software resources for malicious use,
+or cause a program to unexpectedly fail.
+Fixing those issues will make the program more secure.
+To learn about the Python security model, bytecode safety,
+and some typical security concerns, visit the &lt;a href="https://python-security.readthedocs.io/security.html#python-security"&gt;Python Security&lt;/a&gt; resource
+which has an excellent set of reference resources and further readings.&lt;/p&gt;
+&lt;p&gt;Unfortunately, for anyone who is maintaining a legacy Python 2 codebase,
+and pre-2.7 versions in particular,
+quite a few bugs and some security issues have been addressed only in Python 3.
+So upgrading the code to the latest version of Python 3 is very often the only option
+if you want to keep your code secure.
+Although Python 3 is more secure than Python 2,
+you still can’t fully relax because it also suffers from security vulnerabilities,
+even the most recent versions, such as Python 3.6, 3.7, and 3.8.
+You can review the current security-related issues using the &lt;a href="https://bugs.python.org/"&gt;Python bug tracker&lt;/a&gt;.
+On this website, you will find many bugs
+which have a &lt;a href="https://cve.mitre.org/"&gt;CVE&lt;/a&gt; number assigned such as CVE-2018-1000030 listed as &lt;a href="https://bugs.python.org/issue31530"&gt;CVE-2018-1000030: Python 2.7 readahead feature of file objects is not thread safe&lt;/a&gt; or CVE-2013-4238 listed as &lt;a href="https://bugs.python.org/issue18709"&gt;CVE-2013-4238: SSL module fails to handle NULL bytes inside subjectAltNames general names&lt;/a&gt; to mention just a few.&lt;/p&gt;
+&lt;p&gt;Here we categorize Python security concerns into two groups:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Issues in the Python interpreter or standard library
+written by Python core developers and contributors&lt;/li&gt;
+&lt;li&gt;Issues in Python user code written by developers writing Python programs.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="issues-in-cpython-source-code"&gt;Issues in CPython source code&lt;a class="headerlink" href="#issues-in-cpython-source-code" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;If you are a developer writing your programs in Python,
+you have very little control over the source code of CPython.
+You could, of course, make the necessary changes to the source code
+and compile your own Python interpreter,
+however, this is something that only a few developers would find practical.&lt;/p&gt;
+&lt;p&gt;As an example, &lt;a href="https://bugs.python.org/issue30500"&gt;the &lt;code&gt;urllib&lt;/code&gt; module didn’t parse passwords containing the &lt;code&gt;#&lt;/code&gt; character correctly&lt;/a&gt;.
+This bug was fixed in the most recent version of Python 3
+and also backported to previous versions.
+However, there are a few bugs that were fixed only in certain versions of Python
+and were not backported.
+For example, the &lt;a href="https://bugs.python.org/issue14621"&gt;Hash function is not randomized properly&lt;/a&gt; bug
+was fixed only in Python 3.4.0.
+This means that previous versions, such as Python 3.3 and Python 2.7, are still vulnerable.
+This puts some developers into a difficult situation
+if they cannot upgrade to the latest Python interpreter to take advantage
+of the latest security related fixes.&lt;/p&gt;
+&lt;p&gt;Semmle’s continuous security analysis service, &lt;a href="https://lgtm.com/"&gt;LGTM.com&lt;/a&gt;,
+includes the CPython project, analyzing both the C and Python source code.
+If you develop security-sensitive applications,
+you should review the security-related alerts that are highlighted in the latest code.
+For example, the following alerts were found by queries that focus on potential vulnerabilities: &lt;a href="https://lgtm.com/projects/g/python/cpython/alerts/?mode=tree&amp;amp;tag=external%2Fcwe%2Fcwe-190%2Cexternal%2Fcwe%2Fcwe-192%2Cexternal%2Fcwe%2Fcwe-197%2Cexternal%2Fcwe%2Fcwe-377%2Cexternal%2Fcwe%2Fcwe-396%2Cexternal%2Fcwe%2Fcwe-546%2Cexternal%2Fcwe%2Fcwe-561%2Cexternal%2Fcwe%2Fcwe-563%2Cexternal%2Fcwe%2Fcwe-570%2Cexternal%2Fcwe%2Fcwe-571%2Cexternal%2Fcwe%2Fcwe-581%2Cexternal%2Fcwe%2Fcwe-628%2Cexternal%2Fcwe%2Fcwe-681%2Cexternal%2Fcwe%2Fcwe-685%2Cexternal%2Fcwe%2Fcwe-687%2Cexternal%2Fcwe%2Fcwe-825%2Csecurity"&gt;CPython’s alert page&lt;/a&gt; on LGTM.com.&lt;/p&gt;
+&lt;h2 id="issues-in-your-own-python-programs"&gt;Issues in your own Python programs&lt;a class="headerlink" href="#issues-in-your-own-python-programs" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;In contrast, when you write your own Python programs,
+often it’s the choices that you make as you implement features
+that determine the security of your program.
+In the rest of this post, we look at some of the issues
+that can make your programs less secure,
+and provide guidelines on how avoid these common pitfalls.
+We will also share built-in queries and custom queries
+that you can use to find security-related issues in your code.&lt;/p&gt;
+&lt;h3 id="inadequate-dsa-and-rsa-key-length"&gt;Inadequate DSA and RSA key length&lt;a class="headerlink" href="#inadequate-dsa-and-rsa-key-length" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;The paper &lt;a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf"&gt;Transitioning the Use of Cryptographic Algorithms and Key Lengths&lt;/a&gt;
+published by the &lt;a href="https://csrc.nist.gov/"&gt;NIST Computer Security Resource Center&lt;/a&gt;,
+suggests using a key of size 2048 or larger for &lt;a href="https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29"&gt;RSA&lt;/a&gt;
+and &lt;a href="https://en.wikipedia.org/wiki/Digital_Signature_Algorithm"&gt;DSA&lt;/a&gt; algorithms.
+The Python &lt;a href="https://github.com/pyca/cryptography"&gt;cryptography&lt;/a&gt; package provides tools
+for working with private keys and has a user &lt;code&gt;key_size&lt;/code&gt; parameter.
+See the Python code snippet in the &lt;a href="https://cryptography.io/en/latest/hazmat/primitives/asymmetric/dsa/?highlight=generate_private_key#signing"&gt;docs&lt;/a&gt; for details.
+From the &lt;a href="https://cryptography.io/en/latest/hazmat/primitives/asymmetric/dsa/?highlight=key_size"&gt;docs page&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;key_size (int)&lt;/code&gt; – The length of the modulus in bits.
+It should be either 1024, 2048 or 3072.
+For keys generated in 2015 this should be at least 2048.
+Note that some applications (such as SSH)
+have not yet gained support for larger key sizes specified in FIPS 186-3
+and are still restricted to only the 1024-bit keys specified in FIPS 186-2.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;There is a built-in query, &lt;a href="https://lgtm.com/rules/1506737457159/"&gt;Use of weak cryptographic key&lt;/a&gt;,
+that highlights when values smaller than 2048 are passed to the &lt;code&gt;key_size&lt;/code&gt; parameter.&lt;/p&gt;
+&lt;p&gt;For example, the query would report an alert for this Python code:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;cryptography.hazmat.primitives.asymmetric&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;dsa&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;cryptography.hazmat.backends&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;default_backend&lt;/span&gt;
+&lt;span class="n"&gt;private_key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;dsa&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;generate_private_key&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;key_size&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;512&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;backend&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;default_backend&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The query also identifies inadequate key lengths in code
+that uses the &lt;code&gt;Crypto&lt;/code&gt; and &lt;code&gt;Cryptodome&lt;/code&gt; Python packages.
+You can set a different minimum key length by &lt;a href="https://lgtm.com/query/rule:1506737457159/lang:python/"&gt;editing the query&lt;/a&gt;
+and changing the &lt;code&gt;result&lt;/code&gt; of the &lt;code&gt;minimumSecureKeySize&lt;/code&gt; predicate,
+which is currently set to &lt;code&gt;2048&lt;/code&gt; for both the DSA and RSA algorithms:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;int minimumSecureKeySize(string algo) {&lt;/span&gt;
+&lt;span class="err"&gt;    algo = "DSA" and result = 2048&lt;/span&gt;
+&lt;span class="err"&gt;    or&lt;/span&gt;
+&lt;span class="err"&gt;    algo = "RSA" and result = 2048&lt;/span&gt;
+&lt;span class="err"&gt;    or&lt;/span&gt;
+&lt;span class="err"&gt;    algo = "ECC" and result = 224&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="using-the-deprecated-pycrypto-package"&gt;Using the deprecated ‘pyCrypto’ package&lt;a class="headerlink" href="#using-the-deprecated-pycrypto-package" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://github.com/dlitz/pycrypto"&gt;PyCrypto&lt;/a&gt; is a mature Python cryptography toolkit
+that has gained popularity over the years.
+However, the package has quite a few issues, some of them affecting security,
+and the project was last updated over five years ago.
+One of those issues, &lt;a href="https://github.com/dlitz/pycrypto/issues/176"&gt;AES.new with invalid parameter crashes python&lt;/a&gt;,
+is actually an exploitable vulnerability, &lt;a href="https://security-tracker.debian.org/tracker/CVE-2013-7459"&gt;CVE-2013-7459&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The current recommendation is to use some other Python package.
+For instance, &lt;code&gt;cryptography&lt;/code&gt;, is a popular choice for many Python developers:
+* &lt;a href="https://github.com/paramiko/paramiko"&gt;&lt;code&gt;paramiko&lt;/code&gt;&lt;/a&gt;, one of the popular native Python SSHv2 protocol libraries,
+has switched to &lt;code&gt;cryptography&lt;/code&gt; from &lt;code&gt;pyCrypto&lt;/code&gt;;
+see &lt;a href="https://github.com/paramiko/paramiko/pull/394"&gt;this pull request&lt;/a&gt; for details.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://twistedmatrix.com/trac/"&gt;&lt;code&gt;twisted&lt;/code&gt;&lt;/a&gt;, a popular event-driven networking engine,
+has switched to &lt;code&gt;cryptography&lt;/code&gt; from &lt;code&gt;pyCrypto&lt;/code&gt; as well;
+see &lt;a href="https://twistedmatrix.com/trac/ticket/7413"&gt;this pull request&lt;/a&gt; for details.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To check if there are any places where the &lt;code&gt;pyCrypto&lt;/code&gt; package is imported
+and used, as in this Python code snippet:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Crypto.Hash&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;SHA256&lt;/span&gt;
+&lt;span class="n"&gt;val&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;SHA256&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'abc'&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'utf-8'&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hexdigest&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;we could write the following custom query:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;/**&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@name&lt;/span&gt; &lt;span class="n"&gt;Using&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;deprecated&lt;/span&gt; &lt;span class="n"&gt;pyCrypto&lt;/span&gt; &lt;span class="n"&gt;package&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@description&lt;/span&gt; &lt;span class="n"&gt;Using&lt;/span&gt; &lt;span class="n"&gt;an&lt;/span&gt; &lt;span class="n"&gt;unmaintained&lt;/span&gt; &lt;span class="n"&gt;tool&lt;/span&gt; &lt;span class="n"&gt;kit&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;multiple&lt;/span&gt; &lt;span class="n"&gt;security&lt;/span&gt;
+   &lt;span class="n"&gt;issues&lt;/span&gt; &lt;span class="n"&gt;makes&lt;/span&gt; &lt;span class="n"&gt;your&lt;/span&gt; &lt;span class="n"&gt;code&lt;/span&gt; &lt;span class="n"&gt;vulnerable&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;attack&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@kind&lt;/span&gt; &lt;span class="n"&gt;problem&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@tags&lt;/span&gt; &lt;span class="n"&gt;security&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@problem.severity&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@id&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;using&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;insecure&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;pycrypto&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;package&lt;/span&gt;
+ &lt;span class="o"&gt;*/&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;ImportExpr&lt;/span&gt; &lt;span class="nn"&gt;imp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Stmt&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Expr&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;moduleName&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt;
+  &lt;span class="n"&gt;moduleName&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;imp&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getASubExpression&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;imp&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;contains&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;imp&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;moduleName&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Crypto"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;moduleName&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Crypto.%"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;imp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"pyCrypto package has multiple security issues"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If your project is on LGTM.com, you can set up &lt;a href="https://lgtm.com/help/lgtm/managing-automated-code-review"&gt;automated code review&lt;/a&gt;
+and &lt;a href="https://lgtm.com/help/lgtm/writing-custom-queries"&gt;add this query to your repository&lt;/a&gt; to ensure
+that you never accidentally introduce uses of the &lt;code&gt;pyCrypto&lt;/code&gt; package.&lt;/p&gt;
+&lt;h3 id="binding-to-all-ip-addresses-with-the-socket-module"&gt;Binding to all IP addresses with the ‘socket’ module&lt;a class="headerlink" href="#binding-to-all-ip-addresses-with-the-socket-module" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;When you’re using the built-in &lt;code&gt;socket&lt;/code&gt; module (for instance, to build a message sender service),
+it’s possible to bind to all available IPv4 addresses by specifying &lt;code&gt;0.0.0.0&lt;/code&gt; as the IP address.
+When you do this, you essentially allow the service to accept connections from any IPv4 address
+provided that it is capable of reaching it through routing.
+Note that an empty string &lt;code&gt;''&lt;/code&gt; has the same effect as &lt;code&gt;0.0.0.0&lt;/code&gt;.
+Opening up your end point to all network interfaces is considered to be insecure.&lt;/p&gt;
+&lt;p&gt;For example:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;socket&lt;/span&gt;
+&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;AF_INET&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SOCK_STREAM&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s1"&gt;'0.0.0.0'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;6080&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s1"&gt;'192.168.0.1'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4040&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;8888&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;From the Python &lt;a href="https://docs.python.org/3/library/socket.html#socket-families"&gt;socket documentation&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A pair &lt;code&gt;(host, port)&lt;/code&gt; is used for the &lt;code&gt;AF_INET&lt;/code&gt; address family,
+where &lt;em&gt;host&lt;/em&gt; is a string representing either a hostname
+in Internet domain notation like ‘daring.cwi.nl’ or an IPv4 address like ‘100.50.200.5’,
+and &lt;em&gt;port&lt;/em&gt; is an integer.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The following custom query would find these insecure bindings:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;/**&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@name&lt;/span&gt; &lt;span class="n"&gt;Binding&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="nb"&gt;all&lt;/span&gt; &lt;span class="n"&gt;network&lt;/span&gt; &lt;span class="n"&gt;interfaces&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@description&lt;/span&gt; &lt;span class="n"&gt;Binding&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="nb"&gt;all&lt;/span&gt; &lt;span class="n"&gt;interfaces&lt;/span&gt; &lt;span class="n"&gt;would&lt;/span&gt;
+   &lt;span class="nb"&gt;open&lt;/span&gt; &lt;span class="n"&gt;up&lt;/span&gt; &lt;span class="n"&gt;traffic&lt;/span&gt; &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;any&lt;/span&gt; &lt;span class="nn"&gt;IPv4&lt;/span&gt; &lt;span class="nn"&gt;address&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="n"&gt;therefore&lt;/span&gt; &lt;span class="n"&gt;associated&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;security&lt;/span&gt; &lt;span class="n"&gt;risks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@kind&lt;/span&gt; &lt;span class="n"&gt;problem&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@tags&lt;/span&gt; &lt;span class="n"&gt;security&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@problem.severity&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@id&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;all&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;network&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;interfaces&lt;/span&gt;
+ &lt;span class="o"&gt;*/&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;Value&lt;/span&gt; &lt;span class="n"&gt;aSocket&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getClass&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"socket.socket"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;CallNode&lt;/span&gt; &lt;span class="n"&gt;socketBindCall&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;aSocket&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;attr&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"bind"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;CallableValue&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getACall&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;allInterfaces&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"0.0.0.0"&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;""&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;CallNode&lt;/span&gt; &lt;span class="nn"&gt;call&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;address&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt;
+  &lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;socketBindCall&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getArg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getNode&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Tuple&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getElt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;StrConst&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getText&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;allInterfaces&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getNode&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="s2"&gt;"'"&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;address&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s2"&gt;"' binds a socket to all interfaces."&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="using-insecure-ssl-versions"&gt;Using insecure SSL versions&lt;a class="headerlink" href="#using-insecure-ssl-versions" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;There have been quite a few security changes in Python 3’s built-in &lt;code&gt;ssl&lt;/code&gt; module.
+This is particularly true for versions 3.6 and 3.7.
+Visit &lt;a href="https://python-security.readthedocs.io/ssl.html"&gt;Python SSL and TLS security&lt;/a&gt;
+to learn about evolution of the &lt;code&gt;ssl&lt;/code&gt; module.
+SSL versions 2 are 3 are now considered to be insecure
+and official Python documentation discourages their use.
+Since Python 3.6, many protocol versions
+such as &lt;code&gt;ssl.PROTOCOL_SSLv23&lt;/code&gt; and &lt;code&gt;ssl.PROTOCOL_SSLv2&lt;/code&gt;, are deprecated
+and OpenSSL has removed support for &lt;code&gt;SSLv2&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;From Python 3.6 onward, it is best to use the &lt;code&gt;ssl.PROTOCOL_TLS&lt;/code&gt; protocol.
+From the &lt;a href="https://docs.python.org/3/library/ssl.html#ssl.PROTOCOL_TLS"&gt;docs page&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;ssl.PROTOCOL_TLS&lt;/code&gt;: Selects the highest protocol version that both the client and server support.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Although you can specify the SSL version in an &lt;code&gt;ssl.wrap_socket&lt;/code&gt; call,
+this was deprecated in version 3.7.
+Instead, the use of a more secure alternative is suggested by the &lt;a href="https://docs.python.org/3/library/ssl.html#ssl.wrap_socket"&gt;Python docs&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Since Python 3.2 and 2.7.9,
+it is recommended to use the &lt;code&gt;SSLContext.wrap_socket()&lt;/code&gt; instead of &lt;code&gt;wrap_socket()&lt;/code&gt;.
+The top-level function is limited
+and creates an insecure client socket without server name indication or hostname matching.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;There is a built-in query, &lt;a href="https://lgtm.com/rules/1507225275976/"&gt;Default version of SSL/TLS may be insecure&lt;/a&gt;,
+which finds uses of &lt;code&gt;SSLContext.wrap_socket()&lt;/code&gt;.
+For earlier versions of Python, you want to make sure
+that you’re not using insecure versions of SSL
+such as &lt;code&gt;ssl.PROTOCOL_SSLv2&lt;/code&gt; or &lt;code&gt;ssl.PROTOCOL_SSLv3&lt;/code&gt;.
+For this, there is another built-in query, &lt;a href="https://lgtm.com/rules/1507248366243/"&gt;Use of insecure SSL/TLS version&lt;/a&gt;,
+which finds insecure SSL/TLS versions both for &lt;code&gt;pyOpenSSL.SSL&lt;/code&gt;
+(a Python wrapper around the &lt;code&gt;OpenSSL&lt;/code&gt; library)
+and for the built-in &lt;code&gt;ssl&lt;/code&gt; module.&lt;/p&gt;
+&lt;h3 id="not-validating-certificates-in-https-connections"&gt;Not validating certificates in HTTPS connections&lt;a class="headerlink" href="#not-validating-certificates-in-https-connections" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;During an HTTPS request, it is important to verify SSL certificates,
+which is exactly what any modern web browser does nowadays.
+Up to versions Python 2.7.9 (for Python 2) and Python 3.4.3 (for Python 3),
+CPython modules that dealt with HTTP interaction (such as &lt;code&gt;httplib&lt;/code&gt; and &lt;code&gt;urllib&lt;/code&gt;)
+did not verify the web site certificate against a trust store.
+This issue was registered as &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2014-9365"&gt;CVE-2014-9365&lt;/a&gt;
+and is an example of &lt;a href="http://cwe.mitre.org/data/definitions/295.html"&gt;CWE-295: Improper Certificate Validation&lt;/a&gt;
+which can potentially lead to a &lt;a href="https://en.wikipedia.org/wiki/Man-in-the-middle_attack"&gt;man-in-the-middle (MITM) attack&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;A de-facto standard library used by the Python community for communicating over HTTP is &lt;code&gt;requests&lt;/code&gt;.
+By default, it has &lt;a href="https://2.python-requests.org/en/master/user/advanced/#ssl-cert-verification"&gt;SSL verification enabled&lt;/a&gt;,
+and a custom exception will be thrown if certificate verification fails.
+However, it is possible to disable the verification that TLS provides:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;requests&lt;/span&gt;
+&lt;span class="n"&gt;requests&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'https://example.com'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;verify&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;To find HTTP requests that fail to verify the certificate, you can run the built-in query, &lt;a href="https://lgtm.com/rules/1506755127042/"&gt;Request without certificate validation&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id="compromising-privacy-in-universally-unique-identifiers"&gt;Compromising privacy in universally unique identifiers&lt;a class="headerlink" href="#compromising-privacy-in-universally-unique-identifiers" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://en.wikipedia.org/wiki/Universally_unique_identifier"&gt;Universally unique identifiers (UUID)&lt;/a&gt;
+can be generated using the &lt;a href="https://docs.python.org/3.6/library/uuid.html"&gt;&lt;code&gt;uuid&lt;/code&gt;&lt;/a&gt; module.
+The general recommendation is to use &lt;code&gt;uuid1()&lt;/code&gt; or &lt;code&gt;uuid4()&lt;/code&gt; to generate a unique identifier.
+However, &lt;code&gt;uuid1()&lt;/code&gt; may compromise privacy
+because the UUID will include the computer’s network address.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;uuid4()&lt;/code&gt;, in contrast, creates a random UUID
+and is simply a convenience function.
+From the &lt;a href="https://github.com/python/cpython/blob/master/Lib/uuid.py#L778"&gt;CPython source code&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;uuid4&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="sd"&gt;"""Generate a random UUID."""&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;UUID&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;bytes&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;urandom&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;16&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Furthermore, there are some concerns about the “safety” of UUIDs.
+From the &lt;a href="https://docs.python.org/3.7/library/uuid.html"&gt;Python docs&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Depending on support from the underlying platform,
+&lt;code&gt;uuid1()&lt;/code&gt; may or may not return a “safe” UUID.
+A safe UUID is one which is generated using synchronization methods
+that ensure no two processes can obtain the same UUID.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;To find version 1 UUIDs generated by &lt;code&gt;uuid.UUID(bytes=values, version=1)&lt;/code&gt;
+or &lt;code&gt;uuid.uuid1()&lt;/code&gt;, as in the code snippet below,&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;uuid&lt;/span&gt;
+
+&lt;span class="n"&gt;id1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;uuid&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;uuid1&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;id2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;uuid&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;UUID&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;bytes&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;urandom&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;16&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;id3&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;uuid&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;UUID&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;None&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="sa"&gt;b&lt;/span&gt;&lt;span class="s1"&gt;'1234567891234567'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;None&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;None&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;None&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;we can run the following custom query:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;/**&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@name&lt;/span&gt; &lt;span class="n"&gt;Using&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;uuid1&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;generating&lt;/span&gt; &lt;span class="n"&gt;UUID&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@description&lt;/span&gt; &lt;span class="n"&gt;uuid1&lt;/span&gt; &lt;span class="n"&gt;will&lt;/span&gt; &lt;span class="n"&gt;use&lt;/span&gt; &lt;span class="n"&gt;machine&lt;/span&gt;&lt;span class="s1"&gt;'s network address&lt;/span&gt;
+   &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;generating&lt;/span&gt; &lt;span class="n"&gt;UUID&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;may&lt;/span&gt; &lt;span class="n"&gt;compromise&lt;/span&gt; &lt;span class="n"&gt;privacy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@kind&lt;/span&gt; &lt;span class="n"&gt;problem&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@tags&lt;/span&gt; &lt;span class="n"&gt;security&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@problem.severity&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@id&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;using&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uuid1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;UUID&lt;/span&gt;
+ &lt;span class="o"&gt;*/&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;CallNode&lt;/span&gt; &lt;span class="nn"&gt;call&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt;
+  &lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"uuid.uuid1"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getACall&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="ow"&gt;or&lt;/span&gt;
+  &lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"uuid.UUID"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getACall&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getArgByName&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"version"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getNode&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntegerLiteral&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getValue&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+    &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getArg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getNode&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntegerLiteral&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getValue&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+  &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"uuid1 will use machine's network address and may compromise privacy."&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="use-of-assert-statements-to-control-program-flow"&gt;Use of ‘assert’ statements to control program flow&lt;a class="headerlink" href="#use-of-assert-statements-to-control-program-flow" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;assert&lt;/code&gt; statement can be used in Python to indicate
+when executing the code would result in program failure
+or the retrieval of incorrect results.
+It is very common to use &lt;code&gt;assert&lt;/code&gt; in unit and integration tests.
+However, &lt;code&gt;assert&lt;/code&gt; statements are disabled
+when &lt;a href="https://docs.python.org/3/using/cmdline.html#envvar-PYTHONOPTIMIZE"&gt;you run a Python program with optimization enabled&lt;/a&gt;.
+Running &lt;code&gt;python -O program.py&lt;/code&gt; means that &lt;code&gt;assert&lt;/code&gt; statements are ignored
+which may give a certain performance boost
+(either significant or negligible
+depending on how time-consuming the &lt;code&gt;assert&lt;/code&gt; statements are).&lt;/p&gt;
+&lt;p&gt;This means that it can be unwise to rely on &lt;code&gt;assert&lt;/code&gt; statements
+to define the logic of a program execution flow,
+if you plan to run your Python programs with optimization enabled
+or the code may be run outside of your control.
+Moreover, use of &lt;code&gt;assert&lt;/code&gt; statements can be associated with security risks.
+Consider this Python code snippet:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;get_customers&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;"""Get list of customers."""&lt;/span&gt;
+    &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;is_superuser&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s2"&gt;"User is not a member of superuser group"&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;db&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;lookup&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'customers'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;When this program is run in optimized mode,
+the &lt;code&gt;assert&lt;/code&gt; statement will be ignored
+and any user would be able to get a list of customers,
+regardless of whether they are a member of the &lt;code&gt;superuser&lt;/code&gt; group or not.&lt;/p&gt;
+&lt;p&gt;This code can be rewritten more securely, without &lt;code&gt;assert&lt;/code&gt; statements, as:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;get_customers&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;"""Get list of customers."""&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;is_superuser&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;raise&lt;/span&gt; &lt;span class="ne"&gt;PermissionError&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"User is not a member of superuser group"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;db&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;lookup&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'customers'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Writing a custom query that catches all &lt;code&gt;assert&lt;/code&gt; statements is trivial,
+however, all legitimate uses of &lt;code&gt;assert&lt;/code&gt; would also be caught
+so you would need to look through each result manually.
+Optionally, you could search for &lt;code&gt;assert&lt;/code&gt; statements used outside of tests.
+This query searches for all &lt;code&gt;is_superuser&lt;/code&gt; function calls within the &lt;code&gt;assert&lt;/code&gt; statements.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;AstNode&lt;/span&gt; &lt;span class="nn"&gt;ast&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Assert&lt;/span&gt; &lt;span class="k"&gt;assert&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt;
+  &lt;span class="k"&gt;assert&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;contains&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ast&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;ast&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Call&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFunc&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Name&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getId&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"is_superuser"&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;ast&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="parsing-external-files-content-into-python-objects"&gt;Parsing external files content into Python objects&lt;a class="headerlink" href="#parsing-external-files-content-into-python-objects" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Python provides multiple ways to read external files
+and load their content into Python objects.
+There are &lt;code&gt;exec&lt;/code&gt; and &lt;code&gt;eval&lt;/code&gt; built-in functions
+along with &lt;code&gt;pickle&lt;/code&gt; (or &lt;code&gt;cPickle&lt;/code&gt; in Python 2).
+External packages such as &lt;a href="https://pyyaml.org/wiki/PyYAMLDocumentation"&gt;&lt;code&gt;PyYAML&lt;/code&gt;&lt;/a&gt;
+can also be used to parse YAML file contents.&lt;/p&gt;
+&lt;p&gt;Because data from external sources may not be secure,
+the general security guidelines are that you should never unpickle
+or load by parsing any data received from an untrusted source.&lt;/p&gt;
+&lt;p&gt;There is a built-in query, &lt;a href="https://lgtm.com/rules/1506218107765/"&gt;Deserializing untrusted input&lt;/a&gt;,
+that highlights code that may be a security concern
+when unpickling and other deserialization happens.
+The general recommendation is to avoid constructing arbitrary Python objects via &lt;code&gt;pickle&lt;/code&gt;
+or via a &lt;code&gt;pyYAML&lt;/code&gt; package if the data comes from an untrusted source (the internet in particular).
+&lt;code&gt;PyYAML&lt;/code&gt;, however, has the &lt;code&gt;safe_load&lt;/code&gt; function
+which limits what can be loaded to simple Python objects.&lt;/p&gt;
+&lt;p&gt;In this Python code snippet, a class instance is created based on the YAML file contents
+(posted here as a string in &lt;code&gt;yaml.load&lt;/code&gt; for brevity):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;yaml&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;PasswordReader&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;object&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;readlines&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__repr__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"PasswordReader: &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;
+
+
+&lt;span class="n"&gt;obj&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;yaml&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"""&lt;/span&gt;
+&lt;span class="s2"&gt;!!python/object:__main__.PasswordReader&lt;/span&gt;
+&lt;span class="s2"&gt;path: /etc/passwd&lt;/span&gt;
+&lt;span class="s2"&gt;"""&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;obj&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Using &lt;code&gt;yaml.safe_load&lt;/code&gt; would block construction of the class instance object
+unless it has been marked as safe.
+To be considered safe, it should inherit from &lt;code&gt;yaml.YAMLObject&lt;/code&gt;
+and have a property &lt;code&gt;yaml_loader&lt;/code&gt; set to &lt;code&gt;yaml.SafeLoader&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;This custom query was written to find unsafe &lt;code&gt;yaml.load&lt;/code&gt; calls in your codebase:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;/**&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@name&lt;/span&gt; &lt;span class="n"&gt;Using&lt;/span&gt; &lt;span class="n"&gt;insecure&lt;/span&gt; &lt;span class="n"&gt;yaml&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@description&lt;/span&gt; &lt;span class="n"&gt;yaml&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt; &lt;span class="n"&gt;may&lt;/span&gt; &lt;span class="n"&gt;be&lt;/span&gt; &lt;span class="n"&gt;unsafe&lt;/span&gt;
+   &lt;span class="n"&gt;when&lt;/span&gt; &lt;span class="n"&gt;loading&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;untrusted&lt;/span&gt; &lt;span class="nn"&gt;sources&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@kind&lt;/span&gt; &lt;span class="n"&gt;problem&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@tags&lt;/span&gt; &lt;span class="n"&gt;security&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@problem.severity&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;
+ &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nd"&gt;@id&lt;/span&gt; &lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;using&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;yaml&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;
+ &lt;span class="o"&gt;*/&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;CallNode&lt;/span&gt; &lt;span class="nn"&gt;call&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"yaml.load"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getACall&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getNode&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="s2"&gt;"yaml.load function may be unsafe when&lt;/span&gt;
+&lt;span class="n"&gt;loading&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;untrusted&lt;/span&gt; &lt;span class="nn"&gt;sources.&lt;/span&gt; &lt;span class="nn"&gt;Use&lt;/span&gt; &lt;span class="nn"&gt;yaml.safe_load&lt;/span&gt; &lt;span class="nn"&gt;instead.&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This type of custom query, where you search for a specific function call, is fairly common.
+This approach can be used for any language feature that was considered safe a few years ago
+but the current recommendation is to use a newer version or an alternative, more robust one.&lt;/p&gt;
+&lt;p&gt;For examples of how you can write your own queries to find the use of a certain function
+or import of a module, review the following built-in queries:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://lgtm.com/rules/9980084/"&gt;Deprecated slice method&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://lgtm.com/rules/4860084/"&gt;Import of deprecated module&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://lgtm.com/rules/3960095/"&gt;Use of exit() or quit()&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In most cases, you want to make sure
+that the older or less secure function could not be used in the new code being written.
+The power of writing your own custom queries, however, lies in
+the ability to go beyond built-in queries
+and to look for the functions or class methods that you decide to blacklist.
+You can write a new query to trigger an alert
+if a blacklisted function is found.
+&lt;a href="https://lgtm.com/"&gt;LGTM.com&lt;/a&gt; provides &lt;a href="[https://lgtm.com/help/lgtm/managing-automated-code-review]"&gt;automatic code review functionality&lt;/a&gt;
+to prevent bugs from ever making it to your project.
+If you add custom queries to your repository, then you’ll also get alerts if a pull request contains functions or class methods that you’ve blacklisted.  &lt;/p&gt;
+&lt;h3 id="references"&gt;References&lt;a class="headerlink" href="#references" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Here are some references to Python security resources you may find useful.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://nvd.nist.gov/"&gt;National Vulnerability Database&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://cwe.mitre.org/"&gt;MITRE CWE database&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://bugs.python.org"&gt;Python bug tracker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.cvedetails.com/vendor/10210/Python.html"&gt;Python vulnerability statistics&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://security.openstack.org/#secure-development-guidelines"&gt;OpenStack Secure Development Guidelines&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://help.semmle.com/wiki/label/python/security"&gt;Security related built-in Python queries&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://bandit.readthedocs.io/en/latest/"&gt;Bandit - Python security tool&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://python-security.readthedocs.io/security.html"&gt;Python security overview&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://python-security.readthedocs.io/vulnerabilities.html"&gt;Python security vulnerabilities&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="QL"></category><category term="python"></category><category term="QL"></category></entry><entry><title>Finding Python code compatibility issues with QL</title><link href="/finding-python-compatibility-issues-with-ql.html" rel="alternate"></link><published>2019-08-13T00:00:00+01:00</published><updated>2022-02-05T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2019-08-13:/finding-python-compatibility-issues-with-ql.html</id><summary type="html">
+&lt;blockquote&gt;
+&lt;p&gt;This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">
+&lt;blockquote&gt;
+&lt;p&gt;This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for anyone who would want to learn more about QL. See &lt;a href="https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/"&gt;CodeQL for Python&lt;/a&gt; to learn more.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;In this tutorial, you’ll learn how to use QL to query a Python codebase 
+and learn how to check for Python 2/3 compatibility. 
+We’ll be writing &lt;a href="https://help.semmle.com/QL/learn-ql/ql/writing-queries/introduction-to-queries.html"&gt;alert queries&lt;/a&gt;, 
+that is, queries that highlight issues in specific locations in your code. 
+The tutorial assumes that you’re familiar with the basics of QL for Python. 
+If not, you might want to read my previous post (&lt;a href="https://blog.semmle.com/python-code-analysis-ql/"&gt;Introducing the QL libraries for Python&lt;/a&gt;).&lt;/p&gt;
+&lt;h2 id="python-2-and-3"&gt;Python 2 and 3&lt;a class="headerlink" href="#python-2-and-3" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;As the official end of life of Python 2 approaches, 
+more and more Python projects are being converted from Python 2 to Python 3.
+The majority of infrastructure projects are now on Python 3, and many are Python 3 only.
+At some point, you will likely need to upgrade your project.
+There are myriads of useful resources 
+that can help you upgrade your project’s codebase. 
+There are tools that can upgrade code in a semi-automatic fashion; 
+there are linters and static code analysis tools 
+that will help you spot code that’s not compatible with Python 3. 
+There are also quite a few documents 
+to help you learn what’s new in Python 3 
+and avoid the common pitfalls when you upgrade.&lt;/p&gt;
+&lt;p&gt;To learn more, 
+visit the main &lt;a href="https://docs.python.org/3/whatsnew/3.0.html"&gt;What’s New In Python 3.0&lt;/a&gt; reference page. 
+To learn how to write code that’s compatible with both Python 2 and Python 3, 
+visit &lt;a href="https://python-future.org/"&gt;Python-Future&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Upgrading a codebase to Python 3, or supporting both Python 2 and 3, can be a challenge. 
+The Python 2 interpreter reports a &lt;code&gt;SyntaxError&lt;/code&gt; for some of the new syntax features in Python 3. 
+Some Python 2 features aren’t available in Python 3, 
+so when the Python 3 interpreter encounters them 
+it raises a runtime error 
+or gives a different result.&lt;/p&gt;
+&lt;p&gt;For instance, the &lt;code&gt;print&lt;/code&gt; statement was replaced by the &lt;code&gt;print()&lt;/code&gt; function 
+so running a module with a &lt;code&gt;print&lt;/code&gt; statement under Python 3 
+will cause a &lt;code&gt;SyntaxError&lt;/code&gt;. 
+Using the &lt;code&gt;print&lt;/code&gt; statement as if it were a function in Python 2, 
+however, won’t raise a &lt;code&gt;SyntaxError&lt;/code&gt;, but its behavior will be different:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Python 3&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"value1"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"value2"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;value1&lt;/span&gt; &lt;span class="n"&gt;value2&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;Python 2&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"value1"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"value2"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'value1'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'value2'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In contrast, the &lt;code&gt;long&lt;/code&gt; type was removed in Python 3 
+leaving only one built-in integer type named &lt;code&gt;int&lt;/code&gt;. 
+Hence, trying to use the &lt;code&gt;long&lt;/code&gt; keyword in a module executed 
+by a Python 3 interpreter, will cause a &lt;code&gt;NameError&lt;/code&gt; at runtime:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Python 3&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="kc"&gt;True&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;long&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;Traceback&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;most&lt;/span&gt; &lt;span class="n"&gt;recent&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="n"&gt;last&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+  &lt;span class="n"&gt;File&lt;/span&gt; &lt;span class="s2"&gt;"&amp;lt;input&amp;gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;line&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;module&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="ne"&gt;NameError&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="s1"&gt;'long'&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;defined&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="using-ql"&gt;Using QL&lt;a class="headerlink" href="#using-ql" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;A series of QL queries is shown below, 
+highlighting some of the issues found 
+when working with Python 2 and 3 compatibility.
+We explain how the queries work 
+so you can learn how to use the QL libraries for Python,
+which will help you to write your own custom queries.&lt;/p&gt;
+&lt;p&gt;A Python project can be analyzed using either a Python 2 or a Python 3 interpreter. 
+To learn more, read &lt;a href="https://lgtm.com/help/lgtm/analysis-faqs#how-python-version-identified"&gt;How is the Python version identified?&lt;/a&gt; on LGTM.com.&lt;/p&gt;
+&lt;p&gt;Analysis run on LGTM will spot common errors using built-in queries. 
+To find out which version of Python was used to analyze a codebase, 
+you can use the built-in &lt;code&gt;major_version&lt;/code&gt; and &lt;code&gt;minor_version&lt;/code&gt; predicates:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;major_version&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="n"&gt;minor_version&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;These predicates will come in handy later on 
+when we will be trying to find issues in the code 
+that are relevant only for Python 2 or for Python 3.&lt;/p&gt;
+&lt;h3 id="built-in-queries"&gt;Built-in queries&lt;a class="headerlink" href="#built-in-queries" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;h4 id="syntax-error"&gt;Syntax error&lt;a class="headerlink" href="#syntax-error" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h4&gt;
+&lt;p&gt;Syntax errors are found by the built-in &lt;a href="https://lgtm.com/rules/4860085/"&gt;Syntax error&lt;/a&gt; query. 
+They prevent a module being evaluated and thus imported. 
+An attempt to import a module with invalid syntax will fail; 
+a &lt;code&gt;SyntaxError&lt;/code&gt; will be raised. 
+Syntax errors are caused by invalid Python syntax,
+for example:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# variables cannot contain any symbol &lt;/span&gt;
+&lt;span class="c1"&gt;# other than a digit, a letter, and an underscore&lt;/span&gt;
+&lt;span class="n"&gt;variable&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"value"&lt;/span&gt;
+
+&lt;span class="c1"&gt;# attempt to use an invalid increment operator&lt;/span&gt;
+&lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;
+&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;
+
+&lt;span class="c1"&gt;# incorrect usage of lambda&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# invalid inequality test&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;source&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Note that in Python 2, it’s okay to mix tabs and spaces for code indentation. 
+However, in Python 3, a new &lt;a href="https://docs.python.org/3/library/exceptions.html#TabError"&gt;&lt;code&gt;TabError&lt;/code&gt;&lt;/a&gt; 
+is raised when indentation contains an inconsistent use of tabs and spaces. 
+This type of error is also caught by the syntax errors check.&lt;/p&gt;
+&lt;h4 id="encoding-error"&gt;Encoding error&lt;a class="headerlink" href="#encoding-error" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h4&gt;
+&lt;p&gt;Encoding errors are found by the built-in &lt;a href="https://lgtm.com/rules/1814222703/"&gt;Encoding error&lt;/a&gt; query.
+They prevent a module being evaluated and thus imported. 
+An attempt to import a module with an invalid encoding will fail; 
+a &lt;code&gt;SyntaxError&lt;/code&gt; will be raised. 
+Note that in Python 2, the default encoding is ASCII.&lt;/p&gt;
+&lt;h3 id="existing-custom-queries"&gt;Existing custom queries&lt;a class="headerlink" href="#existing-custom-queries" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;In addition to the built-in queries that are part of the core LGTM suite, 
+there are a few custom queries 
+that the community of QL writers has contributed.
+I myself wrote a new custom query shortly after I joined Semmle 
+while I was learning how the QL libraries for Python worked. 
+This query, &lt;code&gt;Use of 'return' or 'yield' outside a function&lt;/code&gt;,
+was first published in the &lt;a href="https://github.com/Semmle/ql/blob/653c8b8496cd0d95e459d1cd7a95083970d37cba/python/ql/src/Statements/ReturnOrYieldOutsideFunction.ql"&gt;public GitHub QL repository&lt;/a&gt; 
+and later became a built-in query that is run on &lt;a href="https://lgtm.com/rules/1509050896213/"&gt;LGTM.com&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id="writing-new-ql-queries"&gt;Writing new QL queries&lt;a class="headerlink" href="#writing-new-ql-queries" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="new-raise-from-syntax"&gt;New ‘raise from’ syntax&lt;a class="headerlink" href="#new-raise-from-syntax" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://www.python.org/dev/peps/pep-3109/"&gt;PEP 3109 – Raising Exceptions in Python 3000&lt;/a&gt; and &lt;a href="https://www.python.org/dev/peps/pep-3134/"&gt;PEP 3134 – Exception Chaining and Embedded Tracebacks&lt;/a&gt; 
+introduced new syntax for the raise statement: &lt;code&gt;raise [expr [from expr]]&lt;/code&gt;. 
+The optional &lt;code&gt;from&lt;/code&gt; clause can be used to chain exceptions. 
+When &lt;code&gt;from&lt;/code&gt; is used, the second expression must be another exception class or instance. 
+To learn more, visit &lt;a href="https://docs.python.org/3/reference/simple_stmts.html#raise"&gt;The raise statement&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Since version 3.3, you can use &lt;code&gt;None&lt;/code&gt; to suppress the chained exception, for example:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+&lt;span class="k"&gt;except&lt;/span&gt; &lt;span class="ne"&gt;Exception&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;raise&lt;/span&gt; &lt;span class="ne"&gt;Exception&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;However, a project style guide may discourage the suppression of exception chaining using &lt;code&gt;from None&lt;/code&gt;,
+for example, to maintain backwards compatibility. 
+If this is the case, you would want to find all such occurrences. &lt;/p&gt;
+&lt;p&gt;The QL libraries for Python contain classes that are useful for finding this syntax.
+These can be imported and used in a custom QL query. 
+The easiest way to find this type of &lt;code&gt;raise&lt;/code&gt; statement is to use the &lt;code&gt;Raise&lt;/code&gt; class. 
+Using this QL query, we can spot when the &lt;code&gt;raise from None&lt;/code&gt; syntax is used:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Raise&lt;/span&gt; &lt;span class="nn"&gt;r&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getCause&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getAFlowNode&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pointsTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"None"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;.getCause()&lt;/code&gt; method gives us the cause of the &lt;code&gt;raise&lt;/code&gt; statement 
+and it’s possible to find out 
+what object this cause points to using the &lt;code&gt;.pointsTo()&lt;/code&gt; method. 
+In this case, we test whether this is a &lt;code&gt;None&lt;/code&gt; object. &lt;/p&gt;
+&lt;p&gt;To extend our query, we could check 
+whether a valid object is being used in the &lt;code&gt;from&lt;/code&gt; part. 
+The object can be either &lt;code&gt;None&lt;/code&gt;
+or a valid exception class or instance.&lt;/p&gt;
+&lt;p&gt;For example, this &lt;code&gt;raise&lt;/code&gt; statement has an invalid object so, 
+a &lt;code&gt;TypeError&lt;/code&gt; with the message, &lt;code&gt;TypeError: exception causes must derive from BaseException&lt;/code&gt;, 
+is raised when it’s run:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;except&lt;/span&gt; &lt;span class="ne"&gt;Exception&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;exc&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;raise&lt;/span&gt; &lt;span class="ne"&gt;RuntimeError&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"Something happened"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="s2"&gt;"Program stopped"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This QL query will find all &lt;code&gt;raise ... from ...&lt;/code&gt; statements 
+where the &lt;code&gt;from&lt;/code&gt; object is invalid.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Raise&lt;/span&gt; &lt;span class="nn"&gt;r&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getCause&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getAFlowNode&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pointsTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+      &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"None"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+      &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getClass&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getASuperType&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"BaseException"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;A class instance is a legal exception type 
+if it inherits from the &lt;code&gt;BaseException&lt;/code&gt; class. 
+Thus, this query would be able to spot 
+when an invalid object type is used in the &lt;code&gt;raise from&lt;/code&gt; clause.&lt;/p&gt;
+&lt;h3 id="support-for-unicode-in-identifier-names"&gt;Support for unicode in identifier names&lt;a class="headerlink" href="#support-for-unicode-in-identifier-names" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;In Python 2, only ASCII characters could be used in the names of Python identifiers 
+including, but not limited to, variables, functions, and classes. 
+Trying to define a variable &lt;code&gt;café&lt;/code&gt; (e-acute) in Python 2, 
+would result in a &lt;code&gt;SyntaxError: invalid syntax&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;In Python 3, with &lt;a href="https://www.python.org/dev/peps/pep-3131/"&gt;PEP 3131 – Supporting Non-ASCII Identifiers&lt;/a&gt;, this limitation was removed 
+and now additional characters from outside the ASCII range (see the &lt;a href="https://docs.python.org/3/reference/lexical_analysis.html#identifiers"&gt;docs&lt;/a&gt;) 
+could be used in identifier names. 
+This code is valid in Python 3: &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;café&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;object&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;café&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;However, a project style guide may prohibit the use of non-ASCII characters in identifiers
+to maintain backwards compatibility. 
+To find identifiers that break this rule 
+we have to find all identifiers 
+that contain characters other than letters, numbers, and the underscore symbol. 
+This can be done using a regular expression. 
+We don’t have to worry about the validity of identifier names; 
+a built-in query already finds any syntax errors, 
+such as variable names that don’t start with an underscore or a letter. 
+Since this check is relevant only for Python 3, a condition of &lt;code&gt;major_version() = 3&lt;/code&gt; is included.
+In Python 2 this issue would be caught by the query 
+that reports all &lt;code&gt;SyntaxError&lt;/code&gt; cases.&lt;/p&gt;
+&lt;p&gt;This QL query finds all non-ASCII Python identifiers.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;string&lt;/span&gt; &lt;span class="nn"&gt;identifier&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;AstNode&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; 
+    &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;identifier&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Name&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getId&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="ow"&gt;or&lt;/span&gt;
+    &lt;span class="n"&gt;identifier&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Attribute&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;identifier&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;regexpMatch&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"[a-zA-Z_][a-zA-Z_0-9]*"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;major_version&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Non ASCII character in identifier's name"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In this query, the &lt;code&gt;Name&lt;/code&gt; class represents the names of identifiers. 
+The &lt;code&gt;Attribute&lt;/code&gt; class represents the names of attribute expressions, 
+for example, a class method.
+We need to use the &lt;code&gt;AstNode&lt;/code&gt; class to access the location of each identifier in the code. 
+However, the &lt;code&gt;AstNode&lt;/code&gt; class doesn’t provide the identifier’s name 
+as a string that we can test using a regular expression. 
+To get the name as a string, we call the member predicates &lt;code&gt;.getId()&lt;/code&gt; and &lt;code&gt;.getName()&lt;/code&gt;.
+Since these are defined for a more specific type, we need to use a type cast.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dive in: This could have been done using postfix and prefix casts. Visit the &lt;a href="https://help.semmle.com/QL/ql-handbook/expressions.html#casts"&gt;Casts&lt;/a&gt; help page to learn more.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="comparing-objects-of-different-types"&gt;Comparing objects of different types&lt;a class="headerlink" href="#comparing-objects-of-different-types" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;In Python 2, objects of different types are ordered by their type names 
+(with the exception of numbers). 
+This results in behavior 
+that can puzzle developers who are unfamiliar with this implementation detail.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Python 2:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;print&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="s2"&gt;"Text"&lt;/span&gt;
+&lt;span class="kc"&gt;True&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;'Text'&lt;/span&gt; 
+&lt;span class="kc"&gt;False&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This comparison essentially compares the types of the objects, that is: &lt;code&gt;'int' &amp;lt; 'str'&lt;/code&gt;. 
+This is &lt;code&gt;True&lt;/code&gt; because the word representing type &lt;code&gt;int&lt;/code&gt; starts with &lt;code&gt;i&lt;/code&gt; 
+which is smaller than &lt;code&gt;s&lt;/code&gt; - the &lt;code&gt;str&lt;/code&gt; type (using lexicographic order). 
+Likewise, because &lt;code&gt;'list' &amp;gt; 'str'&lt;/code&gt; is &lt;code&gt;False&lt;/code&gt;, 
+comparing a list object to a string object would return &lt;code&gt;False&lt;/code&gt;.  &lt;/p&gt;
+&lt;p&gt;In Python 3, if you use ordering comparison operators 
+when the operands don’t have a natural ordering 
+that makes sense, a &lt;code&gt;TypeError&lt;/code&gt; exception is raised. 
+This implies that there can be Python 2 code 
+which may compare objects of different types 
+and this would not be an issue 
+until you run the program with a Python 3 interpreter.&lt;/p&gt;
+&lt;p&gt;For instance, this valid Python 2 code would fail in Python 3:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;30&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;mapper&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;"Source"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;"Target"&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;mapper&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;mapper&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We can use QL to write a custom query 
+that finds comparisons of invalid data types.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;ClassValue&lt;/span&gt; &lt;span class="n"&gt;orderedType&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;typename&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;typename&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;
+    &lt;span class="n"&gt;typename&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"str"&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;typename&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"float"&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;typename&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"list"&lt;/span&gt;
+  &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt;
+  &lt;span class="nn"&gt;CompareNode&lt;/span&gt; &lt;span class="nn"&gt;compare&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ControlFlowNode&lt;/span&gt; &lt;span class="n"&gt;left&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ControlFlowNode&lt;/span&gt; &lt;span class="n"&gt;right&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+  &lt;span class="n"&gt;Context&lt;/span&gt; &lt;span class="n"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt; &lt;span class="n"&gt;lval&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt; &lt;span class="n"&gt;rval&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Cmpop&lt;/span&gt; &lt;span class="n"&gt;op&lt;/span&gt;
+
+&lt;span class="n"&gt;where&lt;/span&gt;
+  &lt;span class="n"&gt;compare&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;operands&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;left&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;op&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;right&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;op&lt;/span&gt; &lt;span class="n"&gt;instanceof&lt;/span&gt; &lt;span class="n"&gt;Lt&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+    &lt;span class="n"&gt;op&lt;/span&gt; &lt;span class="n"&gt;instanceof&lt;/span&gt; &lt;span class="n"&gt;LtE&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+    &lt;span class="n"&gt;op&lt;/span&gt; &lt;span class="n"&gt;instanceof&lt;/span&gt; &lt;span class="n"&gt;Gt&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+    &lt;span class="n"&gt;op&lt;/span&gt; &lt;span class="n"&gt;instanceof&lt;/span&gt; &lt;span class="n"&gt;GtE&lt;/span&gt;
+  &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;left&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pointsTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;lval&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;right&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pointsTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;rval&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;lval&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getClass&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="n"&gt;rval&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getClass&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;lval&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getClass&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;orderedType&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;rval&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getClass&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;orderedType&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;compare&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Invalid comparison of objects due to type difference"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;At this point it might be useful to refactor the code above 
+because the &lt;code&gt;where&lt;/code&gt; clause gets too difficult to read.
+We can define a helper predicate, &lt;code&gt;incomparableTypes&lt;/code&gt;, that would hold 
+if comparison expressions are of incompatible types:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;incomparableTypes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ClassValue&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ClassValue&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; 
+    &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;orderedType&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+    &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;orderedType&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;ClassValue&lt;/span&gt; &lt;span class="n"&gt;orderedType&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;typename&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;typename&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;
+    &lt;span class="n"&gt;typename&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"str"&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;typename&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"float"&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;typename&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"list"&lt;/span&gt;
+  &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt;
+  &lt;span class="nn"&gt;CompareNode&lt;/span&gt; &lt;span class="nn"&gt;compare&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ControlFlowNode&lt;/span&gt; &lt;span class="n"&gt;left&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ControlFlowNode&lt;/span&gt; &lt;span class="n"&gt;right&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+  &lt;span class="n"&gt;Context&lt;/span&gt; &lt;span class="n"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt; &lt;span class="n"&gt;lval&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt; &lt;span class="n"&gt;rval&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Cmpop&lt;/span&gt; &lt;span class="n"&gt;op&lt;/span&gt;
+
+&lt;span class="n"&gt;where&lt;/span&gt;
+  &lt;span class="n"&gt;compare&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;operands&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;left&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;op&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;right&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;op&lt;/span&gt; &lt;span class="n"&gt;instanceof&lt;/span&gt; &lt;span class="n"&gt;Lt&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+    &lt;span class="n"&gt;op&lt;/span&gt; &lt;span class="n"&gt;instanceof&lt;/span&gt; &lt;span class="n"&gt;LtE&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+    &lt;span class="n"&gt;op&lt;/span&gt; &lt;span class="n"&gt;instanceof&lt;/span&gt; &lt;span class="n"&gt;Gt&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+    &lt;span class="n"&gt;op&lt;/span&gt; &lt;span class="n"&gt;instanceof&lt;/span&gt; &lt;span class="n"&gt;GtE&lt;/span&gt;
+  &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;left&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pointsTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;lval&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;right&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pointsTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;rval&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;incomparableTypes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lval&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;rval&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;compare&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Invalid comparison of objects due to type difference"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;left&lt;/code&gt; and &lt;code&gt;right&lt;/code&gt; expressions of the comparison can be inspected to check 
+what type they point to using the &lt;code&gt;.pointsTo()&lt;/code&gt; method.
+We use the don’t care variable &lt;code&gt;_&lt;/code&gt; to state
+that we don’t care what kind of &lt;code&gt;Value&lt;/code&gt; the left and right expressions point to, 
+however, they must be of a certain type.&lt;/p&gt;
+&lt;p&gt;The query above currently only supports comparing strings, floats, and lists. 
+However, it is easy to extend it just by copying the relevant &lt;code&gt;where&lt;/code&gt; section 
+and changing the class types. 
+For instance, to extend this query to include the comparison of integer objects, 
+you would just need to add the following section:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;...&lt;/span&gt;
+&lt;span class="err"&gt;ClassValue orderedType() {&lt;/span&gt;
+&lt;span class="err"&gt;  exists(string typename | result = Value::named(typename) |&lt;/span&gt;
+&lt;span class="err"&gt;    typename = "str" or typename = "float" or &lt;/span&gt;
+&lt;span class="err"&gt;    typename = "list" or typename = "int"&lt;/span&gt;
+&lt;span class="err"&gt;  )&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;...&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="octal-literals-syntax-support"&gt;Octal literals syntax support&lt;a class="headerlink" href="#octal-literals-syntax-support" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Octal literals in Python 3 can no longer be defined in the form of a number 
+starting with &lt;code&gt;0&lt;/code&gt;, such as &lt;code&gt;0562&lt;/code&gt;,
+as they could be in Python 2. 
+Python 2 has two methods for defining octal literals:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0562&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mo"&gt;0o562&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="kc"&gt;True&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Python 3 only supports the second of these syntaxes and using &lt;code&gt;0562&lt;/code&gt; would cause a &lt;code&gt;SyntaxError&lt;/code&gt;. 
+Instead, you need to use a zero followed by a lower or upper case &lt;code&gt;o&lt;/code&gt; (that is, &lt;code&gt;o&lt;/code&gt; and &lt;code&gt;O&lt;/code&gt;),
+for example, &lt;code&gt;0o562&lt;/code&gt; or &lt;code&gt;0O562&lt;/code&gt; . 
+The upper case &lt;code&gt;O&lt;/code&gt; looks very similar to zero (&lt;code&gt;0&lt;/code&gt;) 
+so using a lowercase &lt;code&gt;o&lt;/code&gt; may be preferable. &lt;/p&gt;
+&lt;p&gt;Therefore, it can be helpful to search for octal literals in Python 2 
+that don’t use &lt;code&gt;o&lt;/code&gt; to avoid issues after converting the codebase to Python 3. 
+Fortunately, there’s already an existing query - &lt;a href="https://lgtm.com/rules/1800090/"&gt;Confusing octal literal&lt;/a&gt; - 
+which finds octal literals with a leading &lt;code&gt;0&lt;/code&gt; 
+because they can easily be misread as decimal values. 
+This query does just what we need.&lt;/p&gt;
+&lt;p&gt;It’s worth bearing in mind that this query doesn’t raise alerts for octal literals 
+that are of 4, 5, or 7 digits in length. 
+These are ignored because Python code may include Unix permission mode octals
+which can be safely ignored. 
+Here we want to raise an alert for all octal literals, 
+so we simply remove the part 
+that filters out octals of a certain length. 
+This QL query finds all octal literals 
+that would raise &lt;code&gt;SyntaxError&lt;/code&gt; in Python 3:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;is_old_octal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntegerLiteral&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getText&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;
+    &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"0"&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+    &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"00"&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+    &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="s2"&gt;"0"&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+    &lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;toInt&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+  &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;IntegerLiteral&lt;/span&gt; &lt;span class="nn"&gt;i&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;major_version&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;is_old_octal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Invalid octal literal"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In this query we take advantage of the &lt;code&gt;exists&lt;/code&gt; quantifier to define a predicate 
+which holds for any integer literal that starts with a zero digit.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dive in: Visit the &lt;a href="https://help.semmle.com/QL/ql-handbook/formulas.html?#exists"&gt;Explicit quantifiers&lt;/a&gt; help page to learn more about quantifiers in QL.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="delimiter-in-numeric-literals"&gt;Delimiter in numeric literals&lt;a class="headerlink" href="#delimiter-in-numeric-literals" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Python 3.6 supports using &lt;code&gt;_&lt;/code&gt; as a delimiter in numeric literals. 
+This functionality was introduced in &lt;a href="https://www.python.org/dev/peps/pep-0515/"&gt;PEP 515 – Underscores in Numeric Literals&lt;/a&gt;. 
+This is an example of how this works in Python 3.6:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="mf"&gt;5_000.46&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mf"&gt;5000.46&lt;/span&gt;
+&lt;span class="kc"&gt;True&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;5_000&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1_000&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;6000&lt;/span&gt;
+&lt;span class="kc"&gt;True&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If your project style guide prohibits using this feature, 
+for instance, for consistency with the Python 2 code, 
+then you could write a custom QL query 
+that would be able to find code where &lt;code&gt;_&lt;/code&gt; is used in numeric literals. 
+Running code with underscores in numeric literals using a Python 2 interpreter 
+would raise a &lt;code&gt;SyntaxError&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;hasUnderscore&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Num&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; 
+    &lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;int&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getText&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"_"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;numValue&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Num&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntegerLiteral&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getValue&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;toString&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+  &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;FloatLiteral&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getValue&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;toString&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Num&lt;/span&gt; &lt;span class="nn"&gt;num&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;hasUnderscore&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;num&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;num&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;num&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getText&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;AsInCode&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;numValue&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;num&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;AsToReader&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Previously, we’ve only included two items in the &lt;code&gt;select&lt;/code&gt; statement, 
+however, you can return an arbitrary number of items. 
+The &lt;code&gt;.getText()&lt;/code&gt; method gives the actual source code (for example, &lt;code&gt;5_000&lt;/code&gt;) 
+whereas the &lt;code&gt;numValue&lt;/code&gt; predicate gives the string representation of the literal 
+with underscores removed (for example, &lt;code&gt;5000&lt;/code&gt;). 
+Being able to return multiple items within the &lt;code&gt;select&lt;/code&gt; statement 
+is extremely handy during the debugging and query writing process.&lt;/p&gt;
+&lt;p&gt;If your project style guide is more relaxed 
+and permits having underscores in integers only, 
+but prohibits using underscore in floats, 
+you can adjust the query to work solely with floats:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;hasUnderscore&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Num&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; 
+    &lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;int&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getText&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"_"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Num&lt;/span&gt; &lt;span class="nn"&gt;num&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;hasUnderscore&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;num&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;num&lt;/span&gt; &lt;span class="n"&gt;instanceof&lt;/span&gt; &lt;span class="n"&gt;IntegerLiteral&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;num&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="long-integer-type-is-not-supported-by-python-3"&gt;Long integer type is not supported by Python 3&lt;a class="headerlink" href="#long-integer-type-is-not-supported-by-python-3" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;With the implementation of &lt;a href="https://www.python.org/dev/peps/pep-0237/"&gt;PEP 237 – Unifying Long Integers and Integers&lt;/a&gt;, 
+the &lt;code&gt;long&lt;/code&gt; type was merged with the &lt;code&gt;int&lt;/code&gt; type. 
+This means that having integer literals with &lt;code&gt;L&lt;/code&gt;, for example, &lt;code&gt;10560L&lt;/code&gt; in Python 3 
+would raise a &lt;code&gt;SyntaxError&lt;/code&gt; at runtime. 
+To spot integers that wouldn’t be compatible with Python 3 in your Python 2 project, 
+you can use this custom QL query:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;getLongPostfix&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"L"&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"l"&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;IntegerLiteral&lt;/span&gt; &lt;span class="nn"&gt;num&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;num&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getText&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;charAt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;num&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getText&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;length&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;getLongPostfix&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;num&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dive in: &lt;code&gt;.charAt&lt;/code&gt; string method is implemented using &lt;a href="https://docs.oracle.com/javase/10/docs/api/java/lang/String.html#charAt(int)"&gt;Java &lt;code&gt;String.charAt&lt;/code&gt;&lt;/a&gt; 
+and doesn’t support negative indexing.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="the-cmp-parameter-for-sortedlist-is-no-longer-supported"&gt;The ‘cmp’ parameter for ‘sorted(list)’ is no longer supported&lt;a class="headerlink" href="#the-cmp-parameter-for-sortedlist-is-no-longer-supported" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Running the valid Python 2 code in the example below using a Python 3 interpreter
+would result in a &lt;code&gt;TypeError&lt;/code&gt; 
+because &lt;code&gt;cmp&lt;/code&gt; is no longer a supported keyword argument for the &lt;code&gt;sorted&lt;/code&gt; function. 
+Visit &lt;a href="https://docs.python.org/3/howto/sorting.html#the-old-way-using-the-cmp-parameter"&gt;The Old Way Using the cmp Parameter&lt;/a&gt; to learn more.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;compare_as_ints&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;
+
+&lt;span class="nb"&gt;sorted&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;30&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;40&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;cmp&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;compare_as_ints&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;To spot this issue in Python code, 
+we would need to find all calls to the built-in &lt;code&gt;sorted&lt;/code&gt; function 
+and see if the &lt;code&gt;cmp&lt;/code&gt; keyword argument is being passed. 
+This QL query will find all calls to the &lt;code&gt;sorted&lt;/code&gt; function 
+where the keyword argument &lt;code&gt;cmp&lt;/code&gt; has been used.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;CallNode&lt;/span&gt; &lt;span class="nn"&gt;call&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt;
+   &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"sorted"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getACall&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+   &lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getArgByName&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"cmp"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Call to sorted built-in function with cmp keyword argument."&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code&gt;CallNode&lt;/code&gt; class represents all calls in the code. 
+We use this because we aren’t interested in function definitions 
+(which are accessed through the &lt;code&gt;Function&lt;/code&gt; class) but in function calls. 
+Once we’ve got the &lt;code&gt;sorted&lt;/code&gt; built-in function, 
+it’s just a matter of finding &lt;code&gt;sorted()&lt;/code&gt; calls 
+with the &lt;code&gt;cmp&lt;/code&gt; keyword argument supplied. 
+You could reuse this QL query to find other built-in functions 
+where the signature varies between Python versions.&lt;/p&gt;
+&lt;h3 id="methods-dictiterkeys-dictiteritems-and-dictitervalues-are-deprecated"&gt;Methods ‘dict.iterkeys()’, ‘dict.iteritems()’ and ‘dict.itervalues()’ are deprecated&lt;a class="headerlink" href="#methods-dictiterkeys-dictiteritems-and-dictitervalues-are-deprecated" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;An attempt to access any of these dictionary methods 
+would raise an &lt;code&gt;AttributeError&lt;/code&gt; 
+when running the code against a Python 3 interpreter:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iteritems&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Therefore, we might want to write a QL query 
+to spot when those methods access an object of &lt;code&gt;dict&lt;/code&gt; type.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;unsupportedDictMethod&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"iteritems"&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+  &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"iterkeys"&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt;
+  &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"itervalues"&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Attribute&lt;/span&gt; &lt;span class="nn"&gt;attr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt;
+  &lt;span class="n"&gt;attr&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getValue&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getAFlowNode&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pointsTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getClass&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;named&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"dict"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt;
+  &lt;span class="n"&gt;attr&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getAttr&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;unsupportedDictMethod&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;attr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"A deprecated dictionary method was used"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As before, the &lt;code&gt;AstNode&lt;/code&gt; root class gives us access to all elements of the source code. 
+The &lt;code&gt;Attribute&lt;/code&gt; class gives us access to all attributes that are accessed. 
+The attribute object is tied to the object 
+and this tie can be identified using the &lt;code&gt;.pointsTo()&lt;/code&gt; method. 
+Once we’ve found all the dictionary attributes throughout the source code, 
+we leave only those that are no longer supported 
+using a convenience predicate, &lt;code&gt;unsupportedDictMethod&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;This is the end of this tutorial. 
+The queries posted in this post can be executed using the &lt;a href="https://lgtm.com/query/projects:116307598/lang:python/"&gt;LGTM.com query console&lt;/a&gt;, 
+however, it’s also possible to run the queries locally using Eclipse. 
+Visit &lt;a href="https://lgtm.com/help/lgtm/running-queries-ide"&gt;Running queries in your IDE&lt;/a&gt; to learn more.
+I hope you enjoy trying out QL on your own projects!
+If you have any questions,
+don’t hesitate to ask on &lt;a href="https://discuss.lgtm.com/"&gt;the community forum&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Happy Querying!&lt;/p&gt;</content><category term="QL"></category><category term="python"></category><category term="QL"></category></entry><entry><title>Introduction to QL with Python</title><link href="/introduction-to-ql-with-python.html" rel="alternate"></link><published>2019-07-09T00:00:00+01:00</published><updated>2022-02-05T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2019-07-09:/introduction-to-ql-with-python.html</id><summary type="html">
+&lt;blockquote&gt;
+&lt;p&gt;This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">
+&lt;blockquote&gt;
+&lt;p&gt;This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for anyone who would want to learn more about QL. See &lt;a href="https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/"&gt;CodeQL for Python&lt;/a&gt; to learn more.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="overview"&gt;Overview&lt;a class="headerlink" href="#overview" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;In this tutorial, you’ll learn how to use QL to query a Python codebase and learn how to gain knowledge about tests present in your Python project.&lt;/p&gt;
+&lt;p&gt;We’ll be using QL to analyze the source code of the popular cli tool &lt;a href="https://github.com/pallets/click"&gt;click&lt;/a&gt;
+by writing &lt;a href="https://help.semmle.com/QL/learn-ql/ql/writing-queries/introduction-to-queries.html"&gt;metric queries&lt;/a&gt;
+to compute some useful statistics about the code.
+The queries posted in this tutorial can be executed using the &lt;a href="https://lgtm.com/query/projects:116307598/lang:python/"&gt;LGTM.com query console&lt;/a&gt;, 
+however, it’s also possible to run the queries locally using Eclipse.
+Visit &lt;a href="https://lgtm.com/help/lgtm/running-queries-ide"&gt;Running queries in your IDE&lt;/a&gt; to learn more.&lt;/p&gt;
+&lt;h2 id="ql-query-components"&gt;QL query components&lt;a class="headerlink" href="#ql-query-components" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;If you read the &lt;a href="https://help.semmle.com/QL/learn-ql/ql/introduction-to-ql.html"&gt;Semmle Introduction to QL&lt;/a&gt;,
+you will see how QL queries consist of 3 main clauses:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;from&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;where&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;select&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In the &lt;code&gt;from&lt;/code&gt; clause, you define the objects you would like to run queries against.
+For example, here’s a query to find all functions in a project:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;from Function f&lt;/span&gt;
+&lt;span class="err"&gt;select f&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Behind these objects, there are actually database tables that are &lt;a href="https://lgtm.com/help/lgtm/generate-database"&gt;generated in QL’s extraction process&lt;/a&gt;. 
+The database consists of dozens of tables, each of which represents a certain object type such as modules or functions.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dive in: to see what objects you can add to a &lt;code&gt;from&lt;/code&gt; clause,
+check out
+&lt;a href="https://help.semmle.com/QL/learn-ql/ql/python/introduce-libraries-python.html#summary"&gt;the most commonly used standard QL library classes&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The &lt;code&gt;where&lt;/code&gt; clause is optional,
+and in here you define restrictions on the values that the variables declared in the &lt;code&gt;from&lt;/code&gt; clause can hold.
+For instance, you would need to use the &lt;code&gt;where&lt;/code&gt; clause if you want to list all Python modules in the repository you analyze that have names starting with &lt;code&gt;_&lt;/code&gt; 
+or find all functions with more than 10 parameters.&lt;/p&gt;
+&lt;p&gt;For instance, while&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;from Function f&lt;/span&gt;
+&lt;span class="err"&gt;select f&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;selects all functions in the project,&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;from Function f&lt;/span&gt;
+&lt;span class="err"&gt;where count(f.getAnArg()) &amp;gt; 10&lt;/span&gt;
+&lt;span class="err"&gt;select f&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;selects only those functions that take more than ten arguments.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;select&lt;/code&gt; clause lets you define what you would like to get back as the result of a QL query execution.
+The results are returned as a table where each row represents a single result.
+So for example, instead of just printing the names of all the functions 
+that take more than 10 parameters, 
+you could print the number of parameters as well:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;from Function f&lt;/span&gt;
+&lt;span class="err"&gt;where count(f.getAnArg()) &amp;gt; 10&lt;/span&gt;
+&lt;span class="err"&gt;select f, count(f.getAnArg())&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As another example, here’s a query 
+that gets a list of all Python modules available in the source code repository.
+We select a module object and a constant string. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"A module"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In the next QL query, we are getting a list of Python modules 
+that have names starting with a single underscore 
+(excluding dunder modules such as &lt;code&gt;__init__.py&lt;/code&gt; which start with a double underscore).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;7269195673257399800&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;regexpMatch&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"_[^_].*"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"A private module"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You may have noticed that variable &lt;code&gt;m&lt;/code&gt; 
+(which is of the type &lt;code&gt;Module&lt;/code&gt;) 
+has the &lt;code&gt;getFile&lt;/code&gt; method associated with it.
+We can then call the &lt;code&gt;getBaseName&lt;/code&gt; method,
+which returns a string.
+Strings have their own built-in methods such as &lt;code&gt;regexpMatch&lt;/code&gt;,
+which can match a string using a regular expression.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dive in: For a full list of methods available on strings,
+see &lt;a href="https://help.semmle.com/QL/ql-spec/language.html#built-ins-for-string"&gt;Built-ins for string&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;You can see what methods and properties each of the built-in types have in the &lt;a href="https://help.semmle.com/QL/ql-spec/language.html#built-ins"&gt;QL Specification document&lt;/a&gt;.
+Having these methods on the &lt;code&gt;Module&lt;/code&gt; object makes it possible to interrogate database tables using concepts that are more abstract and intuitive to programmers.
+This means you can avoid directly dealing with the raw underlying tables of the database.&lt;/p&gt;
+&lt;h2 id="finding-test-modules"&gt;Finding test modules&lt;a class="headerlink" href="#finding-test-modules" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;We are interested in learning more about the tests in a Python project,
+so let’s first find out how many test modules are present in the repo.
+The standard Python naming convention is for test modules to begin with &lt;code&gt;test_&lt;/code&gt;.
+We can find these modules by using the &lt;code&gt;matches()&lt;/code&gt; string method 
+which matches strings in the same way as the &lt;code&gt;LIKE&lt;/code&gt; operator in SQL.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;8969473391628017193&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"test&lt;/span&gt;&lt;span class="se"&gt;\\&lt;/span&gt;&lt;span class="s2"&gt;_%"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"A test module"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Another requirement we have to meet 
+is that all test modules in the project are located within a single directory named &lt;code&gt;tests&lt;/code&gt;. 
+This is because there can potentially be regular Python modules stored in some directory 
+that just happen to have a name starting with &lt;code&gt;test_&lt;/code&gt;, e.g., &lt;code&gt;test_db_connection.py&lt;/code&gt; 
+(presumably providing means to verify that the connection to a database could be established). 
+This module may be used as a part of the application business logic,
+and is not a test module, as it won’t contain any tests.
+In this case, refining the current query doesn’t change the query results
+but it’s good practice anyway 
+because it makes the query results more stable, 
+if for example, a &lt;code&gt;test_db_connection.py&lt;/code&gt; file were to be added to the project later.&lt;/p&gt;
+&lt;p&gt;In this QL query, we are selecting Python modules 
+that are located within the &lt;code&gt;tests&lt;/code&gt; folder 
+and have a name starting with &lt;code&gt;test_&lt;/code&gt;. 
+To access the folder in which a Python module is located, 
+we need to get access to the &lt;code&gt;File&lt;/code&gt; object (because a Python module is just a plain file on disk), 
+which in turn is located in some directory (which is a &lt;code&gt;Folder&lt;/code&gt; object), 
+which in turn has a name.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;8736700387179400714&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getParent&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"tests"&lt;/span&gt;
+    &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"test&lt;/span&gt;&lt;span class="se"&gt;\\&lt;/span&gt;&lt;span class="s2"&gt;_%"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"A test module"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dive in: the &lt;code&gt;click&lt;/code&gt; repository does not have any nested folders within the &lt;code&gt;tests&lt;/code&gt; folder. 
+However, getting all test files stored in the &lt;code&gt;tests&lt;/code&gt; recursively is possible using &lt;a href="https://help.semmle.com/QL/ql-handbook/recursion.html#transitive-closures"&gt;Transitive closures&lt;/a&gt;.
+To apply the &lt;code&gt;.getParent()&lt;/code&gt; method recursively, we would need to write &lt;code&gt;m.getFile().getParent+().getBaseName() = "tests"&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;It’s possible to combine multiple condition expressions using the &lt;code&gt;and&lt;/code&gt; operator.
+If, instead your project’s test modules were either modules that
+had names starting with &lt;code&gt;test_&lt;/code&gt; &lt;strong&gt;or&lt;/strong&gt; were stored within the &lt;code&gt;tests&lt;/code&gt; folder,
+you could use the &lt;code&gt;or&lt;/code&gt; operator:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;4860024469296565410&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getParent&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"tests"&lt;/span&gt;
+    &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"test&lt;/span&gt;&lt;span class="se"&gt;\\&lt;/span&gt;&lt;span class="s2"&gt;_%"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"A test module"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="refactoring-ql-queries"&gt;Refactoring QL queries&lt;a class="headerlink" href="#refactoring-ql-queries" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;At this point, as we have identified the test modules in our project, 
+we can start learning more about the actual tests. 
+However, as our query gets bigger, 
+it makes sense to refactor some of its parts into separate entities
+which could be reused by multiple queries.
+This often has the added benefit of making the query easier to read.&lt;/p&gt;
+&lt;p&gt;In QL, a &lt;a href="https://help.semmle.com/QL/ql-handbook/predicates.html"&gt;predicate&lt;/a&gt; can be used for this. 
+In this QL query, we’ll be using a &lt;a href="https://help.semmle.com/QL/ql-handbook/predicates.html#predicates-without-result"&gt;predicate without result&lt;/a&gt;. 
+You can think of these types of predicates as boolean functions.
+In the following predicate, we pass in an argument &lt;code&gt;m&lt;/code&gt; that has the type &lt;code&gt;Module&lt;/code&gt;.
+The predicate’s body has an expression 
+that is evaluated and keeps only the modules for which the condition holds. &lt;/p&gt;
+&lt;p&gt;This QL predicate would keep only those Python modules that are located within the &lt;code&gt;tests&lt;/code&gt; folder. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;predicate isInsideTestsFolder(Module m) {&lt;/span&gt;
+&lt;span class="err"&gt;    m.getFile().getParent().getBaseName() = "tests"&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;To use a predicate within a QL query, 
+you would put a predicate call in the &lt;code&gt;where&lt;/code&gt; clause:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2694103716087854413&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;isInsideTestsFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getParent&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"tests"&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;isInsideTestsFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"A module inside tests folder"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;A predicate, just like any function, can have multiple parameters. 
+For instance, if we want to have a more generic predicate 
+that would keep modules located within any given folder, 
+we would need to add a second parameter. 
+This makes a predicate more flexible,
+as we can reuse this predicate in other queries passing in the name of directories with test modules 
+when analyzing other Python repositories.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;7407075760043821247&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;folderName&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getParent&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;folderName&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"tests"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"A module inside the tests folder"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dive in: The &lt;code&gt;folderName&lt;/code&gt; object is of &lt;code&gt;string&lt;/code&gt; type. QL supports multiple primitive types: &lt;code&gt;boolean&lt;/code&gt;, &lt;code&gt;date&lt;/code&gt;, &lt;code&gt;float&lt;/code&gt;, &lt;code&gt;int&lt;/code&gt;, and &lt;code&gt;string&lt;/code&gt;. 
+To learn more about these types, visit &lt;a href="https://help.semmle.com/QL/ql-spec/language.html#kinds-of-types"&gt;Kinds of types&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;A QL query can contain many predicates. 
+In this QL query, we have extracted the functionality of matching a test module by name into the predicate &lt;code&gt;nameMatchesTestPattern&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;6256521983311323313&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;folderName&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getParent&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;folderName&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;nameMatchesTestPattern&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;    
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"test&lt;/span&gt;&lt;span class="se"&gt;\\&lt;/span&gt;&lt;span class="s2"&gt;_%"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"tests"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;nameMatchesTestPattern&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"A test module"&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="count-number-of-tests-per-file"&gt;Count number of tests per file&lt;a class="headerlink" href="#count-number-of-tests-per-file" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Now that we have found all the test modules, and have modularized our code a bit,
+we are ready to collect some metrics about this project’s test code. 
+It can be helpful to know how many tests are defined in each test module; 
+having too many tests in a single module can indicate 
+that it’s testing too many pieces of the application 
+and that there’s potential for refactoring. 
+If a module has just one or two tests, perhaps more tests could be added.&lt;/p&gt;
+&lt;p&gt;The project we are exploring uses &lt;code&gt;pytest&lt;/code&gt; for its test framework, meaning 
+that each test that will be run is defined as a Python function named &lt;code&gt;test_%name%&lt;/code&gt;,
+where &lt;code&gt;%name%&lt;/code&gt; describes what this particular test does. 
+This means we have to count the number of functions 
+that have names starting with &lt;code&gt;test_&lt;/code&gt; defined in each test module.&lt;/p&gt;
+&lt;p&gt;In order to interact with functions, you have to use the &lt;code&gt;Function&lt;/code&gt; object.
+In the following QL predicate, 
+we count the number of test functions in the module 
+that is passed in as an input parameter. &lt;/p&gt;
+&lt;p&gt;We can also write predicates that compute values derived from their parameters. 
+Such predicates are called &lt;a href="https://help.semmle.com/QL/ql-handbook/predicates.html#predicates-with-result"&gt;predicates with results&lt;/a&gt;.
+For a QL predicate to return a value, it needs to be given a return type
+(in this instance &lt;code&gt;int&lt;/code&gt;),
+and the special variable &lt;code&gt;result&lt;/code&gt; needs to be bound to something of that same type,
+(in this case, we bind it to the result of a call to &lt;code&gt;count&lt;/code&gt;).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;int getTestsCount(Module m) {&lt;/span&gt;
+&lt;span class="err"&gt;    result = count(Function f |&lt;/span&gt;
+&lt;span class="err"&gt;        f.getEnclosingModule() = m and f.getName().matches("test\\_%")&lt;/span&gt;
+&lt;span class="err"&gt;        | f)&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Using the &lt;code&gt;count&lt;/code&gt; aggregate requires having a special syntax:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;We define the variables we would like to use; in this case, we are using a single variable of type &lt;code&gt;Function&lt;/code&gt; named &lt;code&gt;f&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;We define what condition should hold using an expression; 
+only functions that are defined in the scope of a given module would be kept (&lt;code&gt;f.getEnclosingModule()&lt;/code&gt; method does the work) 
+and function names should start with &lt;code&gt;test_&lt;/code&gt; (&lt;code&gt;f.getName().matches()&lt;/code&gt; method does the work).&lt;/li&gt;
+&lt;li&gt;We define what the &lt;code&gt;count&lt;/code&gt; aggregate exactly counts;
+since we are interested in the number of functions that meet our condition, we simply count &lt;code&gt;f&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dive in: Visit &lt;a href="https://help.semmle.com/QL/ql-spec/language.html#aggregations"&gt;Aggregates&lt;/a&gt; to learn more about &lt;code&gt;count&lt;/code&gt; and other QL aggregates such as &lt;code&gt;max&lt;/code&gt; and &lt;code&gt;sum&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;We can now use this predicate within the QL query:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;8228699770073082994&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;folderName&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getParent&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;folderName&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;nameMatchesTestPattern&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"test&lt;/span&gt;&lt;span class="se"&gt;\\&lt;/span&gt;&lt;span class="s2"&gt;_%"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nb"&gt;int&lt;/span&gt; &lt;span class="n"&gt;getTestsCount&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Function&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;
+        &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getEnclosingModule&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;
+        &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"test&lt;/span&gt;&lt;span class="se"&gt;\\&lt;/span&gt;&lt;span class="s2"&gt;_%"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Folder&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"tests"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;nameMatchesTestPattern&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="n"&gt;getTestsCount&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;TestCount&lt;/span&gt;
+&lt;span class="n"&gt;order&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="n"&gt;TestCount&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;To include the number of tests in the output results, 
+we have extended the &lt;code&gt;select&lt;/code&gt; statement with another column aliased &lt;code&gt;TestCount&lt;/code&gt; ,
+that represents the result of the &lt;code&gt;getTestsCount(m)&lt;/code&gt; predicate call. 
+It would be helpful to see the test modules with the fewest tests in them 
+which is why we use the &lt;code&gt;order by&lt;/code&gt; command 
+that sorts the results in ascending order by &lt;code&gt;TestCount&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id="find-python-modules-without-a-corresponding-test-module"&gt;Find Python modules without a corresponding test module&lt;a class="headerlink" href="#find-python-modules-without-a-corresponding-test-module" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Being able to detect modules 
+that do not have corresponding test modules can be helpful, for example
+when there is a policy within the development team 
+which dictates that each Python module should have an associated test module.&lt;/p&gt;
+&lt;p&gt;Since we already know how to find test modules, 
+we need only find the
+modules that don’t have a corresponding test module. 
+In other words, if for the &lt;code&gt;read_file.py&lt;/code&gt; module there is no &lt;code&gt;tests/test_read_file.py&lt;/code&gt; module, 
+we can conclude that this module does not have any tests (or that it has been named without following the Python convention).&lt;/p&gt;
+&lt;p&gt;To find out whether a program module has a corresponding test module, 
+we need to create a new predicate 
+that finds only those program modules 
+which don’t have a paired test module.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;predicate moduleWithoutTests(Module m, Folder f) {&lt;/span&gt;
+&lt;span class="err"&gt;    not exists(&lt;/span&gt;
+&lt;span class="err"&gt;        f.getFile("test_" + m.getFile().getBaseName())&lt;/span&gt;
+&lt;span class="err"&gt;    )&lt;/span&gt;
+&lt;span class="err"&gt;    and&lt;/span&gt;
+&lt;span class="err"&gt;    not exists(&lt;/span&gt;
+&lt;span class="err"&gt;        f.getFile("test" + m.getFile().getBaseName())&lt;/span&gt;
+&lt;span class="err"&gt;    )&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As you can see, a predicate can have one or more input parameters. 
+The reason we pass a &lt;code&gt;Folder&lt;/code&gt; is because we want to specify 
+where the test modules are stored. 
+The logic that is being evaluated in this predicate is rather simple;
+having a passed module as a parameter, say &lt;code&gt;%name%.py&lt;/code&gt;,
+it checks whether there is a file named &lt;code&gt;test_%name%.py&lt;/code&gt;. 
+This can be done using a special &lt;code&gt;exists&lt;/code&gt; aggregate 
+which would hold if there is a test module in the given folder.
+We also have to look for modules that start with &lt;code&gt;test&lt;/code&gt; to support private modules
+that, by convention, start with a single underscore (&lt;code&gt;_&lt;/code&gt;).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;4650679191588923532&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;folderName&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getParent&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;folderName&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;nameMatchesTestPattern&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"test&lt;/span&gt;&lt;span class="se"&gt;\\&lt;/span&gt;&lt;span class="s2"&gt;_%"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;moduleWithoutTests&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Folder&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+        &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"test_"&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+    &lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="ow"&gt;and&lt;/span&gt;
+    &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+        &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"test"&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+    &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;Module&lt;/span&gt; &lt;span class="nn"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Folder&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"click"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;moduleWithoutTests&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"tests"&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In this query, we have analyzed modules from the &lt;code&gt;click&lt;/code&gt; folder only. 
+It’s common to restrict such queries to the main code of a project, since a Python project can have utility modules 
+used for documentation generation or raw data storage,
+for which presence of tests may not be necessary.&lt;/p&gt;
+&lt;h2 id="creating-a-ql-library"&gt;Creating a QL library&lt;a class="headerlink" href="#creating-a-ql-library" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;As you may have noticed, we have defined quite a few useful predicates. 
+They all have something in common—they are applicable to test modules. 
+Our query has gotten fairly big, but the actual &lt;code&gt;select&lt;/code&gt; statement is rather small.&lt;/p&gt;
+&lt;p&gt;To keep the query tidy and to improve modularization, 
+we can create a &lt;code&gt;TestModule&lt;/code&gt; class 
+that will be a subclass of the standard QL class &lt;code&gt;Module&lt;/code&gt;. 
+This class could be stored in a separate QL library file (&lt;code&gt;.qll&lt;/code&gt;),
+which could then be imported in any other query that deals with test modules.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dive in: learn more about &lt;a href="https://help.semmle.com/QL/ql-handbook/types.html#defining-a-class"&gt;defining a class&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;If you want to run the queries locally in Eclipse, 
+you can put this code into a new QL library file &lt;code&gt;Testing.qll&lt;/code&gt; 
+so it can be used in query files (&lt;code&gt;.ql&lt;/code&gt; files).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;getTestPrefix&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"test&lt;/span&gt;&lt;span class="se"&gt;\\&lt;/span&gt;&lt;span class="s2"&gt;_%"&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;getTestsFolder&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"tests"&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="o"&gt;/**&lt;/span&gt; &lt;span class="n"&gt;Keeps&lt;/span&gt; &lt;span class="n"&gt;modules&lt;/span&gt; &lt;span class="n"&gt;located&lt;/span&gt; &lt;span class="n"&gt;within&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;given&lt;/span&gt; &lt;span class="n"&gt;folder&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+&lt;span class="n"&gt;private&lt;/span&gt; &lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getParent&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;getTestsFolder&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="o"&gt;/**&lt;/span&gt; &lt;span class="n"&gt;Keeps&lt;/span&gt; &lt;span class="n"&gt;modules&lt;/span&gt; &lt;span class="n"&gt;that&lt;/span&gt; &lt;span class="n"&gt;have&lt;/span&gt; &lt;span class="n"&gt;names&lt;/span&gt; &lt;span class="n"&gt;starting&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;defined&lt;/span&gt; &lt;span class="n"&gt;prefix&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+&lt;span class="n"&gt;private&lt;/span&gt; &lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;nameMatchesTestPattern&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;    
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;getTestPrefix&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;TestModule&lt;/span&gt; &lt;span class="n"&gt;extends&lt;/span&gt; &lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;    
+    &lt;span class="n"&gt;TestModule&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;nameMatchesTestPattern&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="o"&gt;/**&lt;/span&gt; &lt;span class="n"&gt;Gets&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;functions&lt;/span&gt; &lt;span class="n"&gt;within&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;module&lt;/span&gt; &lt;span class="n"&gt;which&lt;/span&gt; 
+    &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="n"&gt;starts&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;defined&lt;/span&gt; &lt;span class="n"&gt;prefix&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+    &lt;span class="nb"&gt;int&lt;/span&gt; &lt;span class="n"&gt;getTestsCount&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;       
+        &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Function&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; 
+            &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getEnclosingModule&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;
+            &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;getTestPrefix&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+            &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Alternatively, if you are using LGTM.com, 
+then you can define the class along with the actual query:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;queryConsole&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;lgtm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;4740785288826699608&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+
+&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;getTestPrefix&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"test&lt;/span&gt;&lt;span class="se"&gt;\\&lt;/span&gt;&lt;span class="s2"&gt;_%"&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="n"&gt;string&lt;/span&gt; &lt;span class="n"&gt;getTestsFolder&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"tests"&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="o"&gt;/**&lt;/span&gt; &lt;span class="n"&gt;Keeps&lt;/span&gt; &lt;span class="n"&gt;modules&lt;/span&gt; &lt;span class="n"&gt;located&lt;/span&gt; &lt;span class="n"&gt;within&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;given&lt;/span&gt; &lt;span class="n"&gt;folder&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+&lt;span class="n"&gt;private&lt;/span&gt; &lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getParent&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;getTestsFolder&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="o"&gt;/**&lt;/span&gt; &lt;span class="n"&gt;Keeps&lt;/span&gt; &lt;span class="n"&gt;modules&lt;/span&gt; &lt;span class="n"&gt;that&lt;/span&gt; &lt;span class="n"&gt;have&lt;/span&gt; &lt;span class="n"&gt;names&lt;/span&gt; &lt;span class="n"&gt;starting&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;defined&lt;/span&gt; &lt;span class="n"&gt;prefix&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+&lt;span class="n"&gt;private&lt;/span&gt; &lt;span class="n"&gt;predicate&lt;/span&gt; &lt;span class="n"&gt;nameMatchesTestPattern&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;    
+    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getFile&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getBaseName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;getTestPrefix&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;TestModule&lt;/span&gt; &lt;span class="n"&gt;extends&lt;/span&gt; &lt;span class="n"&gt;Module&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;    
+    &lt;span class="n"&gt;TestModule&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;isInsideFolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;nameMatchesTestPattern&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="o"&gt;/**&lt;/span&gt; &lt;span class="n"&gt;Gets&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;functions&lt;/span&gt; &lt;span class="n"&gt;within&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;module&lt;/span&gt; 
+    &lt;span class="n"&gt;which&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="n"&gt;starts&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;defined&lt;/span&gt; &lt;span class="n"&gt;prefix&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+    &lt;span class="nb"&gt;int&lt;/span&gt; &lt;span class="n"&gt;getTestsCount&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;       
+        &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Function&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; 
+            &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getEnclosingModule&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;
+            &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getName&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;matches&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;getTestPrefix&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+            &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;TestModule&lt;/span&gt; &lt;span class="nn"&gt;tm&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;tm&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getTestsCount&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;TestCount&lt;/span&gt;
+&lt;span class="n"&gt;order&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="n"&gt;TestCount&lt;/span&gt; &lt;span class="n"&gt;desc&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As we have used string &lt;code&gt;"test\\_%"&lt;/code&gt; in a few places, 
+it can be useful to pull it into a variable. 
+Using &lt;a href="https://help.semmle.com/QL/ql-handbook/types.html#fields"&gt;fields in classes&lt;/a&gt; is an advanced topic, 
+so instead, for now we’ve simply used a predicate with result
+that just gives us back this string.
+This means we would need to define the test prefix only within this predicate 
+and not within multiple predicates.&lt;/p&gt;
+&lt;p&gt;To keep this class in a separate file, 
+you would need to use the QL for Eclipse plugin to run queries locally on your machine.
+We would need then to import the library 
+and then use the &lt;code&gt;TestModule&lt;/code&gt; class instead of the built-in &lt;code&gt;Module&lt;/code&gt; class we have used before.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;python&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;Testing&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;TestModule&lt;/span&gt; &lt;span class="nn"&gt;tm&lt;/span&gt;
+&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;tm&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getTestsCount&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;TestCount&lt;/span&gt;
+&lt;span class="n"&gt;order&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="n"&gt;TestCount&lt;/span&gt; &lt;span class="n"&gt;desc&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This is the end of this tutorial.
+I hope you enjoy trying out QL on your own projects!
+If you have any questions,
+don’t hesitate to ask on &lt;a href="https://discuss.lgtm.com/"&gt;the community forum&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Happy Querying!&lt;/p&gt;</content><category term="QL"></category><category term="python"></category><category term="QL"></category></entry></feed>

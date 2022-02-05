@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="python, QL, QL, " />
+
+<meta property="og:title" content="Finding Python code compatibility issues with QL "/>
+<meta property="og:url" content="/finding-python-compatibility-issues-with-ql.html" />
+<meta property="og:description" content="This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2019-08-13T00:00:00+01:00" />
+<meta property="og:article:modified_time" content="2022-02-05T00:00:00+00:00" />
+<meta name="twitter:title" content="Finding Python code compatibility issues with QL ">
+<meta name="twitter:description" content="This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for …">
+
+        <title>Finding Python code compatibility issues with QL  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/finding-python-compatibility-issues-with-ql.html">
+                Finding Python code compatibility issues with QL
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#overview">Overview</a><ul>
+<li><a href="#python-2-and-3">Python 2 and 3</a></li>
+<li><a href="#using-ql">Using QL</a><ul>
+<li><a href="#built-in-queries">Built-in queries</a><ul>
+<li><a href="#syntax-error">Syntax error</a></li>
+<li><a href="#encoding-error">Encoding error</a></li>
+</ul>
+</li>
+<li><a href="#existing-custom-queries">Existing custom queries</a></li>
+</ul>
+</li>
+<li><a href="#writing-new-ql-queries">Writing new QL queries</a><ul>
+<li><a href="#new-raise-from-syntax">New ‘raise from’ syntax</a></li>
+<li><a href="#support-for-unicode-in-identifier-names">Support for unicode in identifier names</a></li>
+<li><a href="#comparing-objects-of-different-types">Comparing objects of different types</a></li>
+<li><a href="#octal-literals-syntax-support">Octal literals syntax support</a></li>
+<li><a href="#delimiter-in-numeric-literals">Delimiter in numeric literals</a></li>
+<li><a href="#long-integer-type-is-not-supported-by-python-3">Long integer type is not supported by Python 3</a></li>
+<li><a href="#the-cmp-parameter-for-sortedlist-is-no-longer-supported">The ‘cmp’ parameter for ‘sorted(list)’ is no longer supported</a></li>
+<li><a href="#methods-dictiterkeys-dictiteritems-and-dictitervalues-are-deprecated">Methods ‘dict.iterkeys()’, ‘dict.iteritems()’ and ‘dict.itervalues()’ are deprecated</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<blockquote>
+<p>This is one of the few posts I wrote in 2019 when working for Semmle (later acquired by GitHub) that was originally published on the Semmle blog that was transformed. Python library for QL has changed quite a bit since then, however, many principles are still relevant and helpful for anyone who would want to learn more about QL. See <a href="https://codeql.github.com/docs/codeql-language-guides/codeql-for-python/">CodeQL for Python</a> to learn more.</p>
+</blockquote>
+<h1 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h1>
+<p>In this tutorial, you’ll learn how to use QL to query a Python codebase 
+and learn how to check for Python 2/3 compatibility. 
+We’ll be writing <a href="https://help.semmle.com/QL/learn-ql/ql/writing-queries/introduction-to-queries.html">alert queries</a>, 
+that is, queries that highlight issues in specific locations in your code. 
+The tutorial assumes that you’re familiar with the basics of QL for Python. 
+If not, you might want to read my previous post (<a href="https://blog.semmle.com/python-code-analysis-ql/">Introducing the QL libraries for Python</a>).</p>
+<h2 id="python-2-and-3">Python 2 and 3<a class="headerlink" href="#python-2-and-3" title="Permanent link">¶</a></h2>
+<p>As the official end of life of Python 2 approaches, 
+more and more Python projects are being converted from Python 2 to Python 3.
+The majority of infrastructure projects are now on Python 3, and many are Python 3 only.
+At some point, you will likely need to upgrade your project.
+There are myriads of useful resources 
+that can help you upgrade your project’s codebase. 
+There are tools that can upgrade code in a semi-automatic fashion; 
+there are linters and static code analysis tools 
+that will help you spot code that’s not compatible with Python 3. 
+There are also quite a few documents 
+to help you learn what’s new in Python 3 
+and avoid the common pitfalls when you upgrade.</p>
+<p>To learn more, 
+visit the main <a href="https://docs.python.org/3/whatsnew/3.0.html">What’s New In Python 3.0</a> reference page. 
+To learn how to write code that’s compatible with both Python 2 and Python 3, 
+visit <a href="https://python-future.org/">Python-Future</a>.</p>
+<p>Upgrading a codebase to Python 3, or supporting both Python 2 and 3, can be a challenge. 
+The Python 2 interpreter reports a <code>SyntaxError</code> for some of the new syntax features in Python 3. 
+Some Python 2 features aren’t available in Python 3, 
+so when the Python 3 interpreter encounters them 
+it raises a runtime error 
+or gives a different result.</p>
+<p>For instance, the <code>print</code> statement was replaced by the <code>print()</code> function 
+so running a module with a <code>print</code> statement under Python 3 
+will cause a <code>SyntaxError</code>. 
+Using the <code>print</code> statement as if it were a function in Python 2, 
+however, won’t raise a <code>SyntaxError</code>, but its behavior will be different:</p>
+<ul>
+<li>Python 3</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="s2">"value1"</span><span class="p">,</span> <span class="s2">"value2"</span><span class="p">)</span>
+<span class="n">value1</span> <span class="n">value2</span>
+</code></pre></div>
+<ul>
+<li>Python 2</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="s2">"value1"</span><span class="p">,</span> <span class="s2">"value2"</span><span class="p">)</span>
+<span class="p">(</span><span class="s1">'value1'</span><span class="p">,</span> <span class="s1">'value2'</span><span class="p">)</span>
+</code></pre></div>
+<p>In contrast, the <code>long</code> type was removed in Python 3 
+leaving only one built-in integer type named <code>int</code>. 
+Hence, trying to use the <code>long</code> keyword in a module executed 
+by a Python 3 interpreter, will cause a <code>NameError</code> at runtime:</p>
+<ul>
+<li>Python 3</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="nb">isinstance</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+<span class="kc">True</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">isinstance</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">long</span><span class="p">)</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+  <span class="n">File</span> <span class="s2">"&lt;input&gt;"</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="ne">NameError</span><span class="p">:</span> <span class="n">name</span> <span class="s1">'long'</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">defined</span>
+</code></pre></div>
+<h2 id="using-ql">Using QL<a class="headerlink" href="#using-ql" title="Permanent link">¶</a></h2>
+<p>A series of QL queries is shown below, 
+highlighting some of the issues found 
+when working with Python 2 and 3 compatibility.
+We explain how the queries work 
+so you can learn how to use the QL libraries for Python,
+which will help you to write your own custom queries.</p>
+<p>A Python project can be analyzed using either a Python 2 or a Python 3 interpreter. 
+To learn more, read <a href="https://lgtm.com/help/lgtm/analysis-faqs#how-python-version-identified">How is the Python version identified?</a> on LGTM.com.</p>
+<p>Analysis run on LGTM will spot common errors using built-in queries. 
+To find out which version of Python was used to analyze a codebase, 
+you can use the built-in <code>major_version</code> and <code>minor_version</code> predicates:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+<span class="n">select</span> <span class="n">major_version</span><span class="p">(),</span> <span class="n">minor_version</span><span class="p">()</span>
+</code></pre></div>
+<p>These predicates will come in handy later on 
+when we will be trying to find issues in the code 
+that are relevant only for Python 2 or for Python 3.</p>
+<h3 id="built-in-queries">Built-in queries<a class="headerlink" href="#built-in-queries" title="Permanent link">¶</a></h3>
+<h4 id="syntax-error">Syntax error<a class="headerlink" href="#syntax-error" title="Permanent link">¶</a></h4>
+<p>Syntax errors are found by the built-in <a href="https://lgtm.com/rules/4860085/">Syntax error</a> query. 
+They prevent a module being evaluated and thus imported. 
+An attempt to import a module with invalid syntax will fail; 
+a <code>SyntaxError</code> will be raised. 
+Syntax errors are caused by invalid Python syntax,
+for example:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># variables cannot contain any symbol </span>
+<span class="c1"># other than a digit, a letter, and an underscore</span>
+<span class="n">variable</span><span class="err">$</span> <span class="o">=</span> <span class="s2">"value"</span>
+
+<span class="c1"># attempt to use an invalid increment operator</span>
+<span class="n">value</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">value</span><span class="o">++</span>
+
+<span class="c1"># incorrect usage of lambda</span>
+<span class="nb">print</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+=</span> <span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># invalid inequality test</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">source</span> <span class="o">&lt;&gt;</span> <span class="n">target</span><span class="p">)</span>
+</code></pre></div>
+<p>Note that in Python 2, it’s okay to mix tabs and spaces for code indentation. 
+However, in Python 3, a new <a href="https://docs.python.org/3/library/exceptions.html#TabError"><code>TabError</code></a> 
+is raised when indentation contains an inconsistent use of tabs and spaces. 
+This type of error is also caught by the syntax errors check.</p>
+<h4 id="encoding-error">Encoding error<a class="headerlink" href="#encoding-error" title="Permanent link">¶</a></h4>
+<p>Encoding errors are found by the built-in <a href="https://lgtm.com/rules/1814222703/">Encoding error</a> query.
+They prevent a module being evaluated and thus imported. 
+An attempt to import a module with an invalid encoding will fail; 
+a <code>SyntaxError</code> will be raised. 
+Note that in Python 2, the default encoding is ASCII.</p>
+<h3 id="existing-custom-queries">Existing custom queries<a class="headerlink" href="#existing-custom-queries" title="Permanent link">¶</a></h3>
+<p>In addition to the built-in queries that are part of the core LGTM suite, 
+there are a few custom queries 
+that the community of QL writers has contributed.
+I myself wrote a new custom query shortly after I joined Semmle 
+while I was learning how the QL libraries for Python worked. 
+This query, <code>Use of 'return' or 'yield' outside a function</code>,
+was first published in the <a href="https://github.com/Semmle/ql/blob/653c8b8496cd0d95e459d1cd7a95083970d37cba/python/ql/src/Statements/ReturnOrYieldOutsideFunction.ql">public GitHub QL repository</a> 
+and later became a built-in query that is run on <a href="https://lgtm.com/rules/1509050896213/">LGTM.com</a>.</p>
+<h2 id="writing-new-ql-queries">Writing new QL queries<a class="headerlink" href="#writing-new-ql-queries" title="Permanent link">¶</a></h2>
+<h3 id="new-raise-from-syntax">New ‘raise from’ syntax<a class="headerlink" href="#new-raise-from-syntax" title="Permanent link">¶</a></h3>
+<p><a href="https://www.python.org/dev/peps/pep-3109/">PEP 3109 – Raising Exceptions in Python 3000</a> and <a href="https://www.python.org/dev/peps/pep-3134/">PEP 3134 – Exception Chaining and Embedded Tracebacks</a> 
+introduced new syntax for the raise statement: <code>raise [expr [from expr]]</code>. 
+The optional <code>from</code> clause can be used to chain exceptions. 
+When <code>from</code> is used, the second expression must be another exception class or instance. 
+To learn more, visit <a href="https://docs.python.org/3/reference/simple_stmts.html#raise">The raise statement</a>.</p>
+<p>Since version 3.3, you can use <code>None</code> to suppress the chained exception, for example:</p>
+<div class="highlight"><pre><span></span><code><span class="k">try</span><span class="p">:</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">0</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">()</span> <span class="kn">from</span> <span class="bp">None</span>
+</code></pre></div>
+<p>However, a project style guide may discourage the suppression of exception chaining using <code>from None</code>,
+for example, to maintain backwards compatibility. 
+If this is the case, you would want to find all such occurrences. </p>
+<p>The QL libraries for Python contain classes that are useful for finding this syntax.
+These can be imported and used in a custom QL query. 
+The easiest way to find this type of <code>raise</code> statement is to use the <code>Raise</code> class. 
+Using this QL query, we can spot when the <code>raise from None</code> syntax is used:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">Raise</span> <span class="nn">r</span>
+<span class="n">where</span> <span class="n">r</span><span class="o">.</span><span class="n">getCause</span><span class="p">()</span><span class="o">.</span><span class="n">getAFlowNode</span><span class="p">()</span><span class="o">.</span><span class="n">pointsTo</span><span class="p">(</span><span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="s2">"None"</span><span class="p">))</span>
+<span class="n">select</span> <span class="n">r</span>
+</code></pre></div>
+<p>The <code>.getCause()</code> method gives us the cause of the <code>raise</code> statement 
+and it’s possible to find out 
+what object this cause points to using the <code>.pointsTo()</code> method. 
+In this case, we test whether this is a <code>None</code> object. </p>
+<p>To extend our query, we could check 
+whether a valid object is being used in the <code>from</code> part. 
+The object can be either <code>None</code>
+or a valid exception class or instance.</p>
+<p>For example, this <code>raise</code> statement has an invalid object so, 
+a <code>TypeError</code> with the message, <code>TypeError: exception causes must derive from BaseException</code>, 
+is raised when it’s run:</p>
+<div class="highlight"><pre><span></span><code><span class="k">try</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"Something happened"</span><span class="p">)</span> <span class="kn">from</span> <span class="s2">"Program stopped"</span>
+</code></pre></div>
+<p>This QL query will find all <code>raise ... from ...</code> statements 
+where the <code>from</code> object is invalid.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">Raise</span> <span class="nn">r</span><span class="p">,</span> <span class="n">Value</span> <span class="n">v</span>
+<span class="n">where</span> <span class="n">r</span><span class="o">.</span><span class="n">getCause</span><span class="p">()</span><span class="o">.</span><span class="n">getAFlowNode</span><span class="p">()</span><span class="o">.</span><span class="n">pointsTo</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">and</span>
+      <span class="n">v</span> <span class="o">!=</span> <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="s2">"None"</span><span class="p">)</span> <span class="ow">and</span>
+      <span class="ow">not</span> <span class="n">v</span><span class="o">.</span><span class="n">getClass</span><span class="p">()</span><span class="o">.</span><span class="n">getASuperType</span><span class="p">()</span> <span class="o">=</span> <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="s2">"BaseException"</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">r</span><span class="p">,</span> <span class="n">v</span>
+</code></pre></div>
+<p>A class instance is a legal exception type 
+if it inherits from the <code>BaseException</code> class. 
+Thus, this query would be able to spot 
+when an invalid object type is used in the <code>raise from</code> clause.</p>
+<h3 id="support-for-unicode-in-identifier-names">Support for unicode in identifier names<a class="headerlink" href="#support-for-unicode-in-identifier-names" title="Permanent link">¶</a></h3>
+<p>In Python 2, only ASCII characters could be used in the names of Python identifiers 
+including, but not limited to, variables, functions, and classes. 
+Trying to define a variable <code>café</code> (e-acute) in Python 2, 
+would result in a <code>SyntaxError: invalid syntax</code>.</p>
+<p>In Python 3, with <a href="https://www.python.org/dev/peps/pep-3131/">PEP 3131 – Supporting Non-ASCII Identifiers</a>, this limitation was removed 
+and now additional characters from outside the ASCII range (see the <a href="https://docs.python.org/3/reference/lexical_analysis.html#identifiers">docs</a>) 
+could be used in identifier names. 
+This code is valid in Python 3: </p>
+<div class="highlight"><pre><span></span><code><span class="n">café</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">café</span><span class="p">)</span>
+</code></pre></div>
+<p>However, a project style guide may prohibit the use of non-ASCII characters in identifiers
+to maintain backwards compatibility. 
+To find identifiers that break this rule 
+we have to find all identifiers 
+that contain characters other than letters, numbers, and the underscore symbol. 
+This can be done using a regular expression. 
+We don’t have to worry about the validity of identifier names; 
+a built-in query already finds any syntax errors, 
+such as variable names that don’t start with an underscore or a letter. 
+Since this check is relevant only for Python 3, a condition of <code>major_version() = 3</code> is included.
+In Python 2 this issue would be caught by the query 
+that reports all <code>SyntaxError</code> cases.</p>
+<p>This QL query finds all non-ASCII Python identifiers.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="kn">from</span> <span class="nn">string</span> <span class="nn">identifier</span><span class="p">,</span> <span class="n">AstNode</span> <span class="n">n</span>
+<span class="n">where</span> 
+    <span class="p">(</span>
+    <span class="n">identifier</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="p">(</span><span class="n">Name</span><span class="p">)</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
+    <span class="ow">or</span>
+    <span class="n">identifier</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="p">(</span><span class="n">Attribute</span><span class="p">)</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>
+    <span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">identifier</span><span class="o">.</span><span class="n">regexpMatch</span><span class="p">(</span><span class="s2">"[a-zA-Z_][a-zA-Z_0-9]*"</span><span class="p">)</span>
+    <span class="ow">and</span> <span class="n">major_version</span><span class="p">()</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">select</span> <span class="n">n</span><span class="p">,</span> <span class="s2">"Non ASCII character in identifier's name"</span>
+</code></pre></div>
+<p>In this query, the <code>Name</code> class represents the names of identifiers. 
+The <code>Attribute</code> class represents the names of attribute expressions, 
+for example, a class method.
+We need to use the <code>AstNode</code> class to access the location of each identifier in the code. 
+However, the <code>AstNode</code> class doesn’t provide the identifier’s name 
+as a string that we can test using a regular expression. 
+To get the name as a string, we call the member predicates <code>.getId()</code> and <code>.getName()</code>.
+Since these are defined for a more specific type, we need to use a type cast.</p>
+<blockquote>
+<p>Dive in: This could have been done using postfix and prefix casts. Visit the <a href="https://help.semmle.com/QL/ql-handbook/expressions.html#casts">Casts</a> help page to learn more.</p>
+</blockquote>
+<h3 id="comparing-objects-of-different-types">Comparing objects of different types<a class="headerlink" href="#comparing-objects-of-different-types" title="Permanent link">¶</a></h3>
+<p>In Python 2, objects of different types are ordered by their type names 
+(with the exception of numbers). 
+This results in behavior 
+that can puzzle developers who are unfamiliar with this implementation detail.</p>
+<ul>
+<li>Python 2:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span> <span class="mi">50</span> <span class="o">&lt;</span> <span class="s2">"Text"</span>
+<span class="kc">True</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">]</span> <span class="o">&gt;</span> <span class="s1">'Text'</span> 
+<span class="kc">False</span>
+</code></pre></div>
+<p>This comparison essentially compares the types of the objects, that is: <code>'int' &lt; 'str'</code>. 
+This is <code>True</code> because the word representing type <code>int</code> starts with <code>i</code> 
+which is smaller than <code>s</code> - the <code>str</code> type (using lexicographic order). 
+Likewise, because <code>'list' &gt; 'str'</code> is <code>False</code>, 
+comparing a list object to a string object would return <code>False</code>.  </p>
+<p>In Python 3, if you use ordering comparison operators 
+when the operands don’t have a natural ordering 
+that makes sense, a <code>TypeError</code> exception is raised. 
+This implies that there can be Python 2 code 
+which may compare objects of different types 
+and this would not be an issue 
+until you run the program with a Python 3 interpreter.</p>
+<p>For instance, this valid Python 2 code would fail in Python 3:</p>
+<div class="highlight"><pre><span></span><code><span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]</span>
+<span class="n">mapper</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"Source"</span><span class="p">:</span> <span class="s2">"Target"</span><span class="p">}</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="n">mapper</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span> <span class="o">&lt;</span> <span class="n">mapper</span><span class="p">)</span>
+</code></pre></div>
+<p>We can use QL to write a custom query 
+that finds comparisons of invalid data types.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">ClassValue</span> <span class="n">orderedType</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">exists</span><span class="p">(</span><span class="n">string</span> <span class="n">typename</span> <span class="o">|</span> <span class="n">result</span> <span class="o">=</span> <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="n">typename</span><span class="p">)</span> <span class="o">|</span>
+    <span class="n">typename</span> <span class="o">=</span> <span class="s2">"str"</span> <span class="ow">or</span> <span class="n">typename</span> <span class="o">=</span> <span class="s2">"float"</span> <span class="ow">or</span> <span class="n">typename</span> <span class="o">=</span> <span class="s2">"list"</span>
+  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kn">from</span>
+  <span class="nn">CompareNode</span> <span class="nn">compare</span><span class="p">,</span> <span class="n">ControlFlowNode</span> <span class="n">left</span><span class="p">,</span> <span class="n">ControlFlowNode</span> <span class="n">right</span><span class="p">,</span> 
+  <span class="n">Context</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">Value</span> <span class="n">lval</span><span class="p">,</span> <span class="n">Value</span> <span class="n">rval</span><span class="p">,</span> <span class="n">Cmpop</span> <span class="n">op</span>
+
+<span class="n">where</span>
+  <span class="n">compare</span><span class="o">.</span><span class="n">operands</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span> <span class="ow">and</span>
+  <span class="p">(</span>
+    <span class="n">op</span> <span class="n">instanceof</span> <span class="n">Lt</span> <span class="ow">or</span>
+    <span class="n">op</span> <span class="n">instanceof</span> <span class="n">LtE</span> <span class="ow">or</span>
+    <span class="n">op</span> <span class="n">instanceof</span> <span class="n">Gt</span> <span class="ow">or</span>
+    <span class="n">op</span> <span class="n">instanceof</span> <span class="n">GtE</span>
+  <span class="p">)</span> <span class="ow">and</span>
+  <span class="n">left</span><span class="o">.</span><span class="n">pointsTo</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">lval</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">and</span>
+  <span class="n">right</span><span class="o">.</span><span class="n">pointsTo</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">rval</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">and</span>
+  <span class="n">lval</span><span class="o">.</span><span class="n">getClass</span><span class="p">()</span> <span class="o">!=</span> <span class="n">rval</span><span class="o">.</span><span class="n">getClass</span><span class="p">()</span> <span class="ow">and</span>
+  <span class="n">lval</span><span class="o">.</span><span class="n">getClass</span><span class="p">()</span> <span class="o">=</span> <span class="n">orderedType</span><span class="p">()</span> <span class="ow">and</span>
+  <span class="n">rval</span><span class="o">.</span><span class="n">getClass</span><span class="p">()</span> <span class="o">=</span> <span class="n">orderedType</span><span class="p">()</span>
+
+<span class="n">select</span> <span class="n">compare</span><span class="p">,</span> <span class="s2">"Invalid comparison of objects due to type difference"</span>
+</code></pre></div>
+<p>At this point it might be useful to refactor the code above 
+because the <code>where</code> clause gets too difficult to read.
+We can define a helper predicate, <code>incomparableTypes</code>, that would hold 
+if comparison expressions are of incompatible types:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">predicate</span> <span class="n">incomparableTypes</span><span class="p">(</span><span class="n">ClassValue</span> <span class="n">a</span><span class="p">,</span> <span class="n">ClassValue</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+    <span class="ow">not</span> <span class="n">a</span> <span class="o">=</span> <span class="n">b</span> <span class="ow">and</span> 
+    <span class="n">a</span> <span class="o">=</span> <span class="n">orderedType</span><span class="p">()</span> <span class="ow">and</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">orderedType</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="n">ClassValue</span> <span class="n">orderedType</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">exists</span><span class="p">(</span><span class="n">string</span> <span class="n">typename</span> <span class="o">|</span> <span class="n">result</span> <span class="o">=</span> <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="n">typename</span><span class="p">)</span> <span class="o">|</span>
+    <span class="n">typename</span> <span class="o">=</span> <span class="s2">"str"</span> <span class="ow">or</span> <span class="n">typename</span> <span class="o">=</span> <span class="s2">"float"</span> <span class="ow">or</span> <span class="n">typename</span> <span class="o">=</span> <span class="s2">"list"</span>
+  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kn">from</span>
+  <span class="nn">CompareNode</span> <span class="nn">compare</span><span class="p">,</span> <span class="n">ControlFlowNode</span> <span class="n">left</span><span class="p">,</span> <span class="n">ControlFlowNode</span> <span class="n">right</span><span class="p">,</span> 
+  <span class="n">Context</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">Value</span> <span class="n">lval</span><span class="p">,</span> <span class="n">Value</span> <span class="n">rval</span><span class="p">,</span> <span class="n">Cmpop</span> <span class="n">op</span>
+
+<span class="n">where</span>
+  <span class="n">compare</span><span class="o">.</span><span class="n">operands</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span> <span class="ow">and</span>
+  <span class="p">(</span>
+    <span class="n">op</span> <span class="n">instanceof</span> <span class="n">Lt</span> <span class="ow">or</span>
+    <span class="n">op</span> <span class="n">instanceof</span> <span class="n">LtE</span> <span class="ow">or</span>
+    <span class="n">op</span> <span class="n">instanceof</span> <span class="n">Gt</span> <span class="ow">or</span>
+    <span class="n">op</span> <span class="n">instanceof</span> <span class="n">GtE</span>
+  <span class="p">)</span> <span class="ow">and</span>
+  <span class="n">left</span><span class="o">.</span><span class="n">pointsTo</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">lval</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">and</span>
+  <span class="n">right</span><span class="o">.</span><span class="n">pointsTo</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">rval</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">and</span>
+  <span class="n">incomparableTypes</span><span class="p">(</span><span class="n">lval</span><span class="p">,</span> <span class="n">rval</span><span class="p">)</span>
+
+<span class="n">select</span> <span class="n">compare</span><span class="p">,</span> <span class="s2">"Invalid comparison of objects due to type difference"</span>
+</code></pre></div>
+<p>The <code>left</code> and <code>right</code> expressions of the comparison can be inspected to check 
+what type they point to using the <code>.pointsTo()</code> method.
+We use the don’t care variable <code>_</code> to state
+that we don’t care what kind of <code>Value</code> the left and right expressions point to, 
+however, they must be of a certain type.</p>
+<p>The query above currently only supports comparing strings, floats, and lists. 
+However, it is easy to extend it just by copying the relevant <code>where</code> section 
+and changing the class types. 
+For instance, to extend this query to include the comparison of integer objects, 
+you would just need to add the following section:</p>
+<div class="highlight"><pre><span></span><code><span class="err">...</span>
+<span class="err">ClassValue orderedType() {</span>
+<span class="err">  exists(string typename | result = Value::named(typename) |</span>
+<span class="err">    typename = "str" or typename = "float" or </span>
+<span class="err">    typename = "list" or typename = "int"</span>
+<span class="err">  )</span>
+<span class="err">}</span>
+<span class="err">...</span>
+</code></pre></div>
+<h3 id="octal-literals-syntax-support">Octal literals syntax support<a class="headerlink" href="#octal-literals-syntax-support" title="Permanent link">¶</a></h3>
+<p>Octal literals in Python 3 can no longer be defined in the form of a number 
+starting with <code>0</code>, such as <code>0562</code>,
+as they could be in Python 2. 
+Python 2 has two methods for defining octal literals:</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="mi">0562</span> <span class="o">==</span> <span class="mo">0o562</span><span class="p">)</span>
+<span class="kc">True</span>
+</code></pre></div>
+<p>Python 3 only supports the second of these syntaxes and using <code>0562</code> would cause a <code>SyntaxError</code>. 
+Instead, you need to use a zero followed by a lower or upper case <code>o</code> (that is, <code>o</code> and <code>O</code>),
+for example, <code>0o562</code> or <code>0O562</code> . 
+The upper case <code>O</code> looks very similar to zero (<code>0</code>) 
+so using a lowercase <code>o</code> may be preferable. </p>
+<p>Therefore, it can be helpful to search for octal literals in Python 2 
+that don’t use <code>o</code> to avoid issues after converting the codebase to Python 3. 
+Fortunately, there’s already an existing query - <a href="https://lgtm.com/rules/1800090/">Confusing octal literal</a> - 
+which finds octal literals with a leading <code>0</code> 
+because they can easily be misread as decimal values. 
+This query does just what we need.</p>
+<p>It’s worth bearing in mind that this query doesn’t raise alerts for octal literals 
+that are of 4, 5, or 7 digits in length. 
+These are ignored because Python code may include Unix permission mode octals
+which can be safely ignored. 
+Here we want to raise an alert for all octal literals, 
+so we simply remove the part 
+that filters out octals of a certain length. 
+This QL query finds all octal literals 
+that would raise <code>SyntaxError</code> in Python 3:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">predicate</span> <span class="n">is_old_octal</span><span class="p">(</span><span class="n">IntegerLiteral</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">exists</span><span class="p">(</span><span class="n">string</span> <span class="n">text</span> <span class="o">|</span> <span class="n">text</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">getText</span><span class="p">()</span> <span class="o">|</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">charAt</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">=</span> <span class="s2">"0"</span> <span class="ow">and</span>
+    <span class="ow">not</span> <span class="n">text</span> <span class="o">=</span> <span class="s2">"00"</span> <span class="ow">and</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">charAt</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"0"</span> <span class="ow">and</span>
+    <span class="n">exists</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">charAt</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">toInt</span><span class="p">())</span>
+  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">IntegerLiteral</span> <span class="nn">i</span>
+<span class="n">where</span> <span class="n">major_version</span><span class="p">()</span> <span class="o">=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">is_old_octal</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">i</span><span class="p">,</span> <span class="s2">"Invalid octal literal"</span>
+</code></pre></div>
+<p>In this query we take advantage of the <code>exists</code> quantifier to define a predicate 
+which holds for any integer literal that starts with a zero digit.</p>
+<blockquote>
+<p>Dive in: Visit the <a href="https://help.semmle.com/QL/ql-handbook/formulas.html?#exists">Explicit quantifiers</a> help page to learn more about quantifiers in QL.</p>
+</blockquote>
+<h3 id="delimiter-in-numeric-literals">Delimiter in numeric literals<a class="headerlink" href="#delimiter-in-numeric-literals" title="Permanent link">¶</a></h3>
+<p>Python 3.6 supports using <code>_</code> as a delimiter in numeric literals. 
+This functionality was introduced in <a href="https://www.python.org/dev/peps/pep-0515/">PEP 515 – Underscores in Numeric Literals</a>. 
+This is an example of how this works in Python 3.6:</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="mf">5_000.46</span> <span class="o">==</span> <span class="mf">5000.46</span>
+<span class="kc">True</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="mi">5_000</span> <span class="o">+</span> <span class="mi">1_000</span> <span class="o">==</span> <span class="mi">6000</span>
+<span class="kc">True</span>
+</code></pre></div>
+<p>If your project style guide prohibits using this feature, 
+for instance, for consistency with the Python 2 code, 
+then you could write a custom QL query 
+that would be able to find code where <code>_</code> is used in numeric literals. 
+Running code with underscores in numeric literals using a Python 2 interpreter 
+would raise a <code>SyntaxError</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">predicate</span> <span class="n">hasUnderscore</span><span class="p">(</span><span class="n">Num</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="n">exists</span><span class="p">(</span><span class="nb">int</span> <span class="n">i</span> <span class="o">|</span> <span class="n">n</span><span class="o">.</span><span class="n">getText</span><span class="p">()</span><span class="o">.</span><span class="n">charAt</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="s2">"_"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">string</span> <span class="n">numValue</span><span class="p">(</span><span class="n">Num</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="p">(</span><span class="n">IntegerLiteral</span><span class="p">)</span><span class="o">.</span><span class="n">getValue</span><span class="p">()</span><span class="o">.</span><span class="n">toString</span><span class="p">()</span> <span class="ow">or</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="p">(</span><span class="n">FloatLiteral</span><span class="p">)</span><span class="o">.</span><span class="n">getValue</span><span class="p">()</span><span class="o">.</span><span class="n">toString</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">Num</span> <span class="nn">num</span>
+<span class="n">where</span> <span class="n">hasUnderscore</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+<span class="n">select</span> <span class="n">num</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">getText</span><span class="p">()</span> <span class="k">as</span> <span class="n">AsInCode</span><span class="p">,</span> <span class="n">numValue</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">as</span> <span class="n">AsToReader</span>
+</code></pre></div>
+<p>Previously, we’ve only included two items in the <code>select</code> statement, 
+however, you can return an arbitrary number of items. 
+The <code>.getText()</code> method gives the actual source code (for example, <code>5_000</code>) 
+whereas the <code>numValue</code> predicate gives the string representation of the literal 
+with underscores removed (for example, <code>5000</code>). 
+Being able to return multiple items within the <code>select</code> statement 
+is extremely handy during the debugging and query writing process.</p>
+<p>If your project style guide is more relaxed 
+and permits having underscores in integers only, 
+but prohibits using underscore in floats, 
+you can adjust the query to work solely with floats:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">predicate</span> <span class="n">hasUnderscore</span><span class="p">(</span><span class="n">Num</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="n">exists</span><span class="p">(</span><span class="nb">int</span> <span class="n">i</span> <span class="o">|</span> <span class="n">n</span><span class="o">.</span><span class="n">getText</span><span class="p">()</span><span class="o">.</span><span class="n">charAt</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="s2">"_"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">Num</span> <span class="nn">num</span>
+<span class="n">where</span> <span class="n">hasUnderscore</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+    <span class="ow">and</span> <span class="ow">not</span> <span class="n">num</span> <span class="n">instanceof</span> <span class="n">IntegerLiteral</span>
+<span class="n">select</span> <span class="n">num</span>
+</code></pre></div>
+<h3 id="long-integer-type-is-not-supported-by-python-3">Long integer type is not supported by Python 3<a class="headerlink" href="#long-integer-type-is-not-supported-by-python-3" title="Permanent link">¶</a></h3>
+<p>With the implementation of <a href="https://www.python.org/dev/peps/pep-0237/">PEP 237 – Unifying Long Integers and Integers</a>, 
+the <code>long</code> type was merged with the <code>int</code> type. 
+This means that having integer literals with <code>L</code>, for example, <code>10560L</code> in Python 3 
+would raise a <code>SyntaxError</code> at runtime. 
+To spot integers that wouldn’t be compatible with Python 3 in your Python 2 project, 
+you can use this custom QL query:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">string</span> <span class="n">getLongPostfix</span><span class="p">()</span> <span class="p">{</span> <span class="n">result</span> <span class="o">=</span> <span class="s2">"L"</span> <span class="ow">or</span> <span class="n">result</span> <span class="o">=</span> <span class="s2">"l"</span> <span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">IntegerLiteral</span> <span class="nn">num</span>
+<span class="n">where</span> <span class="n">num</span><span class="o">.</span><span class="n">getText</span><span class="p">()</span><span class="o">.</span><span class="n">charAt</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">getText</span><span class="p">()</span><span class="o">.</span><span class="n">length</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="n">getLongPostfix</span><span class="p">()</span>
+<span class="n">select</span> <span class="n">num</span>
+</code></pre></div>
+<blockquote>
+<p>Dive in: <code>.charAt</code> string method is implemented using <a href="https://docs.oracle.com/javase/10/docs/api/java/lang/String.html#charAt(int)">Java <code>String.charAt</code></a> 
+and doesn’t support negative indexing.</p>
+</blockquote>
+<h3 id="the-cmp-parameter-for-sortedlist-is-no-longer-supported">The ‘cmp’ parameter for ‘sorted(list)’ is no longer supported<a class="headerlink" href="#the-cmp-parameter-for-sortedlist-is-no-longer-supported" title="Permanent link">¶</a></h3>
+<p>Running the valid Python 2 code in the example below using a Python 3 interpreter
+would result in a <code>TypeError</code> 
+because <code>cmp</code> is no longer a supported keyword argument for the <code>sorted</code> function. 
+Visit <a href="https://docs.python.org/3/howto/sorting.html#the-old-way-using-the-cmp-parameter">The Old Way Using the cmp Parameter</a> to learn more.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">compare_as_ints</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span>
+
+<span class="nb">sorted</span><span class="p">([</span><span class="mi">50</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="nb">cmp</span><span class="o">=</span><span class="n">compare_as_ints</span><span class="p">)</span>
+</code></pre></div>
+<p>To spot this issue in Python code, 
+we would need to find all calls to the built-in <code>sorted</code> function 
+and see if the <code>cmp</code> keyword argument is being passed. 
+This QL query will find all calls to the <code>sorted</code> function 
+where the keyword argument <code>cmp</code> has been used.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+<span class="kn">from</span> <span class="nn">CallNode</span> <span class="nn">call</span>
+<span class="n">where</span>
+   <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="s2">"sorted"</span><span class="p">)</span><span class="o">.</span><span class="n">getACall</span><span class="p">()</span> <span class="o">=</span> <span class="n">call</span> <span class="ow">and</span>
+   <span class="n">exists</span><span class="p">(</span><span class="n">call</span><span class="o">.</span><span class="n">getArgByName</span><span class="p">(</span><span class="s2">"cmp"</span><span class="p">))</span>
+<span class="n">select</span> <span class="n">call</span><span class="p">,</span> <span class="s2">"Call to sorted built-in function with cmp keyword argument."</span>
+</code></pre></div>
+<p>The <code>CallNode</code> class represents all calls in the code. 
+We use this because we aren’t interested in function definitions 
+(which are accessed through the <code>Function</code> class) but in function calls. 
+Once we’ve got the <code>sorted</code> built-in function, 
+it’s just a matter of finding <code>sorted()</code> calls 
+with the <code>cmp</code> keyword argument supplied. 
+You could reuse this QL query to find other built-in functions 
+where the signature varies between Python versions.</p>
+<h3 id="methods-dictiterkeys-dictiteritems-and-dictitervalues-are-deprecated">Methods ‘dict.iterkeys()’, ‘dict.iteritems()’ and ‘dict.itervalues()’ are deprecated<a class="headerlink" href="#methods-dictiterkeys-dictiteritems-and-dictitervalues-are-deprecated" title="Permanent link">¶</a></h3>
+<p>An attempt to access any of these dictionary methods 
+would raise an <code>AttributeError</code> 
+when running the code against a Python 3 interpreter:</p>
+<div class="highlight"><pre><span></span><code><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">20</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+</code></pre></div>
+<p>Therefore, we might want to write a QL query 
+to spot when those methods access an object of <code>dict</code> type.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">python</span>
+
+<span class="n">string</span> <span class="n">unsupportedDictMethod</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="s2">"iteritems"</span> <span class="ow">or</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="s2">"iterkeys"</span> <span class="ow">or</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="s2">"itervalues"</span>
+<span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">Attribute</span> <span class="nn">attr</span><span class="p">,</span> <span class="n">Value</span> <span class="n">v</span>
+<span class="n">where</span>
+  <span class="n">attr</span><span class="o">.</span><span class="n">getValue</span><span class="p">()</span><span class="o">.</span><span class="n">getAFlowNode</span><span class="p">()</span><span class="o">.</span><span class="n">pointsTo</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">and</span>
+  <span class="n">v</span><span class="o">.</span><span class="n">getClass</span><span class="p">()</span> <span class="o">=</span> <span class="n">Value</span><span class="p">::</span><span class="n">named</span><span class="p">(</span><span class="s2">"dict"</span><span class="p">)</span> <span class="ow">and</span>
+  <span class="n">attr</span><span class="o">.</span><span class="n">getAttr</span><span class="p">()</span> <span class="o">=</span> <span class="n">unsupportedDictMethod</span><span class="p">()</span>
+<span class="n">select</span> <span class="n">attr</span><span class="p">,</span> <span class="s2">"A deprecated dictionary method was used"</span>
+</code></pre></div>
+<p>As before, the <code>AstNode</code> root class gives us access to all elements of the source code. 
+The <code>Attribute</code> class gives us access to all attributes that are accessed. 
+The attribute object is tied to the object 
+and this tie can be identified using the <code>.pointsTo()</code> method. 
+Once we’ve found all the dictionary attributes throughout the source code, 
+we leave only those that are no longer supported 
+using a convenience predicate, <code>unsupportedDictMethod</code>.</p>
+<p>This is the end of this tutorial. 
+The queries posted in this post can be executed using the <a href="https://lgtm.com/query/projects:116307598/lang:python/">LGTM.com query console</a>, 
+however, it’s also possible to run the queries locally using Eclipse. 
+Visit <a href="https://lgtm.com/help/lgtm/running-queries-ide">Running queries in your IDE</a> to learn more.
+I hope you enjoy trying out QL on your own projects!
+If you have any questions,
+don’t hesitate to ask on <a href="https://discuss.lgtm.com/">the community forum</a>.</p>
+<p>Happy Querying!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2019-08-13T00:00:00+01:00">Tue 13 August 2019</time>
+<h4>Last Updated</h4>
+<time datetime="2022-02-05T00:00:00+00:00">Feb 5, 2022</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#ql-ref">QL</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#python-ref">python
+                    <span class="superscript">20</span>
+</a></li>
+                <li><a href="/tags.html#ql-ref">QL
+                    <span class="superscript">3</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>
