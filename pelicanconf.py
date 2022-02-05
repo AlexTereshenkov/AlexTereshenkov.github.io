@@ -47,10 +47,6 @@ PROJECTS = [{
     'url': 'https://github.com/AlexTereshenkov/shapy',
     'description': ('Java CLI tool to read ESRI shapefiles binary data and metadata')},
     {
-    'name': 'CodeQL for Python',
-    'url': 'https://blog.semmle.com/authors/alexey-tereshenkov/',
-    'description': ('My posts about using CodeQL for Python projects')},
-    {
     'name': 'Geospatial blog',
     'url': 'https://tereshenkov.wordpress.com/',
     'description': ('My blog about programming and managing GIS software and services')},
