@@ -5,43 +5,50 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/</loc>
-<lastmod>2022-02-05T16:59:30-00:00</lastmod>
+<lastmod>2022-07-23T21:24:17-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/tags.html</loc>
-<lastmod>2022-02-05T16:59:30-00:00</lastmod>
+<lastmod>2022-07-23T21:24:17-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/categories.html</loc>
-<lastmod>2022-02-05T16:59:30-00:00</lastmod>
+<lastmod>2022-07-23T21:24:17-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/archives.html</loc>
-<lastmod>2022-02-05T16:59:30-00:00</lastmod>
+<lastmod>2022-07-23T21:24:17-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/search.html</loc>
-<lastmod>2022-02-05T16:59:30-00:00</lastmod>
+<lastmod>2022-07-23T21:24:17-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/404.html</loc>
-<lastmod>2022-02-05T16:59:30-00:00</lastmod>
+<lastmod>2022-07-23T21:24:17-00:00</lastmod>
 <changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>/python-compiling-code-base-testing-pyramid.html</loc>
+<lastmod>2022-05-08T00:00:00+01:00</lastmod>
+<changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
@@ -200,7 +207,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
-<loc>/finding-python-security-issues-with-ql.html</loc>
+<loc>/find-fix-python-security-issues-with-ql.html</loc>
 <lastmod>2022-02-05T00:00:00+00:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
@@ -250,7 +257,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/category/python.html</loc>
-<lastmod>2021-09-29T00:00:00-00:01</lastmod>
+<lastmod>2022-05-08T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -277,15 +284,15 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
-<loc>/tag/python-basics.html</loc>
-<lastmod>2021-08-14T00:00:00-00:01</lastmod>
+<loc>/tag/python.html</loc>
+<lastmod>2022-05-08T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
-<loc>/tag/python.html</loc>
-<lastmod>2022-02-05T00:00:00-00:01</lastmod>
+<loc>/tag/python-basics.html</loc>
+<lastmod>2021-08-14T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -509,7 +516,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/author/alexey-tereshenkov.html</loc>
-<lastmod>2022-02-05T00:00:00-00:01</lastmod>
+<lastmod>2022-05-08T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
