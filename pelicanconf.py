@@ -37,8 +37,17 @@ PLUGINS = ['tipue_search', 'sitemap', 'liquid_tags.include_code', 'extract_toc']
 DIRECT_TEMPLATES = ('index', 'tags', 'categories','archives', 'search', '404')
 
 # landing page items
-PROJECTS_TITLE = "My projects"
-PROJECTS = [{
+PROJECTS_TITLE = "Hobby projects"
+PROJECTS = [
+    {
+    'name': 'Building Python with Pants',
+    'url': 'https://github.com/AlexTereshenkov/cheeseshop-query',
+    'description': ('Build a Python project with PyPI dependencies using Pants')},
+    {
+    'name': 'Building Java with Bazel',
+    'url': 'https://github.com/AlexTereshenkov/java-bazel-build-example',
+    'description': ('Build a Java project with Maven dependencies using Bazel')},
+    {
     'name': 'Pybutler',
     'url': 'https://github.com/AlexTereshenkov/pybutler',
     'description': ('Java interactive CLI tool for scaffolding Python 3 project unit tests using ANTLR')},
@@ -47,21 +56,13 @@ PROJECTS = [{
     'url': 'https://github.com/AlexTereshenkov/shapy',
     'description': ('Java CLI tool to read ESRI shapefiles binary data and metadata')},
     {
-    'name': 'Geospatial blog',
-    'url': 'https://tereshenkov.wordpress.com/',
-    'description': ('My blog about programming and managing GIS software and services')},
-    {
     'name': 'GDBee',
     'url': 'https://github.com/AlexArcPy/GDBee',
     'description': ('PyQt5 desktop SQL editor for spatial geodatabases')},
-    {'name': 'Registrant',
+    {
+    'name': 'Registrant',
     'url': 'https://github.com/AlexArcPy/registrant',
-    'description': 'Generator of HTML reports about the contents of spatial geodatabases'},
-    {'name': 'Python for GIS',
-    'url': 'https://github.com/AlexArcPy/python-for-gis-progression-path',
-    'description': ('Progression path for a GIS analyst who wants to become proficient ' 
-                   'in using Python for GIS: from apprentice to guru')},
-    
+    'description': 'Generator of HTML reports about the contents of spatial geodatabases'},    
     ]
 
 SITEMAP = {
