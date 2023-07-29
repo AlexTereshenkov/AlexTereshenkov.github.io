@@ -48,6 +48,10 @@ PROJECTS = [
     'url': 'https://github.com/AlexTereshenkov/java-bazel-build-example',
     'description': ('Build a Java project with Maven dependencies using Bazel')},
     {
+    'name': 'Pantsights',
+    'url': 'https://github.com/AlexTereshenkov/pantsights',
+    'description': ('Explore dependency graph of your project using React web UI')},
+    {
     'name': 'Pybutler',
     'url': 'https://github.com/AlexTereshenkov/pybutler',
     'description': ('Java interactive CLI tool for scaffolding Python 3 project unit tests using ANTLR')},
