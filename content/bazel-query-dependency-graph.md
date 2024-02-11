@@ -8,7 +8,7 @@ category: bazel
 
 [TOC]
 
-# Introduction
+## Introduction
 
 Bazel provides a very powerful build framework that can be configured to work with very large codebases. Relying on a CI to run the builds (with resourceful machines available), builds are likely to complete much faster, and with the well-tuned settings of remote execution and remote caching (distributing the build steps across hundreds or thousands of machines), it is possible to speed up the builds even further, in many cases having builds that used to take hours to complete in minutes.
 
