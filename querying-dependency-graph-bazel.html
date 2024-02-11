@@ -89,7 +89,7 @@
         <h4>Contents</h4>
         <div class="toc">
 <ul>
-<li><a href="#introduction">Introduction</a><ul>
+<li><a href="#introduction">Introduction</a></li>
 <li><a href="#export-dependencies">Export dependencies</a></li>
 <li><a href="#export-dependents">Export dependents</a></li>
 <li><a href="#validate-dependencies">Validate dependencies</a></li>
@@ -103,15 +103,13 @@
 <li><a href="#all-paths-between-two-targets">All paths between two targets</a></li>
 <li><a href="#conclusion">Conclusion</a></li>
 </ul>
-</li>
-</ul>
 </div>
         </nav>
     </div>
     <div class="span8 article-content">
             
             
-<h1 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">¶</a></h1>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">¶</a></h2>
 <p>Bazel provides a very powerful build framework that can be configured to work with very large codebases. Relying on a CI to run the builds (with resourceful machines available), builds are likely to complete much faster, and with the well-tuned settings of remote execution and remote caching (distributing the build steps across hundreds or thousands of machines), it is possible to speed up the builds even further, in many cases having builds that used to take hours to complete in minutes.</p>
 <p>However, while keeping the absolute build time under control, it may be helpful to keep in mind the computational time as well. While developers’ time is way more expensive than that of a machine, every computation that needs to take place in every build will inevitably add up to the total cost of the build as those operations still need to take place in a cluster of working nodes (regardless whether you pay your cloud provider or are responsible for energy / maintenance costs of an on-premises deployment).</p>
 <p>Being able to query the dependency graph of your codebase will provide useful insights for your engineering organization to help you understand your code better. This information may be used to develop custom tooling to validate the build code, facilitate refactoring, and enforce best practices for developing in a large codebase with a potentially tight dependency graph.</p>
