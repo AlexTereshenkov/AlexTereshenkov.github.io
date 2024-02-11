@@ -1,5 +1,306 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2022-07-23T00:00:00+01:00</updated><entry><title>Python basics - Generators</title><link href="/python-basics-generators.html" rel="alternate"></link><published>2022-07-23T00:00:00+01:00</published><updated>2022-07-23T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2022-07-23:/python-basics-generators.html</id><summary type="html">
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Alexey Tereshenkov</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2024-02-11T00:00:00+00:00</updated><entry><title>Querying dependency graph of a Bazel project</title><link href="/querying-dependency-graph-bazel.html" rel="alternate"></link><published>2024-02-11T00:00:00+00:00</published><updated>2024-02-11T00:00:00+00:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2024-02-11:/querying-dependency-graph-bazel.html</id><summary type="html">
+&lt;h1 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;Bazel provides a very powerful build framework that can be configured to work with very large codebases. Relying on a CI to run the builds (with resourceful machines available), builds are likely to complete much faster, and with the well-tuned settings of remote execution and remote caching (distributing the …&lt;/p&gt;</summary><content type="html">
+&lt;h1 id="introduction"&gt;Introduction&lt;a class="headerlink" href="#introduction" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;Bazel provides a very powerful build framework that can be configured to work with very large codebases. Relying on a CI to run the builds (with resourceful machines available), builds are likely to complete much faster, and with the well-tuned settings of remote execution and remote caching (distributing the build steps across hundreds or thousands of machines), it is possible to speed up the builds even further, in many cases having builds that used to take hours to complete in minutes.&lt;/p&gt;
+&lt;p&gt;However, while keeping the absolute build time under control, it may be helpful to keep in mind the computational time as well. While developers’ time is way more expensive than that of a machine, every computation that needs to take place in every build will inevitably add up to the total cost of the build as those operations still need to take place in a cluster of working nodes (regardless whether you pay your cloud provider or are responsible for energy / maintenance costs of an on-premises deployment).&lt;/p&gt;
+&lt;p&gt;Being able to query the dependency graph of your codebase will provide useful insights for your engineering organization to help you understand your code better. This information may be used to develop custom tooling to validate the build code, facilitate refactoring, and enforce best practices for developing in a large codebase with a potentially tight dependency graph.&lt;/p&gt;
+&lt;h2 id="export-dependencies"&gt;Export dependencies&lt;a class="headerlink" href="#export-dependencies" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;To export the dependency graph metadata (with direct dependencies only), you can use the &lt;code&gt;bazel query&lt;/code&gt; command. You may want to export the whole dependency graph or only the relevant parts. In this experiment, we explore the dependency graph of the &lt;a href="https://github.com/envoyproxy/envoy"&gt;envoy&lt;/a&gt; project.&lt;/p&gt;
+&lt;p&gt;For instance, this command exports data about dependencies for every source module under the root’s &lt;code&gt;source&lt;/code&gt; directory:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ bazel query //source/... --output&lt;span class="o"&gt;=&lt;/span&gt;graph --nograph:factored &lt;span class="p"&gt;|&lt;/span&gt; head -n &lt;span class="m"&gt;10&lt;/span&gt;           
+
+digraph mygraph &lt;span class="o"&gt;{&lt;/span&gt;
+  node &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;shape&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;box&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="s2"&gt;"//source/extensions/filters/network/dubbo_proxy:decoder_lib_with_external_headers"&lt;/span&gt;
+  &lt;span class="s2"&gt;"//source/extensions/filters/network/dubbo_proxy:decoder_lib_with_external_headers"&lt;/span&gt; -&amp;gt; &lt;span class="s2"&gt;"//source/extensions/filters/network/dubbo_proxy:decoder_lib"&lt;/span&gt;
+  &lt;span class="s2"&gt;"//source/common/stats:tag_utility_lib_with_external_headers"&lt;/span&gt;
+  &lt;span class="s2"&gt;"//source/common/stats:tag_utility_lib_with_external_headers"&lt;/span&gt; -&amp;gt; &lt;span class="s2"&gt;"//source/common/stats:tag_utility_lib"&lt;/span&gt;
+  &lt;span class="s2"&gt;"//source/extensions/filters/network/thrift_proxy/router:router_ratelimit_lib_with_external_headers"&lt;/span&gt;
+  &lt;span class="s2"&gt;"//source/extensions/filters/network/thrift_proxy/router:router_ratelimit_lib_with_external_headers"&lt;/span&gt; -&amp;gt; &lt;span class="s2"&gt;"//source/extensions/filters/network/thrift_proxy/router:router_ratelimit_lib"&lt;/span&gt;
+  &lt;span class="s2"&gt;"//source/common/http/http1:codec_stats_lib_with_external_headers"&lt;/span&gt;
+  &lt;span class="s2"&gt;"//source/common/http/http1:codec_stats_lib_with_external_headers"&lt;/span&gt; -&amp;gt; &lt;span class="s2"&gt;"//source/common/http/http1:codec_stats_lib"&lt;/span&gt;
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Having the graph saved as a DOT file, you are ready to start querying it using a graph introspection library of your choice, for instance, using &lt;a href="https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pydot.read_dot.html"&gt;read_dot&lt;/a&gt; of the &lt;code&gt;networkx&lt;/code&gt; library if you are comfortable using Python. You can also convert the DOT file produced into another format to make it easier to review and query this data structure. The &lt;a href="https://networkx.org/documentation/stable/reference/generated/networkx.convert.to_dict_of_lists.html"&gt;networkx.to_dict_of_lists&lt;/a&gt; will export the adjacency representation of the dependency graph into a dictionary of lists.&lt;/p&gt;
+&lt;p&gt;For better control over the data being exported or if you need the transitive dependencies, you can use this code snippet:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;json&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;subprocess&lt;/span&gt;
+
+&lt;span class="n"&gt;graph&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
+&lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;subprocess&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;check_output&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s2"&gt;"bazel"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"query"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"//test/..."&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"--noshow_progress"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;target&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;rdeps&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;subprocess&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;check_output&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s2"&gt;"bazel"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"query"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;'deps(&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s1"&gt;)'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"--noimplicit_deps"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"--noshow_progress"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;graph&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;rdeps&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"graph.json"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"w"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dump&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;graph&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;indent&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="export-dependents"&gt;Export dependents&lt;a class="headerlink" href="#export-dependents" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Apart from listing the dependencies of targets, you may also want to list their dependents which are known as &lt;a href="https://bazel.build/query/language#rdeps"&gt;reverse dependencies&lt;/a&gt;. To do this for all targets at once, you can use this code snippet:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;json&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;subprocess&lt;/span&gt;
+
+&lt;span class="n"&gt;rgraph_direct&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
+&lt;span class="n"&gt;rgraph_transitive&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
+
+&lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;subprocess&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;check_output&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s2"&gt;"bazel"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"query"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"//source/..."&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"--noshow_progress"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;target&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="c1"&gt;# direct dependents only&lt;/span&gt;
+    &lt;span class="n"&gt;rdeps_direct&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;subprocess&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;check_output&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s2"&gt;"bazel"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"query"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"rdeps(..., &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;, 1)"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"--noshow_progress"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="c1"&gt;# all dependents, transitively&lt;/span&gt;
+    &lt;span class="n"&gt;rdeps_transitive&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;subprocess&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;check_output&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s2"&gt;"bazel"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"query"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"rdeps(..., &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;)"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"--noshow_progress"&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;rgraph_direct&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;rdeps_direct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;rgraph_transitive&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;rdeps_transitive&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"rgraph.json"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"w"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dump&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;rgraph_direct&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;indent&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"rgraph-transitive.json"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"w"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dump&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;rgraph_transitive&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;indent&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;A library that provides a comprehensive graph management toolset would let you get the transitive links of a node, so exporting the reverse dependencies transitively may not be strictly necessary, however, if you are planning to run lots of queries on all the nodes, it may be worth exporting the node connections transitively, too.&lt;/p&gt;
+&lt;p&gt;Let’s explore what kind of questions we can get answered by having a dependency graph data ready!&lt;/p&gt;
+&lt;h2 id="validate-dependencies"&gt;Validate dependencies&lt;a class="headerlink" href="#validate-dependencies" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;It is a common practice for applications to depend on libraries (shared code), however, it is also possible (but less ideal) for an application to use code from another application. If multiple applications have some code they both need, it is often suggested that this code is extracted into a shared library so that both applications can depend on that instead.&lt;/p&gt;
+&lt;p&gt;Bazel provides a &lt;a href="https://bazel.build/concepts/visibility"&gt;target visibility&lt;/a&gt; mechanism that enforces rules of dependency between your codebase components. However, visibility rules may be not expressive enough to cover a special case. For instance, if you follow a particular deployment model, you may need to make sure that a specified module will never end up as a transitive dependency of a certain package. Or you may want to enforce that some code is justified to exist in a particular package only if it’s being imported by specified packages (e.g. you may want to prevent placing any modules in the &lt;code&gt;src/common-plugins&lt;/code&gt; package unless they are imported by &lt;code&gt;src/plugins&lt;/code&gt; package modules).&lt;/p&gt;
+&lt;h2 id="count-dependencies-and-dependents"&gt;Count dependencies and dependents&lt;a class="headerlink" href="#count-dependencies-and-dependents" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;These are helper functions we will need later to query the graph.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;json&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;count_deps&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"../&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;deps&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;deps&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;()]&lt;/span&gt;
+    &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;sorted&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;results&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;results&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;count_deps_tests_only&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"../&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;deps&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;startswith&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"//test"&lt;/span&gt;&lt;span class="p"&gt;)]))&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;deps&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;()]&lt;/span&gt;
+    &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;sorted&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;results&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;results&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;count_deps_workspace_only&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"../&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;deps&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;startswith&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"//"&lt;/span&gt;&lt;span class="p"&gt;)]))&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;deps&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;()]&lt;/span&gt;
+    &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;sorted&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;results&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;results&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;count_deps_workspace_only_sources_only&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;"../&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fh&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;deps&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;startswith&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"//source"&lt;/span&gt;&lt;span class="p"&gt;)]))&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;deps&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;()]&lt;/span&gt;
+    &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;sorted&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;results&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;results&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="sources-with-most-dependencies-direct-and-transitive"&gt;Sources with most dependencies (direct and transitive)&lt;a class="headerlink" href="#sources-with-most-dependencies-direct-and-transitive" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;A module that directly depends on many other modules is more likely to be considered changed when any of its dependencies change. Most often, the size of the file (in terms of lines of code) goes hand in hand with a number of dependencies: the larger the file is, the more dependencies it has, but it’s not always the case. For instance, a file containing boilerplate code or generated code may be thousands of lines but have no or only a few dependencies.&lt;/p&gt;
+&lt;p&gt;Test modules that have lots of transitive dependencies are more likely to be run on an arbitrary change in a repository so it may be worth looking at them to see if they have related code that could be extracted into separate modules.&lt;/p&gt;
+&lt;p&gt;In the code snippets below, we list tests related modules with the largest number of dependencies (e.g. &lt;code&gt;//test/tools/config_load_check:config_load_check_tool&lt;/code&gt; depends transitively on 4868 targets):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# taking into account only local workspace targets&lt;/span&gt;
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;count_deps_workspace_only&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"graph.json"&lt;/span&gt;&lt;span class="p"&gt;)[:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;    ('//test/config_test:example_configs_test', 5084)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/server/config_validation:config_fuzz_test_oss_fuzz', 4958)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/server/config_validation:config_fuzz_test_run', 4958)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/server/config_validation:config_fuzz_test_bin', 4957)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/server/config_validation:config_fuzz_test', 4955)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/server:server_fuzz_test_oss_fuzz', 4938)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/server:server_fuzz_test_run', 4938)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/server:server_fuzz_test_bin', 4937)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/server:server_fuzz_test', 4935)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/tools/config_load_check:config_load_check_tool', 4868)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# taking into account only local workspace targets, "source" directory only&lt;/span&gt;
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;count_deps_workspace_only_sources_only&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"graph.json"&lt;/span&gt;&lt;span class="p"&gt;)[:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;    ('//test/exe:win32_scm_test', 3936)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/exe:build_id_test', 3931)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/exe:envoy_static_test', 3931)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/exe:pie_test', 3931)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/exe:version_out_test', 3931)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/exe:win32_outofproc_main_test', 3931)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/exe:check_extensions_against_registry_test', 3921)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/exe:extra_extensions_test', 3920)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/config_test:example_configs_test', 3880)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//test/server/config_validation:config_fuzz_test', 3880)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Typically, a smaller test module means fewer dependencies and therefore lower probability that the test module will be considered changed in an arbitrary build. Smaller modules help with parallelization of tests (when sharding is based on files, not on individual test cases). Likewise, since caching is done on individual files, one would be able to avoid re-running tests that are known to have already been completed recently. This is one of the reasons why one would want to refactor a large test module into multiple ones.&lt;/p&gt;
+&lt;h3 id="sources-with-most-dependents-direct-and-transitive"&gt;Sources with most dependents (direct and transitive)&lt;a class="headerlink" href="#sources-with-most-dependents-direct-and-transitive" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;In the code snippets below, we list modules with the largest number of dependents (e.g. there are 135 targets that directly depend on &lt;code&gt;//source/common/network:utility_lib&lt;/code&gt; and there are 5157 targets that transitively depend on &lt;code&gt;//source/common/common:non_copyable&lt;/code&gt;):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;count_deps&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"rgraph.json"&lt;/span&gt;&lt;span class="p"&gt;)[:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;    ('//source/common/common:common_pch', 1802)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:assert_lib', 312)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/buffer:buffer_lib', 215)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/protobuf:utility_lib', 208)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:minimal_logger_lib', 155)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/http:header_map_lib', 153)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/config:utility_lib', 150)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:utility_lib', 147)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/protobuf:protobuf', 144)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/network:utility_lib', 135)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;count_deps&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"rgraph-transitive.json"&lt;/span&gt;&lt;span class="p"&gt;)[:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;    ('//source/common/common:common_pch_libs', 5544)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:common_pch', 5543)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:thread_annotations', 5166)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:macros', 5165)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/protobuf:wkt_protos', 5163)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/protobuf:cc_wkt_protos', 5162)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:base_logger_lib', 5161)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/protobuf:protobuf', 5161)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:fmt_lib', 5158)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:non_copyable', 5157)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Source modules that are needed transitively by lots of other modules may benefit from refactoring, particularly if they are edited often. This is because having any of those modules modified would require running all the tests that depend on them (transitively).&lt;/p&gt;
+&lt;p&gt;In the example below, you can see that &lt;code&gt;//source/common/common:macros&lt;/code&gt; target is a transitive dependency of 1781 targets declared in the &lt;code&gt;test&lt;/code&gt; directory:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;count_deps_tests_only&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"rgraph-transitive.json"&lt;/span&gt;&lt;span class="p"&gt;)[:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;    ('//source/common/common:common_pch', 1808)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:common_pch_libs', 1808)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:thread_annotations', 1782)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:assert_lib', 1781)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:base_logger_lib', 1781)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:fmt_lib', 1781)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:lock_guard_lib', 1781)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:logger_impl_lib_android', 1781)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:logger_impl_lib_standard', 1781)&lt;/span&gt;
+&lt;span class="err"&gt;    ('//source/common/common:macros', 1781)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="graph-analysis-searching-for-improvements"&gt;Graph analysis: searching for improvements&lt;a class="headerlink" href="#graph-analysis-searching-for-improvements" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;When introducing an artifact-based build system to a large, legacy codebase that has evolved without paying attention to the dependency graph’s shape, builds may be slow not because the code compilation or tests take long, but because any change in the source code requires re-building most or all targets. For instance, if all targets transitively depend on a module with many widely used constants that are modified often, there will be lots of build actions unless this module is split across multiple modules each containing only closely related code.&lt;/p&gt;
+&lt;p&gt;Cutting the build time by bringing remote execution and caching will certainly have an effect, however, it may be worth spending some time analyzing the dependency graph first to find out what kind of refactoring would minimize the interconnectedness of the graph, ultimately breaking the dependency chain between packages or individual modules.&lt;/p&gt;
+&lt;p&gt;For instance, it may be common for modules (that are external to your team’s project) to depend only on a few members in your project/application; this could be a constant or a convenience function. Placing constants that do not depend on anything (a string literal, a magic number, or an enum) in a separate module will increase the chances that other projects would not depend on your project’s modules that have dependencies leading to other project modules (or modules external to your team’s ownership).&lt;/p&gt;
+&lt;p&gt;Bazel &lt;a href="https://bazel.build/query/guide#steps-footests"&gt;documentation&lt;/a&gt; suggests that Bazel query language may have limitations in what information can be retrieved, but you will need to use a separate library to analyze the graph anyway.&lt;/p&gt;
+&lt;p&gt;With a sophisticated graph querying tool, you’ll be able to find answers to questions similar to these: &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;dependency chain between what nodes need to be broken to have a number of dependencies lowered for most nodes? (these could be identified as &lt;a href="https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.bridges.bridges.html#networkx.algorithms.bridges.bridges"&gt;bridges&lt;/a&gt; in an undirected graph)&lt;/li&gt;
+&lt;li&gt;are there any source modules that do not have any dependencies and no one depends on them? (known as &lt;a href="https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.isolate.is_isolate.html#networkx.algorithms.isolate.is_isolate"&gt;isolates&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;are there any third-party dependencies that are brought into a deployable package (via a transitive dependency) that is supposed to contain first-party code only?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;With this code snippet, the dependency graph is loaded into a &lt;code&gt;networkx&lt;/code&gt; graph to be explored later:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;networkx.drawing.nx_pydot&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;read_dot&lt;/span&gt;
+&lt;span class="n"&gt;g&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;read_dot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"../graph.dot"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="longest-paths-in-the-graph"&gt;Longest paths in the graph&lt;a class="headerlink" href="#longest-paths-in-the-graph" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;It is possible to list the longest paths in the graph to get an idea about how complicated the codebase is:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;dag_longest_path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;    ['//source/exe:envoy',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/exe:envoy-static',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/exe:envoy_main_entry_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/exe:scm_impl_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/exe:main_common_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/exe:envoy_common_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/extensions/filters/udp/dns_filter:config_envoy_extension',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/extensions/filters/udp/dns_filter:config',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/extensions/filters/udp/dns_filter:dns_filter_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/upstream:cluster_manager_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/http:conn_pool_grid',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/http:mixed_conn_pool',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/tcp:conn_pool_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/http:conn_pool_base_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/conn_pool:conn_pool_base_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/upstream:upstream_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/upstream:cluster_factory_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/upstream:cluster_factory_includes',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/upstream:outlier_detection_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/upstream:upstream_includes',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/extensions/filters/network/http_connection_manager:config',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/http:conn_manager_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/router:scoped_rds_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/router:rds_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/router:vhds_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/router:route_config_update_impl_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/rds:rds_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/common:callback_impl_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/event:dispatcher_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/network:default_client_connection_factory',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/network:connection_impl',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/network:connection_base_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/network:filter_manager_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/runtime:runtime_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/grpc:common_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/http:header_utility_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/http:utility_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/network:utility_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/network:default_socket_interface_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/event:dispatcher_includes',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/signal:sigaction_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/server:backtrace_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/version:version_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/protobuf:utility_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/protobuf:yaml_utility_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/protobuf:visitor_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/protobuf:message_validator_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/common:logger_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/common:minimal_logger_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/common:lock_guard_lib',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/common:thread_annotations',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/common:common_pch',&lt;/span&gt;
+&lt;span class="err"&gt;     '//source/common/common:common_pch_libs']&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="all-paths-between-two-targets"&gt;All paths between two targets&lt;a class="headerlink" href="#all-paths-between-two-targets" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;It is possible to generate all paths between two targets to get a sense of the amount of refactoring that would be necessary to break the dependency chain between them:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;collections&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Counter&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;networkx.algorithms.simple_paths&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;all_simple_paths&lt;/span&gt;
+
+&lt;span class="c1"&gt;# number of unique paths between two targets&lt;/span&gt;
+&lt;span class="n"&gt;paths&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;list&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;all_simple_paths&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+        &lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+        &lt;span class="s2"&gt;"//source/common/http:conn_pool_grid"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+        &lt;span class="s2"&gt;"//source/common/router:vhds_lib"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+        &lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;paths&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;    166&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# most commonly visited nodes in the paths between targets&lt;/span&gt;
+&lt;span class="n"&gt;Counter&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;elem&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;paths&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;elem&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;most_common&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;    [('//source/common/http:conn_pool_grid', 166),&lt;/span&gt;
+&lt;span class="err"&gt;     ('//source/common/upstream:upstream_lib', 166),&lt;/span&gt;
+&lt;span class="err"&gt;     ('//source/common/upstream:upstream_includes', 166),&lt;/span&gt;
+&lt;span class="err"&gt;     ('//source/extensions/filters/network/http_connection_manager:config', 166),&lt;/span&gt;
+&lt;span class="err"&gt;     ('//source/common/router:rds_lib', 166),&lt;/span&gt;
+&lt;span class="err"&gt;     ('//source/common/router:vhds_lib', 166),&lt;/span&gt;
+&lt;span class="err"&gt;     ('//source/common/http:mixed_conn_pool', 137),&lt;/span&gt;
+&lt;span class="err"&gt;     ('//source/common/http:conn_pool_base_lib', 136),&lt;/span&gt;
+&lt;span class="err"&gt;     ('//source/common/router:scoped_rds_lib', 106),&lt;/span&gt;
+&lt;span class="err"&gt;     ('//source/common/upstream:cluster_factory_lib', 94)]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="conclusion"&gt;Conclusion&lt;a class="headerlink" href="#conclusion" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Having dependency graph data exported from a Bazel-managed codebase provides enormous opportunities for code exploration and research. Providing internal tooling to make this information accessible to every engineer will help scale the refactoring, if applicable. Using Bazel to record the graph state regularly makes it possible to track dependency graph health by collecting various metrics such as an average number of tests per source module or an average number of connections per target. See &lt;a href="https://docs.google.com/presentation/d/1McLw_yWbPuR1UqaoowHMsu5LskPJX7kWETkB-DkqNpo/edit?resourcekey=0-sVMAbv967ww2kWvJuzyN5w#slide=id.g1867ddcecfb_0_4281"&gt;BazelCon 2022 - Driving Architectural Improvements with Dependency Metrics&lt;/a&gt; to learn more.&lt;/p&gt;
+&lt;p&gt;Visit the Bazel &lt;a href="https://bazel.build/query/guide"&gt;query guide&lt;/a&gt; to learn more about querying a project and &lt;a href="https://bazel.build/query/language#language-concepts"&gt;Bazel Query Reference&lt;/a&gt;. For inspiration, see what a &lt;a href="https://github.com/AlexTereshenkov/pantsights"&gt;web UI for exploring the dependency graph&lt;/a&gt; may look like.&lt;/p&gt;
+&lt;p&gt;Happy building!&lt;/p&gt;</content><category term="bazel"></category><category term="bazel"></category><category term="networkx"></category></entry><entry><title>Python basics - Generators</title><link href="/python-basics-generators.html" rel="alternate"></link><published>2022-07-23T00:00:00+01:00</published><updated>2022-07-23T00:00:00+01:00</updated><author><name>Alexey Tereshenkov</name></author><id>tag:None,2022-07-23:/python-basics-generators.html</id><summary type="html">
 &lt;p&gt;This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes …&lt;/p&gt;</summary><content type="html">
 &lt;p&gt;This is one of the posts in a series of introductory Python articles. These posts explain programming principles in a simplified way and show very basic Python code that should help folks learning Python to get a better understanding of some concepts. In this post, I’ll share some notes about writing and working with generators in Python that beginners may find useful. &lt;/p&gt;
 &lt;h2 id="defining-generators"&gt;Defining generators&lt;a class="headerlink" href="#defining-generators" title="Permanent link"&gt;¶&lt;/a&gt;&lt;/h2&gt;

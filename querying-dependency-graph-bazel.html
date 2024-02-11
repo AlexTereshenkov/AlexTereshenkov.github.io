@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.prod.9e9d5ce754.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="author" content="Alexey Tereshenkov" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="bazel, networkx, bazel, " />
+
+<meta property="og:title" content="Querying dependency graph of a Bazel project "/>
+<meta property="og:url" content="/querying-dependency-graph-bazel.html" />
+<meta property="og:description" content="Introduction¶ Bazel provides a very powerful build framework that can be configured to work with very large codebases. Relying on a CI to run the builds (with resourceful machines available), builds are likely to complete much faster, and with the well-tuned settings of remote execution and remote caching (distributing the …" />
+<meta property="og:site_name" content="Alexey Tereshenkov" />
+<meta property="og:article:author" content="Alexey Tereshenkov" />
+<meta property="og:article:published_time" content="2024-02-11T00:00:00+00:00" />
+<meta property="og:article:modified_time" content="2024-02-11T00:00:00+00:00" />
+<meta name="twitter:title" content="Querying dependency graph of a Bazel project ">
+<meta name="twitter:description" content="Introduction¶ Bazel provides a very powerful build framework that can be configured to work with very large codebases. Relying on a CI to run the builds (with resourceful machines available), builds are likely to complete much faster, and with the well-tuned settings of remote execution and remote caching (distributing the …">
+
+        <title>Querying dependency graph of a Bazel project  · Alexey Tereshenkov
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Alexey Tereshenkov - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-177875539-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="/"><span class=site-name>Alexey Tereshenkov</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       "/"
+                                    >Home</a>
+                                </li>
+                                <li ><a href="/categories.html">Categories</a></li>
+                                <li ><a href="/tags.html">Tags</a></li>
+                                <li ><a href="/archives.html">Archives</a></li>
+                                <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="/querying-dependency-graph-bazel.html">
+                Querying dependency graph of a Bazel project
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+    <div class="span2 table-of-content">
+        <nav>
+        <h4>Contents</h4>
+        <div class="toc">
+<ul>
+<li><a href="#introduction">Introduction</a><ul>
+<li><a href="#export-dependencies">Export dependencies</a></li>
+<li><a href="#export-dependents">Export dependents</a></li>
+<li><a href="#validate-dependencies">Validate dependencies</a></li>
+<li><a href="#count-dependencies-and-dependents">Count dependencies and dependents</a><ul>
+<li><a href="#sources-with-most-dependencies-direct-and-transitive">Sources with most dependencies (direct and transitive)</a></li>
+<li><a href="#sources-with-most-dependents-direct-and-transitive">Sources with most dependents (direct and transitive)</a></li>
+</ul>
+</li>
+<li><a href="#graph-analysis-searching-for-improvements">Graph analysis: searching for improvements</a></li>
+<li><a href="#longest-paths-in-the-graph">Longest paths in the graph</a></li>
+<li><a href="#all-paths-between-two-targets">All paths between two targets</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </nav>
+    </div>
+    <div class="span8 article-content">
+            
+            
+<h1 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">¶</a></h1>
+<p>Bazel provides a very powerful build framework that can be configured to work with very large codebases. Relying on a CI to run the builds (with resourceful machines available), builds are likely to complete much faster, and with the well-tuned settings of remote execution and remote caching (distributing the build steps across hundreds or thousands of machines), it is possible to speed up the builds even further, in many cases having builds that used to take hours to complete in minutes.</p>
+<p>However, while keeping the absolute build time under control, it may be helpful to keep in mind the computational time as well. While developers’ time is way more expensive than that of a machine, every computation that needs to take place in every build will inevitably add up to the total cost of the build as those operations still need to take place in a cluster of working nodes (regardless whether you pay your cloud provider or are responsible for energy / maintenance costs of an on-premises deployment).</p>
+<p>Being able to query the dependency graph of your codebase will provide useful insights for your engineering organization to help you understand your code better. This information may be used to develop custom tooling to validate the build code, facilitate refactoring, and enforce best practices for developing in a large codebase with a potentially tight dependency graph.</p>
+<h2 id="export-dependencies">Export dependencies<a class="headerlink" href="#export-dependencies" title="Permanent link">¶</a></h2>
+<p>To export the dependency graph metadata (with direct dependencies only), you can use the <code>bazel query</code> command. You may want to export the whole dependency graph or only the relevant parts. In this experiment, we explore the dependency graph of the <a href="https://github.com/envoyproxy/envoy">envoy</a> project.</p>
+<p>For instance, this command exports data about dependencies for every source module under the root’s <code>source</code> directory:</p>
+<div class="highlight"><pre><span></span><code>$ bazel query //source/... --output<span class="o">=</span>graph --nograph:factored <span class="p">|</span> head -n <span class="m">10</span>           
+
+digraph mygraph <span class="o">{</span>
+  node <span class="o">[</span><span class="nv">shape</span><span class="o">=</span>box<span class="o">]</span><span class="p">;</span>
+  <span class="s2">"//source/extensions/filters/network/dubbo_proxy:decoder_lib_with_external_headers"</span>
+  <span class="s2">"//source/extensions/filters/network/dubbo_proxy:decoder_lib_with_external_headers"</span> -&gt; <span class="s2">"//source/extensions/filters/network/dubbo_proxy:decoder_lib"</span>
+  <span class="s2">"//source/common/stats:tag_utility_lib_with_external_headers"</span>
+  <span class="s2">"//source/common/stats:tag_utility_lib_with_external_headers"</span> -&gt; <span class="s2">"//source/common/stats:tag_utility_lib"</span>
+  <span class="s2">"//source/extensions/filters/network/thrift_proxy/router:router_ratelimit_lib_with_external_headers"</span>
+  <span class="s2">"//source/extensions/filters/network/thrift_proxy/router:router_ratelimit_lib_with_external_headers"</span> -&gt; <span class="s2">"//source/extensions/filters/network/thrift_proxy/router:router_ratelimit_lib"</span>
+  <span class="s2">"//source/common/http/http1:codec_stats_lib_with_external_headers"</span>
+  <span class="s2">"//source/common/http/http1:codec_stats_lib_with_external_headers"</span> -&gt; <span class="s2">"//source/common/http/http1:codec_stats_lib"</span>
+...
+</code></pre></div>
+<p>Having the graph saved as a DOT file, you are ready to start querying it using a graph introspection library of your choice, for instance, using <a href="https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pydot.read_dot.html">read_dot</a> of the <code>networkx</code> library if you are comfortable using Python. You can also convert the DOT file produced into another format to make it easier to review and query this data structure. The <a href="https://networkx.org/documentation/stable/reference/generated/networkx.convert.to_dict_of_lists.html">networkx.to_dict_of_lists</a> will export the adjacency representation of the dependency graph into a dictionary of lists.</p>
+<p>For better control over the data being exported or if you need the transitive dependencies, you can use this code snippet:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+<span class="n">graph</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">"bazel"</span><span class="p">,</span> <span class="s2">"query"</span><span class="p">,</span> <span class="s2">"//test/..."</span><span class="p">,</span> <span class="s2">"--noshow_progress"</span><span class="p">],</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="n">rdeps</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">"bazel"</span><span class="p">,</span> <span class="s2">"query"</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'deps(</span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s1">)'</span><span class="p">,</span> <span class="s2">"--noimplicit_deps"</span><span class="p">,</span> <span class="s2">"--noshow_progress"</span><span class="p">],</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">graph</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="n">rdeps</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"graph.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">fh</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="export-dependents">Export dependents<a class="headerlink" href="#export-dependents" title="Permanent link">¶</a></h2>
+<p>Apart from listing the dependencies of targets, you may also want to list their dependents which are known as <a href="https://bazel.build/query/language#rdeps">reverse dependencies</a>. To do this for all targets at once, you can use this code snippet:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+<span class="n">rgraph_direct</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">rgraph_transitive</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">"bazel"</span><span class="p">,</span> <span class="s2">"query"</span><span class="p">,</span> <span class="s2">"//source/..."</span><span class="p">,</span> <span class="s2">"--noshow_progress"</span><span class="p">],</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="c1"># direct dependents only</span>
+    <span class="n">rdeps_direct</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">"bazel"</span><span class="p">,</span> <span class="s2">"query"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"rdeps(..., </span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2">, 1)"</span><span class="p">,</span> <span class="s2">"--noshow_progress"</span><span class="p">],</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># all dependents, transitively</span>
+    <span class="n">rdeps_transitive</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">"bazel"</span><span class="p">,</span> <span class="s2">"query"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"rdeps(..., </span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="s2">"--noshow_progress"</span><span class="p">],</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">rgraph_direct</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="n">rdeps_direct</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">rgraph_transitive</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="n">rdeps_transitive</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"rgraph.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">rgraph_direct</span><span class="p">,</span> <span class="n">fh</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"rgraph-transitive.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">rgraph_transitive</span><span class="p">,</span> <span class="n">fh</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</code></pre></div>
+<p>A library that provides a comprehensive graph management toolset would let you get the transitive links of a node, so exporting the reverse dependencies transitively may not be strictly necessary, however, if you are planning to run lots of queries on all the nodes, it may be worth exporting the node connections transitively, too.</p>
+<p>Let’s explore what kind of questions we can get answered by having a dependency graph data ready!</p>
+<h2 id="validate-dependencies">Validate dependencies<a class="headerlink" href="#validate-dependencies" title="Permanent link">¶</a></h2>
+<p>It is a common practice for applications to depend on libraries (shared code), however, it is also possible (but less ideal) for an application to use code from another application. If multiple applications have some code they both need, it is often suggested that this code is extracted into a shared library so that both applications can depend on that instead.</p>
+<p>Bazel provides a <a href="https://bazel.build/concepts/visibility">target visibility</a> mechanism that enforces rules of dependency between your codebase components. However, visibility rules may be not expressive enough to cover a special case. For instance, if you follow a particular deployment model, you may need to make sure that a specified module will never end up as a transitive dependency of a certain package. Or you may want to enforce that some code is justified to exist in a particular package only if it’s being imported by specified packages (e.g. you may want to prevent placing any modules in the <code>src/common-plugins</code> package unless they are imported by <code>src/plugins</code> package modules).</p>
+<h2 id="count-dependencies-and-dependents">Count dependencies and dependents<a class="headerlink" href="#count-dependencies-and-dependents" title="Permanent link">¶</a></h2>
+<p>These are helper functions we will need later to query the graph.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">json</span>
+
+<span class="k">def</span> <span class="nf">count_deps</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">"../</span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[(</span><span class="n">m</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">deps</span><span class="p">))</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">deps</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+
+<span class="k">def</span> <span class="nf">count_deps_tests_only</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">"../</span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[(</span><span class="n">m</span><span class="p">,</span> <span class="nb">len</span><span class="p">([</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">deps</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"//test"</span><span class="p">)]))</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">deps</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+
+<span class="k">def</span> <span class="nf">count_deps_workspace_only</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">"../</span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[(</span><span class="n">m</span><span class="p">,</span> <span class="nb">len</span><span class="p">([</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">deps</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"//"</span><span class="p">)]))</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">deps</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+
+<span class="k">def</span> <span class="nf">count_deps_workspace_only_sources_only</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">"../</span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[(</span><span class="n">m</span><span class="p">,</span> <span class="nb">len</span><span class="p">([</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">deps</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"//source"</span><span class="p">)]))</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">deps</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span>
+</code></pre></div>
+<h3 id="sources-with-most-dependencies-direct-and-transitive">Sources with most dependencies (direct and transitive)<a class="headerlink" href="#sources-with-most-dependencies-direct-and-transitive" title="Permanent link">¶</a></h3>
+<p>A module that directly depends on many other modules is more likely to be considered changed when any of its dependencies change. Most often, the size of the file (in terms of lines of code) goes hand in hand with a number of dependencies: the larger the file is, the more dependencies it has, but it’s not always the case. For instance, a file containing boilerplate code or generated code may be thousands of lines but have no or only a few dependencies.</p>
+<p>Test modules that have lots of transitive dependencies are more likely to be run on an arbitrary change in a repository so it may be worth looking at them to see if they have related code that could be extracted into separate modules.</p>
+<p>In the code snippets below, we list tests related modules with the largest number of dependencies (e.g. <code>//test/tools/config_load_check:config_load_check_tool</code> depends transitively on 4868 targets):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># taking into account only local workspace targets</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">count_deps_workspace_only</span><span class="p">(</span><span class="s2">"graph.json"</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">    ('//test/config_test:example_configs_test', 5084)</span>
+<span class="err">    ('//test/server/config_validation:config_fuzz_test_oss_fuzz', 4958)</span>
+<span class="err">    ('//test/server/config_validation:config_fuzz_test_run', 4958)</span>
+<span class="err">    ('//test/server/config_validation:config_fuzz_test_bin', 4957)</span>
+<span class="err">    ('//test/server/config_validation:config_fuzz_test', 4955)</span>
+<span class="err">    ('//test/server:server_fuzz_test_oss_fuzz', 4938)</span>
+<span class="err">    ('//test/server:server_fuzz_test_run', 4938)</span>
+<span class="err">    ('//test/server:server_fuzz_test_bin', 4937)</span>
+<span class="err">    ('//test/server:server_fuzz_test', 4935)</span>
+<span class="err">    ('//test/tools/config_load_check:config_load_check_tool', 4868)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># taking into account only local workspace targets, "source" directory only</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">count_deps_workspace_only_sources_only</span><span class="p">(</span><span class="s2">"graph.json"</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">    ('//test/exe:win32_scm_test', 3936)</span>
+<span class="err">    ('//test/exe:build_id_test', 3931)</span>
+<span class="err">    ('//test/exe:envoy_static_test', 3931)</span>
+<span class="err">    ('//test/exe:pie_test', 3931)</span>
+<span class="err">    ('//test/exe:version_out_test', 3931)</span>
+<span class="err">    ('//test/exe:win32_outofproc_main_test', 3931)</span>
+<span class="err">    ('//test/exe:check_extensions_against_registry_test', 3921)</span>
+<span class="err">    ('//test/exe:extra_extensions_test', 3920)</span>
+<span class="err">    ('//test/config_test:example_configs_test', 3880)</span>
+<span class="err">    ('//test/server/config_validation:config_fuzz_test', 3880)</span>
+</code></pre></div>
+<p>Typically, a smaller test module means fewer dependencies and therefore lower probability that the test module will be considered changed in an arbitrary build. Smaller modules help with parallelization of tests (when sharding is based on files, not on individual test cases). Likewise, since caching is done on individual files, one would be able to avoid re-running tests that are known to have already been completed recently. This is one of the reasons why one would want to refactor a large test module into multiple ones.</p>
+<h3 id="sources-with-most-dependents-direct-and-transitive">Sources with most dependents (direct and transitive)<a class="headerlink" href="#sources-with-most-dependents-direct-and-transitive" title="Permanent link">¶</a></h3>
+<p>In the code snippets below, we list modules with the largest number of dependents (e.g. there are 135 targets that directly depend on <code>//source/common/network:utility_lib</code> and there are 5157 targets that transitively depend on <code>//source/common/common:non_copyable</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">count_deps</span><span class="p">(</span><span class="s2">"rgraph.json"</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">    ('//source/common/common:common_pch', 1802)</span>
+<span class="err">    ('//source/common/common:assert_lib', 312)</span>
+<span class="err">    ('//source/common/buffer:buffer_lib', 215)</span>
+<span class="err">    ('//source/common/protobuf:utility_lib', 208)</span>
+<span class="err">    ('//source/common/common:minimal_logger_lib', 155)</span>
+<span class="err">    ('//source/common/http:header_map_lib', 153)</span>
+<span class="err">    ('//source/common/config:utility_lib', 150)</span>
+<span class="err">    ('//source/common/common:utility_lib', 147)</span>
+<span class="err">    ('//source/common/protobuf:protobuf', 144)</span>
+<span class="err">    ('//source/common/network:utility_lib', 135)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">count_deps</span><span class="p">(</span><span class="s2">"rgraph-transitive.json"</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">    ('//source/common/common:common_pch_libs', 5544)</span>
+<span class="err">    ('//source/common/common:common_pch', 5543)</span>
+<span class="err">    ('//source/common/common:thread_annotations', 5166)</span>
+<span class="err">    ('//source/common/common:macros', 5165)</span>
+<span class="err">    ('//source/common/protobuf:wkt_protos', 5163)</span>
+<span class="err">    ('//source/common/protobuf:cc_wkt_protos', 5162)</span>
+<span class="err">    ('//source/common/common:base_logger_lib', 5161)</span>
+<span class="err">    ('//source/common/protobuf:protobuf', 5161)</span>
+<span class="err">    ('//source/common/common:fmt_lib', 5158)</span>
+<span class="err">    ('//source/common/common:non_copyable', 5157)</span>
+</code></pre></div>
+<p>Source modules that are needed transitively by lots of other modules may benefit from refactoring, particularly if they are edited often. This is because having any of those modules modified would require running all the tests that depend on them (transitively).</p>
+<p>In the example below, you can see that <code>//source/common/common:macros</code> target is a transitive dependency of 1781 targets declared in the <code>test</code> directory:</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">count_deps_tests_only</span><span class="p">(</span><span class="s2">"rgraph-transitive.json"</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">    ('//source/common/common:common_pch', 1808)</span>
+<span class="err">    ('//source/common/common:common_pch_libs', 1808)</span>
+<span class="err">    ('//source/common/common:thread_annotations', 1782)</span>
+<span class="err">    ('//source/common/common:assert_lib', 1781)</span>
+<span class="err">    ('//source/common/common:base_logger_lib', 1781)</span>
+<span class="err">    ('//source/common/common:fmt_lib', 1781)</span>
+<span class="err">    ('//source/common/common:lock_guard_lib', 1781)</span>
+<span class="err">    ('//source/common/common:logger_impl_lib_android', 1781)</span>
+<span class="err">    ('//source/common/common:logger_impl_lib_standard', 1781)</span>
+<span class="err">    ('//source/common/common:macros', 1781)</span>
+</code></pre></div>
+<h2 id="graph-analysis-searching-for-improvements">Graph analysis: searching for improvements<a class="headerlink" href="#graph-analysis-searching-for-improvements" title="Permanent link">¶</a></h2>
+<p>When introducing an artifact-based build system to a large, legacy codebase that has evolved without paying attention to the dependency graph’s shape, builds may be slow not because the code compilation or tests take long, but because any change in the source code requires re-building most or all targets. For instance, if all targets transitively depend on a module with many widely used constants that are modified often, there will be lots of build actions unless this module is split across multiple modules each containing only closely related code.</p>
+<p>Cutting the build time by bringing remote execution and caching will certainly have an effect, however, it may be worth spending some time analyzing the dependency graph first to find out what kind of refactoring would minimize the interconnectedness of the graph, ultimately breaking the dependency chain between packages or individual modules.</p>
+<p>For instance, it may be common for modules (that are external to your team’s project) to depend only on a few members in your project/application; this could be a constant or a convenience function. Placing constants that do not depend on anything (a string literal, a magic number, or an enum) in a separate module will increase the chances that other projects would not depend on your project’s modules that have dependencies leading to other project modules (or modules external to your team’s ownership).</p>
+<p>Bazel <a href="https://bazel.build/query/guide#steps-footests">documentation</a> suggests that Bazel query language may have limitations in what information can be retrieved, but you will need to use a separate library to analyze the graph anyway.</p>
+<p>With a sophisticated graph querying tool, you’ll be able to find answers to questions similar to these: </p>
+<ul>
+<li>dependency chain between what nodes need to be broken to have a number of dependencies lowered for most nodes? (these could be identified as <a href="https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.bridges.bridges.html#networkx.algorithms.bridges.bridges">bridges</a> in an undirected graph)</li>
+<li>are there any source modules that do not have any dependencies and no one depends on them? (known as <a href="https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.isolate.is_isolate.html#networkx.algorithms.isolate.is_isolate">isolates</a>)</li>
+<li>are there any third-party dependencies that are brought into a deployable package (via a transitive dependency) that is supposed to contain first-party code only?</li>
+</ul>
+<p>With this code snippet, the dependency graph is loaded into a <code>networkx</code> graph to be explored later:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">networkx.drawing.nx_pydot</span> <span class="kn">import</span> <span class="n">read_dot</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">read_dot</span><span class="p">(</span><span class="s2">"../graph.dot"</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="longest-paths-in-the-graph">Longest paths in the graph<a class="headerlink" href="#longest-paths-in-the-graph" title="Permanent link">¶</a></h2>
+<p>It is possible to list the longest paths in the graph to get an idea about how complicated the codebase is:</p>
+<div class="highlight"><pre><span></span><code><span class="n">dag_longest_path</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">    ['//source/exe:envoy',</span>
+<span class="err">     '//source/exe:envoy-static',</span>
+<span class="err">     '//source/exe:envoy_main_entry_lib',</span>
+<span class="err">     '//source/exe:scm_impl_lib',</span>
+<span class="err">     '//source/exe:main_common_lib',</span>
+<span class="err">     '//source/exe:envoy_common_lib',</span>
+<span class="err">     '//source/extensions/filters/udp/dns_filter:config_envoy_extension',</span>
+<span class="err">     '//source/extensions/filters/udp/dns_filter:config',</span>
+<span class="err">     '//source/extensions/filters/udp/dns_filter:dns_filter_lib',</span>
+<span class="err">     '//source/common/upstream:cluster_manager_lib',</span>
+<span class="err">     '//source/common/http:conn_pool_grid',</span>
+<span class="err">     '//source/common/http:mixed_conn_pool',</span>
+<span class="err">     '//source/common/tcp:conn_pool_lib',</span>
+<span class="err">     '//source/common/http:conn_pool_base_lib',</span>
+<span class="err">     '//source/common/conn_pool:conn_pool_base_lib',</span>
+<span class="err">     '//source/common/upstream:upstream_lib',</span>
+<span class="err">     '//source/common/upstream:cluster_factory_lib',</span>
+<span class="err">     '//source/common/upstream:cluster_factory_includes',</span>
+<span class="err">     '//source/common/upstream:outlier_detection_lib',</span>
+<span class="err">     '//source/common/upstream:upstream_includes',</span>
+<span class="err">     '//source/extensions/filters/network/http_connection_manager:config',</span>
+<span class="err">     '//source/common/http:conn_manager_lib',</span>
+<span class="err">     '//source/common/router:scoped_rds_lib',</span>
+<span class="err">     '//source/common/router:rds_lib',</span>
+<span class="err">     '//source/common/router:vhds_lib',</span>
+<span class="err">     '//source/common/router:route_config_update_impl_lib',</span>
+<span class="err">     '//source/common/rds:rds_lib',</span>
+<span class="err">     '//source/common/common:callback_impl_lib',</span>
+<span class="err">     '//source/common/event:dispatcher_lib',</span>
+<span class="err">     '//source/common/network:default_client_connection_factory',</span>
+<span class="err">     '//source/common/network:connection_impl',</span>
+<span class="err">     '//source/common/network:connection_base_lib',</span>
+<span class="err">     '//source/common/network:filter_manager_lib',</span>
+<span class="err">     '//source/common/runtime:runtime_lib',</span>
+<span class="err">     '//source/common/grpc:common_lib',</span>
+<span class="err">     '//source/common/http:header_utility_lib',</span>
+<span class="err">     '//source/common/http:utility_lib',</span>
+<span class="err">     '//source/common/network:utility_lib',</span>
+<span class="err">     '//source/common/network:default_socket_interface_lib',</span>
+<span class="err">     '//source/common/event:dispatcher_includes',</span>
+<span class="err">     '//source/common/signal:sigaction_lib',</span>
+<span class="err">     '//source/server:backtrace_lib',</span>
+<span class="err">     '//source/common/version:version_lib',</span>
+<span class="err">     '//source/common/protobuf:utility_lib',</span>
+<span class="err">     '//source/common/protobuf:yaml_utility_lib',</span>
+<span class="err">     '//source/common/protobuf:visitor_lib',</span>
+<span class="err">     '//source/common/protobuf:message_validator_lib',</span>
+<span class="err">     '//source/common/common:logger_lib',</span>
+<span class="err">     '//source/common/common:minimal_logger_lib',</span>
+<span class="err">     '//source/common/common:lock_guard_lib',</span>
+<span class="err">     '//source/common/common:thread_annotations',</span>
+<span class="err">     '//source/common/common:common_pch',</span>
+<span class="err">     '//source/common/common:common_pch_libs']</span>
+</code></pre></div>
+<h2 id="all-paths-between-two-targets">All paths between two targets<a class="headerlink" href="#all-paths-between-two-targets" title="Permanent link">¶</a></h2>
+<p>It is possible to generate all paths between two targets to get a sense of the amount of refactoring that would be necessary to break the dependency chain between them:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">networkx.algorithms.simple_paths</span> <span class="kn">import</span> <span class="n">all_simple_paths</span>
+
+<span class="c1"># number of unique paths between two targets</span>
+<span class="n">paths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+    <span class="n">all_simple_paths</span><span class="p">(</span>
+        <span class="n">g</span><span class="p">,</span> 
+        <span class="s2">"//source/common/http:conn_pool_grid"</span><span class="p">,</span> 
+        <span class="s2">"//source/common/router:vhds_lib"</span><span class="p">,</span> 
+        <span class="mi">12</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">    166</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># most commonly visited nodes in the paths between targets</span>
+<span class="n">Counter</span><span class="p">([</span><span class="n">elem</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">path</span><span class="p">])</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="err">    [('//source/common/http:conn_pool_grid', 166),</span>
+<span class="err">     ('//source/common/upstream:upstream_lib', 166),</span>
+<span class="err">     ('//source/common/upstream:upstream_includes', 166),</span>
+<span class="err">     ('//source/extensions/filters/network/http_connection_manager:config', 166),</span>
+<span class="err">     ('//source/common/router:rds_lib', 166),</span>
+<span class="err">     ('//source/common/router:vhds_lib', 166),</span>
+<span class="err">     ('//source/common/http:mixed_conn_pool', 137),</span>
+<span class="err">     ('//source/common/http:conn_pool_base_lib', 136),</span>
+<span class="err">     ('//source/common/router:scoped_rds_lib', 106),</span>
+<span class="err">     ('//source/common/upstream:cluster_factory_lib', 94)]</span>
+</code></pre></div>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p>Having dependency graph data exported from a Bazel-managed codebase provides enormous opportunities for code exploration and research. Providing internal tooling to make this information accessible to every engineer will help scale the refactoring, if applicable. Using Bazel to record the graph state regularly makes it possible to track dependency graph health by collecting various metrics such as an average number of tests per source module or an average number of connections per target. See <a href="https://docs.google.com/presentation/d/1McLw_yWbPuR1UqaoowHMsu5LskPJX7kWETkB-DkqNpo/edit?resourcekey=0-sVMAbv967ww2kWvJuzyN5w#slide=id.g1867ddcecfb_0_4281">BazelCon 2022 - Driving Architectural Improvements with Dependency Metrics</a> to learn more.</p>
+<p>Visit the Bazel <a href="https://bazel.build/query/guide">query guide</a> to learn more about querying a project and <a href="https://bazel.build/query/language#language-concepts">Bazel Query Reference</a>. For inspiration, see what a <a href="https://github.com/AlexTereshenkov/pantsights">web UI for exploring the dependency graph</a> may look like.</p>
+<p>Happy building!</p>
+
+
+             
+ 
+            
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2024-02-11T00:00:00+00:00">Sun 11 February 2024</time>
+
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#bazel-ref">bazel</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="/tags.html#bazel-ref">bazel
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="/tags.html#networkx-ref">networkx
+                    <span class="superscript">1</span>
+</a></li>
+            </ul>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+
+
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="/theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

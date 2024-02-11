@@ -5,43 +5,50 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/</loc>
-<lastmod>2023-07-29T11:05:35-00:00</lastmod>
+<lastmod>2024-02-11T08:51:24-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/tags.html</loc>
-<lastmod>2023-07-29T11:05:35-00:00</lastmod>
+<lastmod>2024-02-11T08:51:24-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/categories.html</loc>
-<lastmod>2023-07-29T11:05:35-00:00</lastmod>
+<lastmod>2024-02-11T08:51:24-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/archives.html</loc>
-<lastmod>2023-07-29T11:05:35-00:00</lastmod>
+<lastmod>2024-02-11T08:51:24-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/search.html</loc>
-<lastmod>2023-07-29T11:05:35-00:00</lastmod>
+<lastmod>2024-02-11T08:51:24-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>/404.html</loc>
-<lastmod>2023-07-29T11:05:35-00:00</lastmod>
+<lastmod>2024-02-11T08:51:24-00:00</lastmod>
 <changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>/querying-dependency-graph-bazel.html</loc>
+<lastmod>2024-02-11T00:00:00+00:00</lastmod>
+<changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
@@ -242,6 +249,13 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </url>
 
 <url>
+<loc>/category/bazel.html</loc>
+<lastmod>2024-02-11T00:00:00-00:01</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
 <loc>/category/build-systems.html</loc>
 <lastmod>2020-08-21T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
@@ -286,6 +300,20 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>/category/tech-support.html</loc>
 <lastmod>2020-11-13T00:00:00-00:01</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>/tag/bazel.html</loc>
+<lastmod>2024-02-11T00:00:00-00:01</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>/tag/networkx.html</loc>
+<lastmod>2024-02-11T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -523,7 +551,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>/author/alexey-tereshenkov.html</loc>
-<lastmod>2022-07-23T00:00:00-00:01</lastmod>
+<lastmod>2024-02-11T00:00:00-00:01</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
