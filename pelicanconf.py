@@ -40,6 +40,10 @@ DIRECT_TEMPLATES = ('index', 'tags', 'categories','archives', 'search', '404')
 PROJECTS_TITLE = "Hobby projects"
 PROJECTS = [
     {
+    'name': 'Querying dependency graph',
+    'url': 'https://github.com/AlexTereshenkov/dg-query',
+    'description': ('Query dependency graph of a codebase (Go, Bazel)')},
+    {
     'name': 'Building Python with Pants',
     'url': 'https://github.com/AlexTereshenkov/cheeseshop-query',
     'description': ('Build a Python project with PyPI dependencies using Pants')},
